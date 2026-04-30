@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp"
+    app:cardUseCompatPadding="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <!-- FILA SUPERIOR: NOMBRE + BOTONES ACCIÓN -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:id="@+id/tv_res_cliente"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="NOMBRE RESERVA"
+                android:textColor="@color/black"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/btnEditReserva"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEditReserva"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="EDITAR"
+                android:textColor="@color/colorBtnEdit"
+                android:textSize="12sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/btnDeleteReserva"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDeleteReserva"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="BORRAR"
+                android:textColor="@color/colorBtnDelete"
+                android:textSize="12sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- INFORMACIÓN SECUNDARIA (TELÉFONO Y FECHAS OCULTAS PERO ACCESIBLES) -->
+        <TextView
+            android:id="@+id/tv_res_fechas"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:text="2026-01-01 -> 2026-01-05"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="13sp" />
+
+        <!-- FILA INFERIOR: BOTÓN ANCHO COMPLETO -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSendReserva"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/colorBtnEdit"
+            android:text="ENVIAR INFORMACIÓN"
+            android:textColor="@android:color/white"
+            app:cornerRadius="4dp" />
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

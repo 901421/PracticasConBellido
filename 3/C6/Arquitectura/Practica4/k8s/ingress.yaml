@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mis-aplicaciones-ingress
+spec:
+  rules:
+  - host: mis-aplicaciones.com
+    http:
+      paths:
+      - path: /orders
+        pathType: Prefix
+        backend:
+          service:
+            name: api-gateway-service
+            port:
+              number: 80
+      - path: /inventory
+        pathType: Prefix
+        backend:
+          service:
+            name: api-gateway-service
+            port:
+              number: 80

@@ -1,0 +1,88 @@
+================================================================================
+           ALGORITMIA BÁSICA - GRADO EN INGENIERÍA INFORMÁTICA
+                    CURSO 2025/26 - PRÁCTICA 1
+================================================================================
+
+ESTUDIANTES:
+- Imad Habib Jali - NIA: 901421
+- Jorge Bellido Lobera - NIA: 903080
+
+--------------------------------------------------------------------------------
+1. DESCRIPCIÓN GENERAL DEL DIRECTORIO
+--------------------------------------------------------------------------------
+Este directorio contiene la solución para la generación de figuras de Hilorama 
+(String Art) mediante una heurística voraz. El código está 
+organizado de forma modular para facilitar su navegación y mantenimiento:
+
+- main.cpp: 
+    Punto de entrada del programa. Implementa el bucle principal del algoritmo 
+    voraz, la gestión de candidatos (P) y la selección (S).
+- imagen.h / imagen.cpp: 
+    Módulo encargado de la gestión de memoria de la imagen y la entrada/salida 
+    de archivos PGM.
+- geometria.h / geometria.cpp: 
+    Contiene la estructura de Punto y la implementación del algoritmo de 
+    Bresenham para el trazado de líneas entre clavos.
+- ejecutar.sh: 
+    Script para la shell que automatiza la compilación y ejecución de las 
+    pruebas en el entorno lab000.
+- pruebas/: 
+    Subdirectorio con los archivos PGM de entrada para validar el sistema.
+- LEEME: 
+    Este archivo con las instrucciones generales.
+
+--------------------------------------------------------------------------------
+2. INSTRUCCIONES DE COMPILACIÓN
+--------------------------------------------------------------------------------
+El programa debe compilarse en lab000. Se recomienda el uso de optimización -O3 
+para mejorar el rendimiento en el cálculo de error:
+
+    g++ -O3 main.cpp imagen.cpp geometria.cpp -o hilos
+
+O mediante el script automático:
+    chmod +x ejecutar.sh
+    ./ejecutar.sh
+
+--------------------------------------------------------------------------------
+3. INSTRUCCIONES DE EJECUCIÓN
+--------------------------------------------------------------------------------
+El ejecutable "hilos" no tiene menús que permitan la interactividad; todas las
+acciones posibles se controlan a través de la llamada.
+
+Uso:
+    ./hilos <n_clavos> <p_candidatos> <s_seleccion> <imagen_in> <fichero_salida> [intensidad_hilo]
+
+Parámetros:
+- n_clavos (N): Número de clavos que se van a utilizar para la generación.
+- p_candidatos (P): Número de hilos evaluados (candidatos) para realizar los cálculos.
+- s_seleccion (S): Número de hilos que seleccionaremos en cada paso.
+- imagen_in: Archivo PGM de entrada.
+- fichero_salida: Nombre base para el archivo de texto y la imagen resultante.
+- intensidad_hilo (Opcional): MEJORA IMPLEMENTADA. Valor de opacidad/intensidad 
+  del hilo. Si no se indica, toma un valor por defecto predefinido de 5 para 
+  asegurar que la llamada básica siga funcionando.
+
+Ejemplos:
+  1. Ejecución estándar (con intensidad por defecto):
+     ./hilos 1000 1100 30 pruebas/retrato.pgm resultado
+
+  2. Ejecución haciendo uso de la mejora (hilos más oscuros, ej. intensidad 15):
+     ./hilos 1000 1100 30 pruebas/retrato.pgm resultado 15
+
+--------------------------------------------------------------------------------
+4. NOTAS SOBRE EL ALGORITMO Y HEURÍSTICA
+--------------------------------------------------------------------------------
+- Selección Voraz: El sistema elige los mejores 'S' hilos de un conjunto 'P' 
+  aleatorio, priorizando aquellos que minimizan la función de error al acercarse
+  a la escala de grises original.
+- Mejora de Rendimiento (Lazy Evaluation): Se ha implementado un sistema que 
+  re-evalúa el error aportado por un hilo justo antes de dibujarlo. Esto evita 
+  que hilos superpuestos en la misma ronda se anulen entre sí.
+- Condición de parada: El sistema finaliza si alcanza un límite de seguridad 
+  máximo de hilos o si no quedan candidatos útiles en la ronda.
+- Opacidad (Mejora 2.5.1): Se asume una intensidad de hilo parametrizable en la 
+  llamada al programa, lo que permite al algoritmo sacar partido de la 
+  superposición de hilos.
+- Salida: El programa genera un resumen con el tiempo de ejecución, número 
+  de líneas, error y parámetros del programa.
+================================================================================

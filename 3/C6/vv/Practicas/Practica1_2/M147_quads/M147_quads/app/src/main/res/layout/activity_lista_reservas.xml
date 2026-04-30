@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5">
+
+    <!-- 1. ZONA DE ACCIONES (ORDENAR / FILTRAR) - AHORA EN MARRÓN -->
+    <LinearLayout
+        android:id="@+id/action_bar_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_ordenar_trigger"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:text="ORDENAR"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/colorBtnEdit"
+            app:cornerRadius="8dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_filtrar_trigger"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:text="FILTRAR"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/colorBtnEdit"
+            app:cornerRadius="8dp" />
+
+    </LinearLayout>
+
+    <!-- 2. LISTADO PRINCIPAL -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerview_reservas"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:padding="16dp"
+        android:scrollbars="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/action_bar_row"
+        tools:listitem="@layout/item_reserva" />
+
+    <TextView
+        android:id="@+id/empty_view_reservas"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="No hay reservas disponibles"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/action_bar_row" />
+
+    <!-- 3. OVERLAYS (MENÚS DESPLEGABLES DESDE ABAJO) -->
+    
+    <!-- FONDO OSCURO (DIMMER) - CUBRE TODA LA PANTALLA -->
+    <View
+        android:id="@+id/view_dimmer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- PANEL ORDENAR (DESDE ABAJO) -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/panel_ordenar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="16dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ordenar por"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/black"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageButton
+                    android:id="@+id/btn_close_ordenar"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@android:drawable/ic_menu_close_clear_cancel"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <TextView
+                android:id="@+id/opt_sort_nombre"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:text="Nombre"
+                android:textSize="16sp"
+                android:textColor="@color/black" />
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" />
+
+            <TextView
+                android:id="@+id/opt_sort_telefono"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:text="Teléfono"
+                android:textSize="16sp"
+                android:textColor="@color/black" />
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" />
+
+            <TextView
+                android:id="@+id/opt_sort_fecha_in"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:text="Fecha de recogida"
+                android:textSize="16sp"
+                android:textColor="@color/black" />
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" />
+
+            <TextView
+                android:id="@+id/opt_sort_fecha_out"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:text="Fecha de devolución"
+                android:textSize="16sp"
+                android:textColor="@color/black" />
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- PANEL FILTRAR (DESDE ABAJO) -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/panel_filtrar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="16dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Filtrar por"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/black"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageButton
+                    android:id="@+id/btn_close_filtrar"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@android:drawable/ic_menu_close_clear_cancel"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <TextView
+                android:id="@+id/opt_filter_previstas"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:text="Reservas previstas"
+                android:textSize="16sp"
+                android:textColor="@color/black" />
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" />
+
+            <TextView
+                android:id="@+id/opt_filter_vigentes"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:text="Reservas vigentes"
+                android:textSize="16sp"
+                android:textColor="@color/black" />
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" />
+
+            <TextView
+                android:id="@+id/opt_filter_caducadas"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:text="Reservas caducadas"
+                android:textSize="16sp"
+                android:textColor="@color/black" />
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" />
+
+            <TextView
+                android:id="@+id/opt_filter_todas"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:text="Todas las reservas"
+                android:textSize="16sp"
+                android:textColor="@color/black" />
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

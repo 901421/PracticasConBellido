@@ -1,0 +1,58 @@
+===============================================================================
+              PRÁCTICA DE ALGORITMIA: PROGRAMACIÓN DINÁMICA
+                      Problema de Partición de Palabras
+===============================================================================
+
+Autores: Imad Habib Jali 901421 y Jorge Bellido Lobera 903080
+
+Este directorio contiene el código fuente, los datos y los scripts de 
+automatización para la resolución del problema de Partición de Palabras 
+(Word Break) mediante la evolución de un algoritmo de fuerza bruta hacia 
+dos enfoques de Programación Dinámica.
+
+--- ESTRUCTURA DEL DIRECTORIO -------------------------------------------------
+
+1. CÓDIGO FUENTE (C++17)
+   - particion_palabras.hpp : Cabeceras y documentación de las funciones.
+   - particion_palabras.cpp : Implementación de las 3 variantes algorítmicas:
+        * Variante 1: Recursiva Pura (Top-Down sin caché, O(2^n))
+        * Variante 2: Recursiva con Memoización (Top-Down con caché Hash)
+        * Variante 3: Tabulación (Bottom-Up iterativo, DP puro)
+   - main.cpp : Punto de entrada ejecutable. Analiza argumentos, carga 
+                ficheros, gestiona el flujo y cronometra el rendimiento.
+
+2. DATOS BASE (Ficheros del enunciado)
+   - diccionario.txt : Diccionario estándar de pruebas de la práctica.
+   - texto.txt : Frases originales de la práctica a evaluar.
+
+3. AUTOMATIZACIÓN Y BENCHMARKING
+   - ejecutar.sh : Script principal de Bash. Compila el código, gestiona los
+                   experimentos, protege el sistema de desbordamientos de 
+                   tiempo en la Variante 1 y extrae las métricas.
+                   
+4. FICHEROS GENERADOS (Aparecen tras ejecutar ./ejecutar.sh)
+   - separarPalabras : Binario ejecutable compilado con optimizaciones (-O3).
+   - generador_datos.py : Script temporal de Python creado por el entorno
+                          para generar aleatoriedad precisa.
+   - datos_generados/ : Subdirectorio limpio donde se almacenan todos los 
+                        textos y diccionarios aleatorios de prueba (100 y 
+                        1000 palabras, textos limpios y sucios).
+   - resultados.csv : Archivo con formato de valores separados por comas para
+                      facilitar la creación de las gráficas de la memoria.
+   - resumen.txt : Log de ejecución legible por humanos que contiene la salida
+                   de las pruebas del enunciado y un sumario de los tiempos.
+
+--- INSTRUCCIONES DE USO ------------------------------------------------------
+
+Para compilar y lanzar toda la batería de pruebas de forma automatizada, 
+simplemente abra una terminal en este directorio y ejecute:
+
+    chmod +x ejecutar.sh
+    ./ejecutar.sh
+
+Si desea ejecutar el programa compilado de forma manual para una variante
+concreta, la sintaxis es:
+
+    ./separarPalabras <variante> <ruta_diccionario> <ruta_texto>
+    
+    Ejemplo: ./separarPalabras 3 diccionario.txt texto.txt

@@ -1,0 +1,1 @@
+# No hay dependencias externas (solo librería estándar y mom_client.py)

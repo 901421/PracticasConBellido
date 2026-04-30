@@ -1,0 +1,46 @@
+Clientes abonados(Nombre, dirección y numero de teléfono)/ticket
+Dos barreras con lector tarjeta abonos / dispensador(entrada) lector(salida) tickets
+	En la entrada con ticket
+		Se envía(dispensador de tickets) al sistema(ordenador de gestión) el código ticket(0-99999), fecha y hora, P2(TAMBIEN MATRICULA)
+			Una vez enviado abre la barrera
+	 Salida: 
+		Cliente debe pasar por caja(tiene un lector de tickets) antes de salir para pagar
+			Cajero solicita(ordenador de gestión) fecha y hora de entrada del coche
+				Cajero calcula importe
+			El cliente paga
+			El operario valida el pago
+				Lector envía al ordenador de gestión que el ticket a sido pagado
+			Cuando el usuario quiere salir introduce ticket lector barrera salida
+				Pregunta al ordenador de gestión si ticket pagado y autoriza salida
+					Si ordenador de gestión autoriza salida P2(y matricula coche coincide), envía confirmación al lector, lector abre barrera
+					Si no envía rechazo al lector, volvemos inicio secuencia de salida(hay carril especializado)
+		
+
+	En la entrada con abono (Tiene que haber pasado la salida antes de entrar de nuevo)
+		Se envía(lector de tarjetas) al sistema(ordenador de gestión) el código de abonado(1-999), P2(TAMBIEN MATRICULA)
+			Una vez enviado espera(lector de tarjetas) confirmación del ordenador de gestión
+	 Salida:
+		Introduce tarjeta de abonado en lector de barrera de salida
+			Pregunta al ordenador de gestión si permite la salida
+				Ordenador envía confirmación al lector que abre la barrera de salida
+
+Detalles parking:
+	Parking de 90 plazas para turismos normales, 8 plazas de discapacitados, 15 plazas para motos
+	No mas de 60 abonados + 30 no abonados
+	Entrada salida media de 10-30 por hora con picos de 50
+	Cuando esta lleno el parking la barrera de entrada no sube hasta que no sale alguien
+	Lector matricula entrada/salida
+
+Tarifas:
+	Clientes Ticket:
+		Primeros 10 minutos gratis(si se entra con ticket directo al lector de la barrera sin pasar por caja)
+		Después de los 10 minutos, el precio se calcula por fragmentos de 5 minutos
+		Máximo 24 horas estacionado
+		Si el cliente pierde el ticket se le cobraran las 24horas en el cajero, que le generara también el ticket de salida para la barrera
+	Cliente abonado:
+		Domiciliación a final de mes con el cargo correspondiente a las estancias(Impagos = cancelación hasta pago deuda)
+	
+Abonados:
+	Puede registrar hasta dos coches, pero solo uno a la vez estacionado dentro
+	Numero abonado 1-999
+	Un coche asociado a un único abono

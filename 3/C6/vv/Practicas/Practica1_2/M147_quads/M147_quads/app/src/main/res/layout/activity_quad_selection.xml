@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+
+    <!-- ========================================== -->
+    <!-- NUEVO: BOTONES DE ORDENACIÓN (Igual que en lista principal) -->
+    <!-- ========================================== -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ORDENAR POR:"
+        android:gravity="center"
+        android:textStyle="italic"
+        android:textSize="12sp"
+        android:layout_marginBottom="4dp" />
+
+     <com.google.android.material.button.MaterialButtonToggleGroup
+        android:id="@+id/toggleGroupSelection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        app:singleSelection="true"
+        app:selectionRequired="true"
+        app:checkedButton="@id/sort_matricula">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/sort_matricula"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="MATRÍCULA"
+            android:textSize="10sp"
+            app:strokeColor="@color/colorBtnEdit"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/sort_tipo"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="TIPO"
+            android:textSize="10sp"
+            app:strokeColor="@color/colorBtnEdit"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/sort_precio"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="PRECIO"
+            android:textSize="10sp"
+            app:strokeColor="@color/colorBtnEdit"/>
+
+    </com.google.android.material.button.MaterialButtonToggleGroup>
+    <!-- ========================================== -->
+
+    <!-- Lista de Quads -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_selection"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:scrollbars="vertical"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Mensaje de lista vacía -->
+    <TextView
+        android:id="@+id/empty_view_selection"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="@string/no_available_quads"
+        android:textColor="@android:color/holo_red_dark"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Botones Inferiores -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_cancel_selection"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:text="@string/btn_cancelar"
+            android:backgroundTint="#CCCCCC"
+            android:textColor="@android:color/black"/>
+
+        <Button
+            android:id="@+id/btn_confirm_selection"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:text="@string/btn_confirmar"
+            android:backgroundTint="@color/colorBtnEdit"
+            android:textColor="@android:color/white"/>
+    </LinearLayout>
+</LinearLayout>

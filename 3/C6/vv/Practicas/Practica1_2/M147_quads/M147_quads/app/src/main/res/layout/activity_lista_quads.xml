@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context=".ui.QuadListActivity">
+
+    <!-- TEXTO 'ORDENAR' -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ORDENAR POR:"
+        android:gravity="center"
+        android:textStyle="italic"
+        android:textSize="12sp"
+        android:layout_marginBottom="4dp" />
+
+    <!-- GRUPO DE BOTONES (ESTILO RESERVAS) -->
+    <com.google.android.material.button.MaterialButtonToggleGroup
+        android:id="@+id/toggleGroupQuads"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        app:singleSelection="true"
+        app:selectionRequired="true"
+        app:checkedButton="@id/sort_matricula">
+
+        <!-- BOTÓN 1: MATRÍCULA -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/sort_matricula"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="MATRÍCULA"
+            android:textSize="10sp"
+            android:padding="0dp"
+            app:strokeColor="@color/colorBtnEdit"
+            android:textColor="@color/black"/>
+
+        <!-- BOTÓN 2: TIPO -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/sort_tipo"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="TIPO"
+            android:textSize="10sp"
+            android:padding="0dp"
+            app:strokeColor="@color/colorBtnEdit"
+            android:textColor="@color/black"/>
+
+        <!-- BOTÓN 3: PRECIO -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/sort_precio"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="PRECIO"
+            android:textSize="10sp"
+            android:padding="0dp"
+            app:strokeColor="@color/colorBtnEdit"
+            android:textColor="@color/black"/>
+
+    </com.google.android.material.button.MaterialButtonToggleGroup>
+
+    <!-- LISTA (RecyclerView) -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerview"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingTop="8dp"
+        android:clipToPadding="false"
+        tools:listitem="@layout/recyclerview_item" />
+
+    <!-- TEXTO LISTA VACÍA -->
+    <TextView
+        android:id="@+id/empty_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="@string/no_data_quads"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="18sp"
+        android:visibility="gone"/>
+
+        
+
+</LinearLayout>

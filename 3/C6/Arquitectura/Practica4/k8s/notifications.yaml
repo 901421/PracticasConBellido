@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notifications-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notifications-service
+  template:
+    metadata:
+      labels:
+        app: notifications-service
+    spec:
+      containers:
+      - name: notifications
+        image: notifications-service:latest
+        imagePullPolicy: Never
+        env:
+        - name: BROKER_HOST
+          value: "broker-service"

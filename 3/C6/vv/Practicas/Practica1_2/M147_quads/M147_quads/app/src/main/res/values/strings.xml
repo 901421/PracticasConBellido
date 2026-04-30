@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">QuadSys</string>
+    <string name="hint_matricula">Formato: 0000-AAA</string>
+    <string name="hint_descripcion">Ej: Quad rojo, 250cc</string>
+    <string name="hint_precio">Formato: 0.00</string>
+    <string name="button_save">Guardar</string>
+    <string name="empty_not_saved">El quad no se ha guardado porque la matrícula está vacía.</string>
+    <string name="add_note">Añadir quad</string>
+    <string name="menu_delete">Borrar Quad</string>
+    <string name="menu_edit">Editar Quad</string>
+    <string name="matricula">Matrícula</string>
+    <string name="descripcion">Descripción</string>
+    <string name="precio">Precio (€/h)</string>
+    <string name="esmonoplaza">Monoplaza</string>
+    <string name="titulo_crear_reserva">CREAR RESERVA</string>
+    <string name="label_cliente">Cliente</string>
+    <string name="label_telefono">Teléfono</string>
+    <string name="label_fecha_recogida">Fecha Recogida</string>
+    <string name="label_fecha_devolucion">Fecha Devolución</string>
+    <string name="label_num_cascos">Num Cascos</string>
+    <string name="label_quads">Quads</string>
+    <string name="btn_seleccionar">SELECCIONAR</string>
+    <string name="btn_cancelar">CANCELAR</string>
+    <string name="btn_confirmar">CONFIRMAR</string>
+    <string name="no_data_quads">No hay quads registrados.\nPulsa "Crear Quad" en el menú.</string>
+    <string name="no_data_reservas">No hay reservas registradas.\nPulsa "Crear Reserva" en el menú.</string>
+    <string name="error_datos_reserva">Por favor, rellena todos los campos obligatorios.</string>
+    <string name="no_available_quads">No hay quads disponibles para las fechas seleccionadas.</string>
+</resources>

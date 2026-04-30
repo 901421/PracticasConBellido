@@ -1,0 +1,14 @@
+{
+    "cola_resiliencia": {
+        "messages": []
+    },
+    "cola_persistente_disco": {
+        "messages": [
+            {
+                "id": "0af8c3df-f066-47e8-8975-51cba5866c98",
+                "data": "Hola Disco",
+                "timestamp": 1777396176.4022143
+            }
+        ]
+    }
+}

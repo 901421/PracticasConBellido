@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: broker-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: broker
+  template:
+    metadata:
+      labels:
+        app: broker
+    spec:
+      containers:
+      - name: broker
+        image: broker-mom:latest
+        imagePullPolicy: Never
+        env:
+        - name: BROKER_STORAGE_PATH
+          value: "/app/storage/broker_storage.json"
+        ports:
+        - containerPort: 5555
+        volumeMounts:
+        - name: broker-storage
+          mountPath: /app/storage
+      volumes:
+      - name: broker-storage
+        persistentVolumeClaim:
+          claimName: broker-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: broker-service
+spec:
+  selector:
+    app: broker
+  ports:
+    - protocol: TCP
+      port: 5555
+      targetPort: 5555

@@ -1,0 +1,120 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mariadb-db
+spec:
+  selector:
+    matchLabels:
+      app: mariadb
+  template:
+    metadata:
+      labels:
+        app: mariadb
+    spec:
+      containers:
+      - name: mariadb
+        image: mariadb:10.5
+        env:
+        - name: MYSQL_DATABASE
+          value: orders_db
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: mariadb-user
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: mariadb-password
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: mariadb-root-password
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+        - name: mariadb-storage
+          mountPath: /var/lib/mysql
+        - name: init-sql
+          mountPath: /docker-entrypoint-initdb.d
+      volumes:
+      - name: mariadb-storage
+        persistentVolumeClaim:
+          claimName: mariadb-pvc
+      - name: init-sql
+        configMap:
+          name: mariadb-init-sql
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mariadb-init-sql
+data:
+  schema.sql: |
+    CREATE TABLE IF NOT EXISTS orders (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        product_id INT NOT NULL,
+        quantity INT NOT NULL,
+        customer_name VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb-service
+spec:
+  selector:
+    app: mariadb
+  ports:
+    - port: 3306
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orders-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: orders-service
+  template:
+    metadata:
+      labels:
+        app: orders-service
+    spec:
+      containers:
+      - name: orders
+        image: orders-service:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DB_HOST
+          value: mariadb-service
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: mariadb-user
+        - name: DB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: mariadb-password
+        - name: INVENTORY_URL
+          value: "http://inventory-service:8000"
+        - name: BROKER_HOST
+          value: "broker-service"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orders-service
+spec:
+  selector:
+    app: orders-service
+  ports:
+    - port: 8000

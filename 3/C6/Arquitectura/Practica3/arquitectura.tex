@@ -1,0 +1,128 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,positioning,fit,backgrounds,calc}
+\usepackage{geometry}
+\geometry{a4paper, margin=2cm}
+\usepackage{parskip}
+
+\title{\textbf{Documentación de la Arquitectura}\\ \Large Práctica 3 - Broker de Mensajes}
+\author{Ingeniería Informática - Arquitectura Software}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Introducción}
+El presente documento describe la arquitectura del \textit{Message-Oriented Middleware (MOM)} desarrollado. Se presentan tres vistas arquitectónicas fundamentales para comprender la estructura, interacción y despliegue del sistema: Vista de Módulos, Vista de Componentes y Conectores, y Vista de Distribución.
+
+\section{1. Vista de Módulos}
+La vista de módulos ilustra cómo se estructura el código fuente del proyecto y las dependencias estáticas entre los distintos ficheros (módulos de Python).
+
+\begin{center}
+\begin{tikzpicture}[
+    module/.style={draw, rectangle, rounded corners, fill=blue!10, text centered, text width=3cm, minimum height=1.5cm, font=\sffamily\small},
+    dependency/.style={-latex, dashed, thick}
+]
+
+% Nodos
+\node[module] (client) {client.py \\ \footnotesize(Librería Cliente)};
+\node[module, above left=1.5cm and 1cm of client] (productor) {productor.py \\ \footnotesize(App Productora)};
+\node[module, above right=1.5cm and 1cm of client] (consumidor) {consumidor.py \\ \footnotesize(App Consumidora)};
+\node[module, below=2cm of client] (server) {server.py \\ \footnotesize(Broker Core)};
+\node[module, below=1.5cm of server] (storage) {storage.py \\ \footnotesize(Persistencia)};
+
+% Conexiones
+\draw[dependency] (productor) -- node[anchor=east] {importa} (client);
+\draw[dependency] (consumidor) -- node[anchor=west] {importa} (client);
+\draw[dependency] (server) -- node[anchor=west] {importa} (storage);
+
+% Frontera Lógica
+\begin{scope}[on background layer]
+    \node[draw, dashed, fill=gray!5, fit=(productor) (consumidor) (client), inner sep=0.5cm, label={[anchor=north west]north west:\textbf{Lado Cliente}}] {};
+    \node[draw, dashed, fill=gray!5, fit=(server) (storage), inner sep=0.5cm, label={[anchor=north west]north west:\textbf{Lado Servidor}}] {};
+\end{scope}
+
+\end{tikzpicture}
+\end{center}
+
+\vspace{1cm}
+
+\section{2. Vista de Componentes y Conectores}
+Esta vista describe el sistema en tiempo de ejecución. Muestra los procesos activos, la comunicación a través del protocolo y la gestión interna del servidor.
+
+\begin{center}
+\begin{tikzpicture}[
+    component/.style={draw, rectangle, fill=green!10, text centered, text width=3.5cm, minimum height=2cm, font=\sffamily\small},
+    interface/.style={draw, circle, fill=black, inner sep=2pt},
+    connector/.style={-latex, thick, color=blue!70!black},
+    database/.style={draw, cylinder, shape border rotate=90, aspect=0.25, fill=yellow!20, minimum height=2cm, minimum width=2.5cm, text centered, font=\sffamily\small}
+]
+
+% Componentes
+\node[component] (prodComp) {Productor \\ \footnotesize(Proceso OS)};
+\node[component, below=3cm of prodComp] (consComp) {Consumidor \\ \footnotesize(Proceso OS)};
+
+\node[component, fill=red!10, right=4cm of prodComp, text width=5cm, minimum height=6cm] (brokerComp) {};
+\node[anchor=north, font=\sffamily\bfseries] at (brokerComp.north) {Broker (Servidor Central)};
+
+% Internos del broker
+\node[draw, fill=white, text width=3cm, align=center, font=\sffamily\scriptsize, yshift=1cm] (tcpHandler) at (brokerComp.center) {Manejador TCP \\ (Dispatch \& ACKs)};
+\node[draw, fill=white, text width=3cm, align=center, font=\sffamily\scriptsize, below=0.5cm of tcpHandler] (queueMem) {Memoria de Colas \\ (Diccionario protegido)};
+\node[draw, fill=white, text width=3cm, align=center, font=\sffamily\scriptsize, below=0.5cm of queueMem] (ttlThread) {Hilo TTL \\ (Purgado de expirados)};
+
+\draw[latex-latex, dashed] (tcpHandler) -- (queueMem);
+\draw[-latex, dashed] (ttlThread) -- (queueMem);
+
+% Almacenamiento
+\node[database, right=2cm of brokerComp] (db) {JSON File \\ broker\_storage};
+
+% Puertos / Interfaces
+\node[interface, left=0cm of tcpHandler, label=above:Puerto 5555] (port) {};
+
+% Conectores
+\draw[connector] (prodComp.east) -- node[above, sloped] {Publica JSON (TCP)} (port);
+\draw[connector] (port) -- node[below, sloped] {Push / Recibe ACK (TCP)} (consComp.east);
+
+\draw[connector, dashed] (queueMem.east) -- node[above] {I/O (Escritura atómica)} (db.west);
+
+\end{tikzpicture}
+\end{center}
+
+\newpage
+
+\section{3. Vista de Distribución}
+Muestra cómo los procesos lógicos se mapean (o pueden mapearse) en recursos de hardware físicos (nodos) interconectados a través de la red local o WAN.
+
+\begin{center}
+\begin{tikzpicture}[
+    nodeOS/.style={draw=black, thick, fill=gray!10, rectangle, minimum width=5cm, minimum height=4cm, align=center, font=\sffamily},
+    artifact/.style={draw=black, fill=white, rectangle, text width=3.5cm, align=center, font=\sffamily\small, rounded corners}
+]
+
+% Nodos
+\node[nodeOS] (nodeA) at (0, 0) {\textbf{Nodo Servidor (Host OS)}\\\footnotesize Linux / Windows};
+\node[nodeOS] (nodeB) at (-6, -6) {\textbf{Nodo Productor (PC 1)}\\\footnotesize IoT Device / Servidor Web};
+\node[nodeOS] (nodeC) at (6, -6) {\textbf{Nodo Consumidor (PC 2)}\\\footnotesize Worker Node / Database};
+
+% Artefactos en Servidor
+\node[artifact, below=0.5cm of nodeA.north] (artServer) {\textbf{\guillemotleft artifact\guillemotright} \\ Broker Server Process \\ (0.0.0.0:5555)};
+\node[draw, cylinder, shape border rotate=90, aspect=0.25, fill=yellow!20, minimum width=2cm, minimum height=1.5cm, font=\scriptsize, align=center, below=0.5cm of artServer] (fileServer) {\textbf{\guillemotleft file\guillemotright}\\ JSON persistente};
+\draw[dashed, ->] (artServer) -- (fileServer);
+
+% Artefactos en Productor
+\node[artifact, below=1cm of nodeB.north] (artProd) {\textbf{\guillemotleft artifact\guillemotright} \\ Productor Application \\ (Socket Dinámico)};
+
+% Artefactos en Consumidor
+\node[artifact, below=1cm of nodeC.north] (artCons) {\textbf{\guillemotleft artifact\guillemotright} \\ Consumidor Application \\ (Socket Dinámico)};
+
+% Redes (Conectores de nodo)
+\draw[ultra thick, -latex, color=blue] (artProd) -- node[above, sloped, font=\scriptsize\bfseries] {Red (TCP/IP)} (artServer.south west);
+\draw[ultra thick, latex-latex, color=red] (artCons) -- node[above, sloped, font=\scriptsize\bfseries] {Red (TCP/IP) con ACK} (artServer.south east);
+
+\end{tikzpicture}
+\end{center}
+
+\end{document}

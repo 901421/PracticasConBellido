@@ -1,0 +1,31 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Tema Principal de la Aplicación -->
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">        
+        <item name="colorPrimary">@color/colorBtnEdit</item>
+        <item name="colorPrimaryVariant">@color/colorBtnEdit</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        
+        <!-- CAMBIO: Aplicar el fondo pastel a todas las ventanas -->
+        <item name="android:windowBackground">@color/app_background_pastel</item>
+        
+        <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
+    </style>
+
+    <!-- (El resto del archivo sigue igual) -->
+    <style name="BrownDatePickerTheme" parent="ThemeOverlay.MaterialComponents.MaterialCalendar">
+        <item name="colorPrimary">@color/colorBtnEdit</item>
+        <item name="android:colorPrimary">@color/colorBtnEdit</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorAccent">@color/colorBtnEdit</item>
+        <item name="android:colorAccent">@color/colorBtnEdit</item>
+        <item name="android:windowBackground">@android:color/white</item>
+        <item name="buttonBarPositiveButtonStyle">@style/BrownTextButton</item>
+        <item name="buttonBarNegativeButtonStyle">@style/BrownTextButton</item>
+    </style>
+
+    <style name="BrownTextButton" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/colorBtnEdit</item>
+        <item name="backgroundTint">@color/white</item>
+    </style>
+</resources>

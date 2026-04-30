@@ -1,0 +1,94 @@
+===========================================================================
+      SISTEMA DE CONTROL MARS ROVER: BROKER DE OBJETOS DISTRIBUIDOS
+===========================================================================
+
+ASIGNATURA: Arquitectura Software
+GRADO:      Grado en Ingeniería Informática
+CENTRO:     Escuela de Ingeniería y Arquitectura (EINA)
+CAMPUS:     Universidad de Zaragoza
+PRÁCTICA:   2b - Implementación del patrón Broker mediante Java RMI
+
+---------------------------------------------------------------------------
+1. INTRODUCCIÓN
+---------------------------------------------------------------------------
+Este proyecto desarrolla un sistema distribuido para la gestión de un
+Mars Rover basado en el patrón arquitectónico Broker. El objetivo es
+desacoplar completamente a los clientes (Control de Misión) de los 
+servidores que ejecutan los servicios físicos (Navegación e Instrumentos).
+
+El Broker actúa como un "Service Discovery" y mediador, permitiendo que
+el cliente invoque métodos de forma dinámica sin conocer la ubicación 
+física ni la interfaz de los servidores en tiempo de compilación.
+
+---------------------------------------------------------------------------
+2. ESTRUCTURA DE FICHEROS
+---------------------------------------------------------------------------
+
+A. NÚCLEO DEL BROKER (Middle-ware):
+   - Broker.java:     Interfaz remota RMI con la API para servidores y clientes.
+   - BrokerImpl.java: El "cerebro" del sistema. Implementa el registro de 
+                      servidores, la invocación por reflexión y la gestión 
+                      de hilos (ExecutorService) para peticiones asíncronas.
+
+B. MÓDULOS DEL ROVER (Servidores de Servicios):
+   - Instrumentos.java / InstrumentosImpl.java: 
+     Control de cámaras y análisis químico. Incluye latencia simulada.
+   - Navegacion.java / NavegacionImpl.java: 
+     Gestión de movimiento y cálculo de rutas en Marte.
+
+C. OBJETOS DE DATOS (DTOs - Serializables):
+   - InfoServicio.java: Metadatos de cada servicio (nombre, tipos, etc.).
+   - Servicios.java:    Paquete con el catálogo completo para el cliente.
+   - Respuesta.java:    Objeto unificado de retorno. Gestiona estados de 
+                        ÉXITO, ERROR y PROCESANDO (asíncrono).
+
+D. CONTROL DE MISIÓN (Cliente):
+   - Cliente.java: Aplicación con menú interactivo y banco de pruebas 
+                   automático para validar la robustez del sistema.
+
+---------------------------------------------------------------------------
+3. SEGURIDAD: EL FICHERO java.policy
+---------------------------------------------------------------------------
+El sistema incluye un archivo de política de seguridad con el siguiente
+contenido:
+
+    grant {
+        permission java.security.AllPermission;
+    };
+
+IMPORTANCIA EN ESTA PRÁCTICA:
+1. Permite que la JVM abra sockets en puertos específicos (32000, 1099)
+   para la comunicación entre máquinas.
+2. Habilita la carga dinámica de clases y stubs necesaria para RMI.
+3. Se concede 'AllPermission' para facilitar el despliegue en el entorno
+   académico, aunque en sistemas de producción real este permiso debe
+   restringirse según el principio de mínimo privilegio.
+
+---------------------------------------------------------------------------
+4. GUÍA DE EJECUCIÓN (ORDEN CRÍTICO)
+---------------------------------------------------------------------------
+Para garantizar la conectividad de los stubs RMI, siga este orden:
+
+1. BROKER: Arracar BrokerImpl. Es necesario que el rmiregistry esté activo
+   (el código intenta crearlo automáticamente en el puerto 32000).
+
+2. SERVIDORES: Arrancar InstrumentosImpl y NavegacionImpl. Estos buscarán
+   al Broker y darán de alta sus servicios en el catálogo.
+
+3. CLIENTE: Arrancar Cliente. Solicitará el catálogo y permitirá realizar
+   llamadas síncronas o asíncronas.
+
+---------------------------------------------------------------------------
+5. NOTAS TÉCNICAS
+---------------------------------------------------------------------------
+- REFLEXIÓN: El Broker utiliza java.lang.reflect para invocar métodos
+  dinámicamente, lo que permite añadir nuevos servidores sin recompilar
+  el código del Broker.
+- ASINCRONÍA: Las respuestas asíncronas están protegidas por la IP del
+  cliente (RemoteServer.getClientHost), garantizando que solo quien hizo
+  la petición pueda recoger el resultado.
+- RED: Se utiliza la propiedad 'java.rmi.server.hostname' para asegurar
+  que el sistema funcione en redes con múltiples interfaces o NAT.
+
+---------------------------------------------------------------------------
+===========================================================================
