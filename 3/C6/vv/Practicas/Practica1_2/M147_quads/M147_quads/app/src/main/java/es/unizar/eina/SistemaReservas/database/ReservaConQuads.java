@@ -27,12 +27,12 @@ public class ReservaConQuads {
      * {@link ReservaQuad} mediante el uso de parentColumn y entityColumn.
      */
     @Relation(
-         parentColumn = "id",      // ID en la tabla Reserva
-         entityColumn = "id",      // ID en la tabla Quad
+         parentColumn = "Id",      // ID en la tabla Reserva
+         entityColumn = "Id",      // ID en la tabla Quad
          associateBy = @Junction(  // Tabla intermedia que las une
                  value = ReservaQuad.class,
-                 parentColumn = "reserva_id",
-                 entityColumn = "quad_id"
+                 parentColumn = "ReservaId",
+                 entityColumn = "QuadId"
          )
     )
     public List<Quad> quads;

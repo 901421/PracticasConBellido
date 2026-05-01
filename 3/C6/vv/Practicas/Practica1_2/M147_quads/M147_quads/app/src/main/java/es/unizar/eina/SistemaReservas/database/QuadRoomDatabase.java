@@ -20,7 +20,7 @@ import java.util.concurrent.Executors;
  * Implementa el patrón Singleton para prevenir la apertura de múltiples instancias 
  * de la base de datos simultáneamente.
  */
-@Database(entities = {Quad.class, Reserva.class, ReservaQuad.class}, version = 5, exportSchema = false)
+@Database(entities = {Quad.class, Reserva.class, ReservaQuad.class}, version = 6, exportSchema = false)
 public abstract class QuadRoomDatabase extends RoomDatabase {
 
     /**
@@ -98,7 +98,7 @@ public abstract class QuadRoomDatabase extends RoomDatabase {
                 // 2. Insertar Reserva de "verdillo"
                 long idRes = rDao.insert(new Reserva(
                         "verdillo", 
-                        "603705590", 
+                        603705590, 
                         "15/01/2026", 
                         "17/01/2026"
                 ));

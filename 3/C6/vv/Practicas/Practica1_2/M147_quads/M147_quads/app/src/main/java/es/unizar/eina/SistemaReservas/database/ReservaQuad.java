@@ -13,27 +13,27 @@ import androidx.room.Index;
  * información específica de la relación, como el número de cascos asignados 
  * a un vehículo concreto dentro de una reserva.
  */
-@Entity(tableName = "ReservaQuad",
-        primaryKeys = {"reserva_id", "quad_id"},
+@Entity(tableName = "Quad_Reserva",
+        primaryKeys = {"ReservaId", "QuadId"},
         foreignKeys = {
                 @ForeignKey(entity = Reserva.class,
-                        parentColumns = "id",
-                        childColumns = "reserva_id",
+                        parentColumns = "Id",
+                        childColumns = "ReservaId",
                         onDelete = ForeignKey.CASCADE),
                 @ForeignKey(entity = Quad.class,
-                        parentColumns = "id",
-                        childColumns = "quad_id",
+                        parentColumns = "Id",
+                        childColumns = "QuadId",
                         onDelete = ForeignKey.CASCADE)
         },
-        indices = {@Index("reserva_id"), @Index("quad_id")})
+        indices = {@Index("ReservaId"), @Index("QuadId")})
 public class ReservaQuad {
 
     /** Identificador de la reserva vinculada. Parte de la clave primaria compuesta. */
-    @ColumnInfo(name = "reserva_id")
+    @ColumnInfo(name = "ReservaId")
     private int reservaId;
 
     /** Identificador del vehículo Quad vinculado. Parte de la clave primaria compuesta. */
-    @ColumnInfo(name = "quad_id")
+    @ColumnInfo(name = "QuadId")
     private int quadId;
 
     /** Cantidad de cascos contratados para este vehículo en esta reserva específica. */

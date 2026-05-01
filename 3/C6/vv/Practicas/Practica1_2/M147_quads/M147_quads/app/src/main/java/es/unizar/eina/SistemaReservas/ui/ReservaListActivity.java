@@ -103,7 +103,10 @@ public class ReservaListActivity extends AppCompatActivity {
                         if (extras != null && extras.containsKey(ReservaEdit.RES_ID)) {
                             int id = extras.getInt(ReservaEdit.RES_ID);
                             String cliente = extras.getString(ReservaEdit.RES_CLIENTE);
-                            String tlf = extras.getString(ReservaEdit.RES_TELEFONO);
+                            String tlfStr = extras.getString(ReservaEdit.RES_TELEFONO);
+                            int tlf = 0;
+                            try { tlf = Integer.parseInt(tlfStr); } catch (Exception e) {}
+                            
                             String fechaIn = extras.getString(ReservaEdit.RES_FECHA_IN);
                             String fechaOut = extras.getString(ReservaEdit.RES_FECHA_OUT);
                             ArrayList<SelectedQuad> selectedUI = (ArrayList<SelectedQuad>) extras.getSerializable(ReservaEdit.RES_LISTA_QUADS);
@@ -158,7 +161,7 @@ public class ReservaListActivity extends AppCompatActivity {
                             Intent intent = new Intent(ReservaListActivity.this, ReservaEdit.class);
                             intent.putExtra(ReservaEdit.RES_ID, reservaItem.reserva.getId());
                             intent.putExtra(ReservaEdit.RES_CLIENTE, reservaItem.reserva.getNombreCliente());
-                            intent.putExtra(ReservaEdit.RES_TELEFONO, reservaItem.reserva.getTelefono());
+                            intent.putExtra(ReservaEdit.RES_TELEFONO, String.valueOf(reservaItem.reserva.getTelefono()));
                             intent.putExtra(ReservaEdit.RES_FECHA_IN, reservaItem.reserva.getFechaRecogida());
                             intent.putExtra(ReservaEdit.RES_FECHA_OUT, reservaItem.reserva.getFechaDevolucion());
                             intent.putExtra(ReservaEdit.RES_LISTA_QUADS, listForEdit);
@@ -267,7 +270,7 @@ public class ReservaListActivity extends AppCompatActivity {
 
         sb.append("📅 *CONFIRMACIÓN DE RESERVA* 📅\n\n");
         sb.append("👤 *Cliente:* ").append(item.reserva.getNombreCliente()).append("\n");
-        sb.append("📞 *Contacto:* ").append(item.reserva.getTelefono()).append("\n\n");
+        sb.append("📞 *Contacto:* ").append(String.valueOf(item.reserva.getTelefono())).append("\n\n");
         
         sb.append("🗓 *Recogida:* ").append(item.reserva.getFechaRecogida()).append("\n");
         sb.append("🗓 *Devolución:* ").append(item.reserva.getFechaDevolucion()).append("\n");
@@ -296,7 +299,7 @@ public class ReservaListActivity extends AppCompatActivity {
             .setItems(options, (dialog, which) -> {
                 String method = (which == 0) ? "WHATSAPP" : "SMS";
                 SendAbstraction sender = new SendAbstractionImpl(ReservaListActivity.this, method);
-                sender.send(reservaItem.reserva.getTelefono(), mensajeFinal);
+                sender.send(String.valueOf(reservaItem.reserva.getTelefono()), mensajeFinal);
             })
             .show();
     }
@@ -317,7 +320,7 @@ public class ReservaListActivity extends AppCompatActivity {
                                  ", tu reserva de Quads está confirmada para el " + 
                                  reservaItem.reserva.getFechaRecogida() + ".";
                 SendAbstraction sender = new SendAbstractionImpl(ReservaListActivity.this, method);
-                sender.send(reservaItem.reserva.getTelefono(), mensaje);
+                sender.send(String.valueOf(reservaItem.reserva.getTelefono()), mensaje);
             })
             .show();
     }
@@ -363,7 +366,7 @@ public class ReservaListActivity extends AppCompatActivity {
                 TextView tvQuads = view.findViewById(R.id.dialog_lista_quads);
 
                 tvCliente.setText(item.reserva.getNombreCliente());
-                tvTelefono.setText(item.reserva.getTelefono());
+                tvTelefono.setText(String.valueOf(item.reserva.getTelefono()));
                 tvFechas.setText("Desde: " + item.reserva.getFechaRecogida() + "\nHasta: " + item.reserva.getFechaDevolucion());
 
                 if (item.quads != null && !item.quads.isEmpty()) {

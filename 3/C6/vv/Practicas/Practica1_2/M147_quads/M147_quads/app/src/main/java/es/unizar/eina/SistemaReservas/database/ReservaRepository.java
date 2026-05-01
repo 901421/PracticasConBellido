@@ -118,7 +118,7 @@ public class ReservaRepository {
         
         try {
             // 2. Validar Nombre y Teléfono (Casos 2 y 5 de tu tabla)
-            if (reserva.getNombreCliente().trim().isEmpty() || reserva.getTelefono().trim().isEmpty()) {
+            if (reserva.getNombreCliente().trim().isEmpty() || reserva.getTelefono() == 0) {
                 return -1;
             }
 

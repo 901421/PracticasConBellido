@@ -15,7 +15,7 @@ public class Reserva {
 
     /** Identificador único de la reserva, autogenerado por Room. */
     @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = "id")
+    @ColumnInfo(name = "Id")
     private int id;
 
     /** Nombre completo del cliente que realiza la reserva. */
@@ -24,9 +24,8 @@ public class Reserva {
     private String nombreCliente;
 
     /** Número de teléfono de contacto del cliente. */
-    @NonNull
-    @ColumnInfo(name = "telefono")
-    private String telefono;
+    @ColumnInfo(name = "num_telefono")
+    private int telefono;
 
     /** Fecha programada para la recogida de los vehículos (formato String). */
     @NonNull
@@ -50,7 +49,7 @@ public class Reserva {
      * @param fechaRecogida Fecha de inicio del periodo de alquiler.
      * @param fechaDevolucion Fecha de fin del periodo de alquiler.
      */
-    public Reserva(@NonNull String nombreCliente, @NonNull String telefono, 
+    public Reserva(@NonNull String nombreCliente, int telefono, 
                    @NonNull String fechaRecogida, @NonNull String fechaDevolucion) {
         this.nombreCliente = nombreCliente;
         this.telefono = telefono;
@@ -69,7 +68,10 @@ public class Reserva {
     public String getNombreCliente() { return nombreCliente; }
 
     /** @return El teléfono del cliente. */
-    public String getTelefono() { return telefono; }
+    public int getTelefono() { return telefono; }
+
+    /** @param telefono Nuevo teléfono del cliente. */
+    public void setTelefono(int telefono) { this.telefono = telefono; }
 
     /** @return La fecha de recogida en formato cadena. */
     public String getFechaRecogida() { return fechaRecogida; }

@@ -50,7 +50,7 @@ public interface ReservaDao {
      * 
      * @param id Identificador de la reserva a desactivar.
      */
-    @Query("UPDATE Reserva SET estaActivo = 0 WHERE id = :id")
+    @Query("UPDATE Reserva SET estaActivo = 0 WHERE Id = :id")
     void logicalDelete(int id);
 
     /**
@@ -59,7 +59,7 @@ public interface ReservaDao {
      * 
      * @param reservaId Identificador de la reserva de la cual se desean borrar los vínculos.
      */
-    @Query("DELETE FROM ReservaQuad WHERE reserva_id = :reservaId")
+    @Query("DELETE FROM Quad_Reserva WHERE ReservaId = :reservaId")
     void deleteReservaQuads(int reservaId);
 
     /**
@@ -78,7 +78,7 @@ public interface ReservaDao {
      * @param reservaId Identificador de la reserva consultada.
      * @return Lista síncrona de objetos {@link ReservaQuad}.
      */
-    @Query("SELECT * FROM ReservaQuad WHERE reserva_id = :reservaId")
+    @Query("SELECT * FROM Quad_Reserva WHERE ReservaId = :reservaId")
     List<ReservaQuad> getReservaQuadsList(int reservaId);
 
     /**
@@ -97,8 +97,8 @@ public interface ReservaDao {
     void deleteAll();
 
     /**
-     * Elimina todos los registros de la tabla intermedia ReservaQuad.
+     * Elimina todos los registros de la tabla intermedia Quad_Reserva.
      */
-    @Query("DELETE FROM ReservaQuad")
+    @Query("DELETE FROM Quad_Reserva")
     void deleteAllRelaciones();
 }

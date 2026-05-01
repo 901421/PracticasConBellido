@@ -121,9 +121,7 @@ public class ReservaViewModel extends AndroidViewModel {
                             return c1.compareToIgnoreCase(c2);
 
                         case TELEFONO:
-                            String t1 = o1.reserva.getTelefono() != null ? o1.reserva.getTelefono() : "";
-                            String t2 = o2.reserva.getTelefono() != null ? o2.reserva.getTelefono() : "";
-                            return t1.compareTo(t2);
+                            return Integer.compare(o1.reserva.getTelefono(), o2.reserva.getTelefono());
 
                         case FECHA_IN:
                             Date d1 = sdf.parse(o1.reserva.getFechaRecogida());

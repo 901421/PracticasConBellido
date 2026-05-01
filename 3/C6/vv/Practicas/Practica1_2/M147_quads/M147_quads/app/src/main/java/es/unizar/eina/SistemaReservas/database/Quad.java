@@ -11,21 +11,21 @@ import androidx.room.PrimaryKey;
  * Esta clase define la estructura de la tabla "Quad" y sus restricciones, 
  * como la unicidad de la matrícula.
  */
-@Entity(tableName = "Quad", indices = {@Index(value = {"matricula"}, unique = true)})
+@Entity(tableName = "Quad", indices = {@Index(value = {"Matricula"}, unique = true)})
 public class Quad {
 
     /** Identificador único del Quad, autogenerado por la base de datos. */
     @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = "id")
+    @ColumnInfo(name = "Id")
     private int id;
 
     /** Matrícula del vehículo. Actúa como identificador natural y es única. */
     @NonNull
-    @ColumnInfo(name = "matricula")
+    @ColumnInfo(name = "Matricula")
     private String matricula;
 
     /** Indica si el quad es monoplaza (true) o biplaza (false). */
-    @ColumnInfo(name = "esmonoplaza")
+    @ColumnInfo(name = "esMonoplaza")
     private boolean esmonoplaza;
 
     /** Precio de alquiler por hora del vehículo. */

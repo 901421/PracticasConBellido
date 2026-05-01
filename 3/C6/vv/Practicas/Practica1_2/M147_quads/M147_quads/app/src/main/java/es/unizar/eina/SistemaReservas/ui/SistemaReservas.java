@@ -92,7 +92,10 @@ public class SistemaReservas extends AppCompatActivity {
                         Bundle extras = result.getData().getExtras();
                         if (extras != null) {
                             String cliente = extras.getString(ReservaEdit.RES_CLIENTE);
-                            String tlf = extras.getString(ReservaEdit.RES_TELEFONO);
+                            String tlfStr = extras.getString(ReservaEdit.RES_TELEFONO);
+                            int tlf = 0;
+                            try { tlf = Integer.parseInt(tlfStr); } catch (Exception e) {}
+                            
                             String fechaIn = extras.getString(ReservaEdit.RES_FECHA_IN);
                             String fechaOut = extras.getString(ReservaEdit.RES_FECHA_OUT);
                             

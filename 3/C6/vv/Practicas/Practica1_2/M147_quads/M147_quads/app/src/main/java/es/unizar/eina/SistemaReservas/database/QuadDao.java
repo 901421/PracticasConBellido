@@ -40,7 +40,7 @@ public interface QuadDao {
      * 
      * @param id El identificador del Quad a desactivar.
      */
-    @Query("UPDATE Quad SET estaActivo = 0 WHERE id = :id")
+    @Query("UPDATE Quad SET estaActivo = 0 WHERE Id = :id")
     void logicalDelete(int id);
 
     /**
@@ -56,7 +56,7 @@ public interface QuadDao {
      * 
      * @return Un objeto LiveData que contiene la lista de Quads activos.
      */
-    @Query("SELECT * FROM Quad WHERE estaActivo = 1 ORDER BY matricula ASC")
+    @Query("SELECT * FROM Quad WHERE estaActivo = 1 ORDER BY Matricula ASC")
     LiveData<List<Quad>> getOrderedQuadsByMatricula();
     
     /**
@@ -64,7 +64,7 @@ public interface QuadDao {
      * 
      * @return Una lista con todos los objetos Quad activos almacenados.
      */
-    @Query("SELECT * FROM Quad WHERE estaActivo = 1 ORDER BY matricula ASC")
+    @Query("SELECT * FROM Quad WHERE estaActivo = 1 ORDER BY Matricula ASC")
     List<Quad> getAllQuadsList();
 
     /**
@@ -72,7 +72,7 @@ public interface QuadDao {
      * 
      * @return LiveData con la lista de Quads activos ordenada por tipo.
      */
-    @Query("SELECT * FROM Quad WHERE estaActivo = 1 ORDER BY esmonoplaza DESC, matricula ASC")
+    @Query("SELECT * FROM Quad WHERE estaActivo = 1 ORDER BY esMonoplaza DESC, Matricula ASC")
     LiveData<List<Quad>> getOrderedQuadsByTipo();
 
     /**
@@ -80,6 +80,6 @@ public interface QuadDao {
      * 
      * @return LiveData con la lista de Quads activos ordenada por precio.
      */
-    @Query("SELECT * FROM Quad WHERE estaActivo = 1 ORDER BY precio ASC, matricula ASC")
+    @Query("SELECT * FROM Quad WHERE estaActivo = 1 ORDER BY precio ASC, Matricula ASC")
     LiveData<List<Quad>> getOrderedQuadsByPrecio();
 }
