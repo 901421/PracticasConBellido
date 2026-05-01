@@ -18,9 +18,6 @@ public class ReservaRepository {
     /** DAO para el acceso a los datos de las reservas. */
     private final ReservaDao mReservaDao;
     
-    /** DAO para acceder a los quads y calcular el precio. */
-    private final QuadDao mQuadDao;
-    
     /** Lista observable de todas las reservas incluyendo sus vehículos asociados. */
     private final LiveData<List<ReservaConQuads>> mAllReservas;
 
@@ -31,25 +28,12 @@ public class ReservaRepository {
     public ReservaRepository(Application application) {
         QuadRoomDatabase db = QuadRoomDatabase.getDatabase(application);
         mReservaDao = db.ReservaDao();
-        mQuadDao = db.QuadDao();
         mAllReservas = mReservaDao.getReservasConQuads();
     }
 
     /** @return LiveData que permite observar cambios en la lista completa de reservas. */
     public LiveData<List<ReservaConQuads>> getAllReservas() {
         return mAllReservas;
-    }
-
-    public LiveData<List<ReservaConQuads>> getPrevistas() {
-        return mReservaDao.getPrevistas();
-    }
-
-    public LiveData<List<ReservaConQuads>> getVigentes() {
-        return mReservaDao.getVigentes();
-    }
-
-    public LiveData<List<ReservaConQuads>> getCaducadas() {
-        return mReservaDao.getCaducadas();
     }
 
     /**
@@ -62,26 +46,6 @@ public class ReservaRepository {
      */
     public void insert(Reserva reserva, List<ReservaQuad> quads) {
         QuadRoomDatabase.databaseWriteExecutor.execute(() -> {
-            double totalPrecioQuads = 0.0;
-            for (ReservaQuad rq : quads) {
-                Quad q = mQuadDao.getQuadByIdSync(rq.getQuadId());
-                if (q != null) totalPrecioQuads += q.getPrecio();
-            }
-
-            long dias = 1;
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-            try {
-                Date in = sdf.parse(reserva.getFechaRecogida());
-                Date out = sdf.parse(reserva.getFechaDevolucion());
-                if (in != null && out != null) {
-                    long diff = out.getTime() - in.getTime();
-                    dias = java.util.concurrent.TimeUnit.DAYS.convert(diff, java.util.concurrent.TimeUnit.MILLISECONDS);
-                    if (dias < 1) dias = 1;
-                }
-            } catch (Exception e) {}
-
-            reserva.setPrecioTotal(totalPrecioQuads * dias);
-
             long reservaId = mReservaDao.insert(reserva);
             for (ReservaQuad rq : quads) {
                 rq.setReservaId((int) reservaId);
@@ -91,23 +55,14 @@ public class ReservaRepository {
     }
 
     /**
-     * Elimina una reserva de forma lógica (soft delete).
-     * Utiliza un objeto Future para esperar la confirmación de la base de datos.
+     * Elimina una reserva de forma lógica marcándola como inactiva.
      * 
-     * @param reserva El objeto reserva a eliminar.
-     * @return El número de filas eliminadas o -1 en caso de error o timeout.
+     * @param reserva El objeto reserva a desactivar.
      */
-    public int delete(Reserva reserva) {
-        java.util.concurrent.Future<Integer> future = QuadRoomDatabase.databaseWriteExecutor.submit(() -> 
-            mReservaDao.delete(reserva.getId())
+    public void delete(Reserva reserva) {
+        QuadRoomDatabase.databaseWriteExecutor.execute(() -> 
+            mReservaDao.logicalDelete(reserva.getId())
         );
-
-        try {
-            return future.get(15000, java.util.concurrent.TimeUnit.MILLISECONDS);
-        } catch (Exception e) {
-            android.util.Log.e("ReservaRepository", "Error al eliminar reserva", e);
-            return -1; 
-        }
     }
     
     /**
@@ -158,12 +113,9 @@ public class ReservaRepository {
      * @return El ID de la reserva insertada o -1 si falla alguna validación o hay error.
      */
     public long insertSync(Reserva reserva, List<ReservaQuad> quads) {
-        // 1. Definir el formato (ISO 8601)
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+        // 1. Definir el formato (Requiere import java.text.SimpleDateFormat)
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault());
         
-        final java.util.Date finalFechaIn;
-        final java.util.Date finalFechaOut;
-
         try {
             // 2. Validar Nombre y Teléfono (Casos 2 y 5 de tu tabla)
             if (reserva.getNombreCliente().trim().isEmpty() || reserva.getTelefono().trim().isEmpty()) {
@@ -177,15 +129,13 @@ public class ReservaRepository {
 
             // 4. Validar coherencia de fechas (Caso 3 de tu tabla)
             // USAMOS LOS NOMBRES CORRECTOS: getFechaRecogida() y getFechaDevolucion()
-            finalFechaIn = sdf.parse(reserva.getFechaRecogida());
-            finalFechaOut = sdf.parse(reserva.getFechaDevolucion());
+            java.util.Date fechaIn = sdf.parse(reserva.getFechaRecogida());
+            java.util.Date fechaOut = sdf.parse(reserva.getFechaDevolucion());
 
-            if (finalFechaIn != null && finalFechaOut != null) {
-                if (finalFechaOut.before(finalFechaIn)) {
+            if (fechaIn != null && fechaOut != null) {
+                if (fechaOut.before(fechaIn)) {
                     return -1; // Fallo: Devolución anterior a la recogida
                 }
-            } else {
-                return -1;
             }
 
         } catch (Exception e) {
@@ -195,22 +145,6 @@ public class ReservaRepository {
 
         // 5. Si todo es correcto, procedemos con la inserción
         java.util.concurrent.Future<Long> future = QuadRoomDatabase.databaseWriteExecutor.submit(() -> {
-            double totalPrecioQuads = 0.0;
-            for (ReservaQuad rq : quads) {
-                Quad q = mQuadDao.getQuadByIdSync(rq.getQuadId());
-                if (q != null) totalPrecioQuads += q.getPrecio();
-            }
-
-            long dias = 1;
-            try {
-                // Fechas ya están validadas, calculamos diff
-                long diff = finalFechaOut.getTime() - finalFechaIn.getTime();
-                dias = java.util.concurrent.TimeUnit.DAYS.convert(diff, java.util.concurrent.TimeUnit.MILLISECONDS);
-                if (dias < 1) dias = 1;
-            } catch (Exception e) {}
-
-            reserva.setPrecioTotal(totalPrecioQuads * dias);
-
             long id = mReservaDao.insert(reserva);
             for (ReservaQuad rq : quads) {
                 rq.setReservaId((int) id);

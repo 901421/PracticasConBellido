@@ -103,10 +103,9 @@ public class SistemaReservas extends AppCompatActivity {
                             List<ReservaQuad> dbQuads = new ArrayList<>();
                             if (selectedUI != null) {
                                 for (SelectedQuad sq : selectedUI) {
-                                    dbQuads.add(new ReservaQuad(0, sq.getId(), sq.getNumCascos()));
+                                    dbQuads.add(new ReservaQuad(0, sq.getId(), sq.getNumCascos(), sq.getPrecio()));
                                 }
                             }
-
                             mReservaViewModel.insert(reserva, dbQuads);
 
                             Toast.makeText(this, "Reserva guardada correctamente", Toast.LENGTH_SHORT).show();

@@ -37,9 +37,9 @@ public class Quad {
     @ColumnInfo(name = "descripcion")
     private String descripcion;
 
-    /** Indica si el quad está activo (true) o dado de baja lógica (false). */
-    @ColumnInfo(name = "activo")
-    private boolean activo = true;
+    /** Indica si el quad está activo (borrado lógico). */
+    @ColumnInfo(name = "estaActivo")
+    private boolean estaActivo = true;
 
     /**
      * Constructor para crear una nueva instancia de Quad.
@@ -54,6 +54,7 @@ public class Quad {
         this.esmonoplaza = esmonoplaza;
         this.precio = precio;
         this.descripcion = descripcion;
+        this.estaActivo = true;
     }
 
     /** @return El identificador de la base de datos. */
@@ -87,9 +88,9 @@ public class Quad {
     /** @param descripcion Nueva descripción para el vehículo. */
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
 
-    /** @return true si el quad está activo, false si está dado de baja. */
-    public boolean isActivo() { return activo; }
+    /** @return true si el quad está activo. */
+    public boolean getEstaActivo() { return estaActivo; }
 
-    /** @param activo Nuevo estado de actividad del quad. */
-    public void setActivo(boolean activo) { this.activo = activo; }
+    /** @param estaActivo Nuevo estado de activación. */
+    public void setEstaActivo(boolean estaActivo) { this.estaActivo = estaActivo; }
 }

@@ -96,20 +96,17 @@ public abstract class QuadRoomDatabase extends RoomDatabase {
                 long idQ2 = qDao.insert(new Quad("5678-CCC", false, 70.0, "Quad biplaza gran potencia"));
 
                 // 2. Insertar Reserva de "verdillo"
-                Reserva r = new Reserva(
+                long idRes = rDao.insert(new Reserva(
                         "verdillo", 
                         "603705590", 
-                        "2026-01-15", 
-                        "2026-01-17"
-                );
-                r.setPrecioTotal(45.0 * 2); // 2 días
-
-                long idRes = rDao.insert(r);
+                        "15/01/2026", 
+                        "17/01/2026"
+                ));
 
                 // 3. Vincular la reserva con los Quads (Tabla intermedia ReservaQuad)
-                // Vamos a asignarle el primer quad (idQ1) con 1 casco
+                // Vamos a asignarle el primer quad (idQ1) con 1 casco, y guardamos el precio acordado de 45.0
                 List<ReservaQuad> relaciones = new ArrayList<>();
-                relaciones.add(new ReservaQuad((int)idRes, (int)idQ1, 1));
+                relaciones.add(new ReservaQuad((int)idRes, (int)idQ1, 1, 45.0));
                 
                 rDao.insertReservaQuads(relaciones);
             });

@@ -38,13 +38,9 @@ public class Reserva {
     @ColumnInfo(name = "fecha_devolucion")
     private String fechaDevolucion;
 
-    /** Precio pactado y calculado al momento de la creación de la reserva. */
-    @ColumnInfo(name = "precio_total")
-    private double precioTotal = 0.0;
-
-    /** Indica si la reserva está activa (true) o dada de baja lógica (false). */
-    @ColumnInfo(name = "activo")
-    private boolean activo = true;
+    /** Indica si la reserva está activa (borrado lógico). */
+    @ColumnInfo(name = "estaActivo")
+    private boolean estaActivo = true;
 
     /**
      * Constructor para crear una nueva instancia de Reserva.
@@ -60,6 +56,7 @@ public class Reserva {
         this.telefono = telefono;
         this.fechaRecogida = fechaRecogida;
         this.fechaDevolucion = fechaDevolucion;
+        this.estaActivo = true;
     }
 
     /** @return El identificador único de la reserva. */
@@ -79,16 +76,10 @@ public class Reserva {
 
     /** @return La fecha de devolución en formato cadena. */
     public String getFechaDevolucion() { return fechaDevolucion; }
-    
-    /** @return El precio total de la reserva fijado en su creación. */
-    public double getPrecioTotal() { return precioTotal; }
 
-    /** @param precioTotal Nuevo precio calculado para la reserva. */
-    public void setPrecioTotal(double precioTotal) { this.precioTotal = precioTotal; }
+    /** @return true si la reserva está activa. */
+    public boolean getEstaActivo() { return estaActivo; }
 
-    /** @return true si la reserva está activa, false si está cancelada. */
-    public boolean isActivo() { return activo; }
-
-    /** @param activo Estado lógico de la reserva. */
-    public void setActivo(boolean activo) { this.activo = activo; }
+    /** @param estaActivo Nuevo estado de activación de la reserva. */
+    public void setEstaActivo(boolean estaActivo) { this.estaActivo = estaActivo; }
 }

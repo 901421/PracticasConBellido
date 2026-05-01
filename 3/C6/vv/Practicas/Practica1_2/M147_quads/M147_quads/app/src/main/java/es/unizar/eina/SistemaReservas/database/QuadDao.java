@@ -36,16 +36,15 @@ public interface QuadDao {
     int update(Quad quad);
 
     /**
-     * Elimina lógicamente un Quad de la base de datos (lo marca como inactivo).
+     * Elimina un Quad específico de la base de datos de forma lógica.
      * 
-     * @param id El identificador del Quad a eliminar.
-     * @return El número de filas actualizadas (debería ser 1).
+     * @param id El identificador del Quad a desactivar.
      */
-    @Query("UPDATE Quad SET activo = 0 WHERE id = :id")
-    int delete(int id);
+    @Query("UPDATE Quad SET estaActivo = 0 WHERE id = :id")
+    void logicalDelete(int id);
 
     /**
-     * Elimina todos los registros de la tabla Quad (físico, usado para tests/limpieza).
+     * Elimina todos los registros de la tabla Quad.
      * 
      * @return El número de filas eliminadas.
      */
@@ -55,41 +54,32 @@ public interface QuadDao {
     /**
      * Obtiene todos los Quads activos ordenados alfabéticamente por matrícula.
      * 
-     * @return Un objeto LiveData que contiene la lista de Quads.
+     * @return Un objeto LiveData que contiene la lista de Quads activos.
      */
-    @Query("SELECT * FROM Quad WHERE activo = 1 ORDER BY matricula ASC")
+    @Query("SELECT * FROM Quad WHERE estaActivo = 1 ORDER BY matricula ASC")
     LiveData<List<Quad>> getOrderedQuadsByMatricula();
     
     /**
      * Obtiene la lista completa de Quads activos de forma síncrona.
      * 
-     * @return Una lista con todos los objetos Quad almacenados y activos.
+     * @return Una lista con todos los objetos Quad activos almacenados.
      */
-    @Query("SELECT * FROM Quad WHERE activo = 1 ORDER BY matricula ASC")
+    @Query("SELECT * FROM Quad WHERE estaActivo = 1 ORDER BY matricula ASC")
     List<Quad> getAllQuadsList();
-
-    /**
-     * Obtiene un Quad activo de forma síncrona según su ID.
-     * 
-     * @param id El identificador único del quad.
-     * @return El objeto Quad o null si no se encuentra o está inactivo.
-     */
-    @Query("SELECT * FROM Quad WHERE id = :id AND activo = 1 LIMIT 1")
-    Quad getQuadByIdSync(int id);
 
     /**
      * Obtiene todos los Quads activos ordenados por tipo (monoplazas primero) y matrícula.
      * 
-     * @return LiveData con la lista de Quads ordenada por tipo.
+     * @return LiveData con la lista de Quads activos ordenada por tipo.
      */
-    @Query("SELECT * FROM Quad WHERE activo = 1 ORDER BY esmonoplaza DESC, matricula ASC")
+    @Query("SELECT * FROM Quad WHERE estaActivo = 1 ORDER BY esmonoplaza DESC, matricula ASC")
     LiveData<List<Quad>> getOrderedQuadsByTipo();
 
     /**
      * Obtiene todos los Quads activos ordenados por precio ascendente y matrícula.
      * 
-     * @return LiveData con la lista de Quads ordenada por precio.
+     * @return LiveData con la lista de Quads activos ordenada por precio.
      */
-    @Query("SELECT * FROM Quad WHERE activo = 1 ORDER BY precio ASC, matricula ASC")
+    @Query("SELECT * FROM Quad WHERE estaActivo = 1 ORDER BY precio ASC, matricula ASC")
     LiveData<List<Quad>> getOrderedQuadsByPrecio();
 }

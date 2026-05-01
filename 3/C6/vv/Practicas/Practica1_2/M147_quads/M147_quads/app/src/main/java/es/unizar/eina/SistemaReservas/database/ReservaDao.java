@@ -46,13 +46,12 @@ public interface ReservaDao {
     int update(Reserva reserva);
 
     /**
-     * Elimina lógicamente una reserva de la base de datos.
+     * Elimina una reserva de forma lógica marcándola como inactiva.
      * 
-     * @param id El identificador de la reserva a eliminar.
-     * @return El número de filas actualizadas.
+     * @param id Identificador de la reserva a desactivar.
      */
-    @Query("UPDATE Reserva SET activo = 0 WHERE id = :id")
-    int delete(int id);
+    @Query("UPDATE Reserva SET estaActivo = 0 WHERE id = :id")
+    void logicalDelete(int id);
 
     /**
      * Elimina todos los vínculos de quads asociados a una reserva específica.
@@ -65,24 +64,13 @@ public interface ReservaDao {
 
     /**
      * Obtiene todas las reservas activas junto con sus quads asociados, ordenadas por fecha de recogida.
+     * Se ejecuta en una transacción para garantizar la consistencia al recuperar datos de múltiples tablas.
      * 
      * @return LiveData que contiene una lista de objetos {@link ReservaConQuads} observables.
      */
     @Transaction
-    @Query("SELECT * FROM Reserva WHERE activo = 1 ORDER BY fecha_recogida ASC")
+    @Query("SELECT * FROM Reserva WHERE estaActivo = 1 ORDER BY fecha_recogida ASC")
     LiveData<List<ReservaConQuads>> getReservasConQuads();
-
-    @Transaction
-    @Query("SELECT * FROM Reserva WHERE activo = 1 AND fecha_recogida > DATE('now') ORDER BY fecha_recogida ASC")
-    LiveData<List<ReservaConQuads>> getPrevistas();
-
-    @Transaction
-    @Query("SELECT * FROM Reserva WHERE activo = 1 AND fecha_recogida <= DATE('now') AND fecha_devolucion >= DATE('now') ORDER BY fecha_recogida ASC")
-    LiveData<List<ReservaConQuads>> getVigentes();
-
-    @Transaction
-    @Query("SELECT * FROM Reserva WHERE activo = 1 AND fecha_devolucion < DATE('now') ORDER BY fecha_recogida ASC")
-    LiveData<List<ReservaConQuads>> getCaducadas();
 
     /**
      * Obtiene la lista de vínculos técnicos (incluyendo número de cascos) para una reserva específica.
@@ -99,7 +87,7 @@ public interface ReservaDao {
      * @return Lista síncrona de objetos {@link ReservaConQuads}.
      */
     @Transaction
-    @Query("SELECT * FROM Reserva WHERE activo = 1")
+    @Query("SELECT * FROM Reserva WHERE estaActivo = 1")
     List<ReservaConQuads> getReservasConQuadsSync();
 
     /**

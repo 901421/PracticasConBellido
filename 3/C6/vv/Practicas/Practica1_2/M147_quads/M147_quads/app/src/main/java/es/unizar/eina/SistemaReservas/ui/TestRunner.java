@@ -120,7 +120,7 @@ public class TestRunner {
                 
                 // Capturamos el ID del primer vehículo insertado con éxito para usarlo en las reservas
                 if (idGenerado > 0 && quadsParaVinculo.isEmpty()) {
-                    quadsParaVinculo.add(new ReservaQuad(0, (int)idGenerado, 1));
+                    quadsParaVinculo.add(new ReservaQuad(0, (int)idGenerado, 1, 45.0));
                 }
             }
             Log.d(TAG, "SUCCESS: 100 Quads insertados cumpliendo formato Regex.");
@@ -133,7 +133,7 @@ public class TestRunner {
             }
 
             for (int i = 1; i <= 20000; i++) {
-                Reserva r = new Reserva("Cliente Vol " + i, "600000000", "2026-01-01", "2026-01-02");
+                Reserva r = new Reserva("Cliente Vol " + i, "600000000", "01/01/2026", "02/01/2026");
                 
                 // Usamos insertSync para asegurar que la inserción termina antes de la siguiente iteración
                 // Pasamos la lista con el vehículo vinculado para cumplir la regla de "reserva no vacía"

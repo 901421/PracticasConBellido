@@ -93,32 +93,25 @@ public class QuadRepository {
     }
 
     /**
-     * Elimina un Quad lógicamente de la base de datos.
-     * @param quad El objeto Quad a eliminar.
-     * @return El número de filas afectadas o -1 en caso de error.
+     * Elimina un Quad de la base de datos de forma lógica.
+     * @param quad El objeto Quad a desactivar.
      */
-    public int delete(Quad quad) {
-        Future<Integer> future = QuadRoomDatabase.databaseWriteExecutor.submit(() -> mQuadDao.delete(quad.getId()));
-        try {
-            return future.get(TIMEOUT, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException | ExecutionException | TimeoutException ex) {
-            Log.e("QuadRepository", "Error delete", ex);
-            return -1;
-        }
+    public void delete(Quad quad) {
+        QuadRoomDatabase.databaseWriteExecutor.execute(() -> mQuadDao.logicalDelete(quad.getId()));
     }
 
     /**
      * Calcula la lista de vehículos disponibles para un rango de fechas determinado.
-     * Cruza la información de todos los quads con las reservas existentes que solapan 
+     * Cruza la información de todos los quads activos con las reservas activas que solapan 
      * con el periodo solicitado para identificar qué vehículos están libres.
      * 
-     * @param fechaInStr Fecha de recogida en formato "yyyy-MM-dd".
-     * @param fechaOutStr Fecha de devolución en formato "yyyy-MM-dd".
+     * @param fechaInStr Fecha de recogida en formato "dd/MM/yyyy".
+     * @param fechaOutStr Fecha de devolución en formato "dd/MM/yyyy".
      * @param currentReservaId ID de la reserva actual (para ignorarla en caso de edición).
      * @return Lista de objetos Quad que están disponibles para las fechas indicadas.
      */
     public List<Quad> getAvailableQuadsSync(String fechaInStr, String fechaOutStr, int currentReservaId) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         List<Quad> availableQuads = new ArrayList<>();
 
         try {

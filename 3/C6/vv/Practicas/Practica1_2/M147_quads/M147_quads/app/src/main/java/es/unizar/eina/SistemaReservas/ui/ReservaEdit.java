@@ -62,8 +62,8 @@ public class ReservaEdit extends AppCompatActivity {
 
     /** Lista de vehículos seleccionados para la reserva actual. */
     private ArrayList<SelectedQuad> mSelectedQuads = new ArrayList<>();
-    /** Formateador de fechas estándar para la aplicación (ISO 8601). */
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+    /** Formateador de fechas estándar para la aplicación. */
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
 
     /**
      * Inicializa la actividad, configura los lanzadores de resultados y los 
@@ -271,7 +271,7 @@ public class ReservaEdit extends AppCompatActivity {
 
         DatePickerDialog datePickerDialog = new DatePickerDialog(this, R.style.BrownDatePickerTheme,
                 (view, year1, monthOfYear, dayOfMonth) -> {
-                    String date = String.format(Locale.getDefault(), "%04d-%02d-%02d", year1, monthOfYear + 1, dayOfMonth);
+                    String date = String.format(Locale.getDefault(), "%02d/%02d/%04d", dayOfMonth, monthOfYear + 1, year1);
                     
                     buttonToUpdate.setText(date);
                     buttonToUpdate.setError(null);

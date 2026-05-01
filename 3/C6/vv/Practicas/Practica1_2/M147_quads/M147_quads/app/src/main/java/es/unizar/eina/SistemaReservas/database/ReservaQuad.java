@@ -40,17 +40,23 @@ public class ReservaQuad {
     @ColumnInfo(name = "num_cascos")
     private int numCascos;
 
+    /** Precio diario acordado en el momento de crear la reserva. */
+    @ColumnInfo(name = "precio_diario_acordado")
+    private double precioDiarioAcordado;
+
     /**
      * Constructor para crear un nuevo vínculo entre una reserva y un quad.
      * 
      * @param reservaId ID de la reserva.
      * @param quadId ID del vehículo.
      * @param numCascos Número de cascos asignados.
+     * @param precioDiarioAcordado Precio del vehículo en el momento de la reserva.
      */
-    public ReservaQuad(int reservaId, int quadId, int numCascos) {
+    public ReservaQuad(int reservaId, int quadId, int numCascos, double precioDiarioAcordado) {
         this.reservaId = reservaId;
         this.quadId = quadId;
         this.numCascos = numCascos;
+        this.precioDiarioAcordado = precioDiarioAcordado;
     }
 
     /** @return El ID de la reserva asociada. */
@@ -70,4 +76,10 @@ public class ReservaQuad {
     
     /** @param numCascos Nueva cantidad de cascos asignada. */
     public void setNumCascos(int numCascos) { this.numCascos = numCascos; }
+
+    /** @return El precio diario acordado para este vehículo en esta reserva. */
+    public double getPrecioDiarioAcordado() { return precioDiarioAcordado; }
+
+    /** @param precioDiarioAcordado Nuevo precio diario acordado. */
+    public void setPrecioDiarioAcordado(double precioDiarioAcordado) { this.precioDiarioAcordado = precioDiarioAcordado; }
 }

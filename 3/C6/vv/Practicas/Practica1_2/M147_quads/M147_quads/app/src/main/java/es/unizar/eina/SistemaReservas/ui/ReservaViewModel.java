@@ -39,20 +39,9 @@ public class ReservaViewModel extends AndroidViewModel {
      */
     public enum SortType { CLIENTE, TELEFONO, FECHA_IN, FECHA_OUT }
 
-    public enum SortDirection { ASC, DESC }
-
-    public enum FilterType { TODAS, PREVISTAS, VIGENTES, CADUCADAS }
-
     /** Estado observable que almacena el criterio de ordenación actual. */
     private final MutableLiveData<SortType> mSortOrder = new MutableLiveData<>(SortType.FECHA_IN);
     
-    /** Estado observable para la dirección de ordenación. */
-    private final MutableLiveData<SortDirection> mSortDirection = new MutableLiveData<>(SortDirection.ASC);
-    
-    private final MutableLiveData<FilterType> mFilterType = new MutableLiveData<>(FilterType.TODAS);
-    
-    private LiveData<List<ReservaConQuads>> currentSource;
-
     /** 
      * Flujo de datos final que combina la fuente de la base de datos con la lógica de ordenación.
      * Reacciona tanto a cambios en los datos como a cambios en el tipo de orden.
@@ -70,63 +59,30 @@ public class ReservaViewModel extends AndroidViewModel {
         super(application);
         mRepository = new ReservaRepository(application);
         
-        updateSource();
+        LiveData<List<ReservaConQuads>> source = mRepository.getAllReservas();
+
+        // Observamos cambios en la base de datos
+        mSortedReservas.addSource(source, reservas -> {
+            mSortedReservas.setValue(sortList(reservas, mSortOrder.getValue()));
+        });
 
         // Observamos cambios en el botón de ordenación
         mSortedReservas.addSource(mSortOrder, sortType -> {
-            applySort();
-        });
-
-        // Observamos cambios en la dirección de ordenación
-        mSortedReservas.addSource(mSortDirection, direction -> {
-            applySort();
-        });
-    }
-
-    private void applySort() {
-        if (currentSource != null) {
-            List<ReservaConQuads> currentList = currentSource.getValue();
+            List<ReservaConQuads> currentList = source.getValue();
             if (currentList != null) {
-                mSortedReservas.setValue(sortList(currentList, mSortOrder.getValue(), mSortDirection.getValue()));
+                mSortedReservas.setValue(sortList(currentList, sortType));
             }
-        }
-    }
-
-    private void updateSource() {
-        if (currentSource != null) {
-            mSortedReservas.removeSource(currentSource);
-        }
-        
-        switch (mFilterType.getValue()) {
-            case PREVISTAS: currentSource = mRepository.getPrevistas(); break;
-            case VIGENTES: currentSource = mRepository.getVigentes(); break;
-            case CADUCADAS: currentSource = mRepository.getCaducadas(); break;
-            default: currentSource = mRepository.getAllReservas(); break;
-        }
-
-        mSortedReservas.addSource(currentSource, reservas -> {
-            mSortedReservas.setValue(sortList(reservas, mSortOrder.getValue(), mSortDirection.getValue()));
         });
     }
 
+    /**
+     * Actualiza el tipo de ordenación de la lista de reservas.
+     * Al actualizar mSortOrder, el MediatorLiveData disparará automáticamente la reordenación.
+     * 
+     * @param type El nuevo criterio de ordenación basado en {@link SortType}.
+     */
     public void setSortType(SortType type) {
-        if (mSortOrder.getValue() == type) {
-            // Si es el mismo tipo, alternamos dirección
-            mSortDirection.setValue(mSortDirection.getValue() == SortDirection.ASC ? SortDirection.DESC : SortDirection.ASC);
-        } else {
-            mSortOrder.setValue(type);
-            mSortDirection.setValue(SortDirection.ASC);
-        }
-    }
-
-    public SortType getSortType() { return mSortOrder.getValue(); }
-    public SortDirection getSortDirection() { return mSortDirection.getValue(); }
-
-    public void setFilterType(FilterType type) {
-        if (mFilterType.getValue() != type) {
-            mFilterType.setValue(type);
-            updateSource();
-        }
+        mSortOrder.setValue(type);
     }
 
     /**
@@ -143,53 +99,54 @@ public class ReservaViewModel extends AndroidViewModel {
      * 
      * @param originalList Lista de reservas proveniente del repositorio.
      * @param type Criterio de ordenación a aplicar.
-     * @param direction Dirección (ASC o DESC).
      * @return Una nueva lista con los elementos ordenados.
      */
-    private List<ReservaConQuads> sortList(List<ReservaConQuads> originalList, SortType type, SortDirection direction) {
+    private List<ReservaConQuads> sortList(List<ReservaConQuads> originalList, SortType type) {
         if (originalList == null || originalList.isEmpty()) {
             return originalList;
         }
 
         List<ReservaConQuads> newList = new ArrayList<>(originalList);
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
 
         Collections.sort(newList, new Comparator<ReservaConQuads>() {
             @Override
             public int compare(ReservaConQuads o1, ReservaConQuads o2) {
-                int result = 0;
                 try {
                     switch (type) {
                         case CLIENTE:
                             String c1 = o1.reserva.getNombreCliente() != null ? o1.reserva.getNombreCliente() : "";
                             String c2 = o2.reserva.getNombreCliente() != null ? o2.reserva.getNombreCliente() : "";
-                            result = c1.compareToIgnoreCase(c2);
-                            break;
+                            return c1.compareToIgnoreCase(c2);
 
                         case TELEFONO:
                             String t1 = o1.reserva.getTelefono() != null ? o1.reserva.getTelefono() : "";
                             String t2 = o2.reserva.getTelefono() != null ? o2.reserva.getTelefono() : "";
-                            result = t1.compareTo(t2);
-                            break;
+                            return t1.compareTo(t2);
 
                         case FECHA_IN:
                             Date d1 = sdf.parse(o1.reserva.getFechaRecogida());
                             Date d2 = sdf.parse(o2.reserva.getFechaRecogida());
-                            if (d1 != null && d2 != null) result = d1.compareTo(d2);
-                            break;
+                            if (d1 == null || d2 == null) return 0;
+                            return d1.compareTo(d2);
 
                         case FECHA_OUT:
                             Date do1 = sdf.parse(o1.reserva.getFechaDevolucion());
                             Date do2 = sdf.parse(o2.reserva.getFechaDevolucion());
-                            if (do1 != null && do2 != null) result = do1.compareTo(do2);
-                            break;
+                            if (do1 == null || do2 == null) return 0;
+                            return do1.compareTo(do2);
+                            
+                        default: return 0;
                     }
+                } catch (ParseException e) {
+                    if (type == SortType.FECHA_IN) {
+                        return o1.reserva.getFechaRecogida().compareTo(o2.reserva.getFechaRecogida());
+                    }
+                    return 0;
                 } catch (Exception ex) {
-                    result = 0;
+                    return 0;
                 }
-                
-                return (direction == SortDirection.ASC) ? result : -result;
             }
         });
 
