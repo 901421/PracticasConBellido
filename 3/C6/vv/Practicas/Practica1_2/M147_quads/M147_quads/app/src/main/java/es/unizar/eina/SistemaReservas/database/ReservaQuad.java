@@ -19,11 +19,13 @@ import androidx.room.Index;
                 @ForeignKey(entity = Reserva.class,
                         parentColumns = "Id",
                         childColumns = "ReservaId",
-                        onDelete = ForeignKey.CASCADE),
+                        onDelete = ForeignKey.CASCADE,
+                        onUpdate = ForeignKey.CASCADE),
                 @ForeignKey(entity = Quad.class,
                         parentColumns = "Id",
                         childColumns = "QuadId",
-                        onDelete = ForeignKey.CASCADE)
+                        onDelete = ForeignKey.CASCADE,
+                        onUpdate = ForeignKey.CASCADE)
         },
         indices = {@Index("ReservaId"), @Index("QuadId")})
 public class ReservaQuad {
