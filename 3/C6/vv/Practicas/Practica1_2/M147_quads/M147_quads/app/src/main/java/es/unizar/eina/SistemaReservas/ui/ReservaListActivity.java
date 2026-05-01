@@ -269,9 +269,9 @@ public class ReservaListActivity extends AppCompatActivity {
         ReservaViewModel.FilterType filter = mReservaViewModel.getFilterType();
         String filterLabel = getString(R.string.filter);
         switch (filter) {
-            case PREVISTAS: filterLabel = getString(R.string.filter_previstas_label); break;
-            case VIGENTES:  filterLabel = getString(R.string.filter_vigentes_label);  break;
-            case CADUCADAS: filterLabel = getString(R.string.filter_caducadas_label); break;
+            case PREVISTAS: filterLabel = "VER:\nPREVISTAS"; break;
+            case VIGENTES:  filterLabel = "VER:\nVIGENTES";  break;
+            case CADUCADAS: filterLabel = "VER:\nCADUCADAS"; break;
             case TODAS:     filterLabel = getString(R.string.filter);        break;
         }
         btnOpenFilter.setText(filterLabel);
@@ -282,10 +282,10 @@ public class ReservaListActivity extends AppCompatActivity {
         
         String sortLabel = getString(R.string.sort);
         switch (sort) {
-            case CLIENTE:  sortLabel = getString(R.string.sort_name_label) + dirSymbol; break;
-            case TELEFONO: sortLabel = getString(R.string.sort_phone_label) + dirSymbol; break;
-            case FECHA_IN: sortLabel = getString(R.string.sort_in_label) + dirSymbol; break;
-            case FECHA_OUT:sortLabel = getString(R.string.sort_out_label) + dirSymbol; break;
+            case CLIENTE:  sortLabel = "ORDEN:\nNOMBRE" + dirSymbol; break;
+            case TELEFONO: sortLabel = "ORDEN:\nTEL." + dirSymbol; break;
+            case FECHA_IN: sortLabel = "ORDEN:\nINICIO" + dirSymbol; break;
+            case FECHA_OUT:sortLabel = "ORDEN:\nFINAL" + dirSymbol; break;
         }
         btnOpenSort.setText(sortLabel);
     }
