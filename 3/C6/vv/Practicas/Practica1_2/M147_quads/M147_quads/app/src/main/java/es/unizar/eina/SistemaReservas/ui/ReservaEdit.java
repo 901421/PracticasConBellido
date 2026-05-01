@@ -62,8 +62,10 @@ public class ReservaEdit extends AppCompatActivity {
 
     /** Lista de vehículos seleccionados para la reserva actual. */
     private ArrayList<SelectedQuad> mSelectedQuads = new ArrayList<>();
-    /** Formateador de fechas estándar para la aplicación. */
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+    /** Formateador de fechas para la interfaz de usuario (local). */
+    private final SimpleDateFormat uiDateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+    /** Formateador de fechas para la base de datos (ISO 8601). */
+    private final SimpleDateFormat dbDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
     /**
      * Inicializa la actividad, configura los lanzadores de resultados y los 
@@ -162,10 +164,23 @@ public class ReservaEdit extends AppCompatActivity {
             mEditTelefono.setText(extras.getString(RES_TELEFONO));
             
             mFechaRecogidaStr = extras.getString(RES_FECHA_IN);
-            mBtnFechaRecogida.setText(mFechaRecogidaStr); 
-
             mFechaDevolucionStr = extras.getString(RES_FECHA_OUT);
-            mBtnFechaDevolucion.setText(mFechaDevolucionStr); 
+
+            // Convertir ISO -> UI para los botones
+            try {
+                if (mFechaRecogidaStr != null) {
+                    Date dIn = dbDateFormat.parse(mFechaRecogidaStr);
+                    if (dIn != null) mBtnFechaRecogida.setText(uiDateFormat.format(dIn));
+                }
+                if (mFechaDevolucionStr != null) {
+                    Date dOut = dbDateFormat.parse(mFechaDevolucionStr);
+                    if (dOut != null) mBtnFechaDevolucion.setText(uiDateFormat.format(dOut));
+                }
+            } catch (ParseException e) {
+                e.printStackTrace();
+                mBtnFechaRecogida.setText(mFechaRecogidaStr);
+                mBtnFechaDevolucion.setText(mFechaDevolucionStr);
+            }
 
             mSelectedQuads = (ArrayList<SelectedQuad>) extras.getSerializable(RES_LISTA_QUADS);
             updateBotonQuadsUI();
@@ -250,8 +265,8 @@ public class ReservaEdit extends AppCompatActivity {
      */
     private boolean isFechaValida(String inicio, String fin) {
         try {
-            Date dateInicio = dateFormat.parse(inicio);
-            Date dateFin = dateFormat.parse(fin);
+            Date dateInicio = dbDateFormat.parse(inicio);
+            Date dateFin = dbDateFormat.parse(fin);
             if (dateInicio != null && dateFin != null) return !dateInicio.after(dateFin);
         } catch (ParseException e) { e.printStackTrace(); }
         return false;
@@ -271,13 +286,16 @@ public class ReservaEdit extends AppCompatActivity {
 
         DatePickerDialog datePickerDialog = new DatePickerDialog(this, R.style.BrownDatePickerTheme,
                 (view, year1, monthOfYear, dayOfMonth) -> {
-                    String date = String.format(Locale.getDefault(), "%02d/%02d/%04d", dayOfMonth, monthOfYear + 1, year1);
+                    // UI: dd/MM/yyyy
+                    String dateUI = String.format(Locale.getDefault(), "%02d/%02d/%04d", dayOfMonth, monthOfYear + 1, year1);
+                    // DB/Interno: yyyy-MM-dd
+                    String dateDB = String.format(Locale.getDefault(), "%04d-%02d-%02d", year1, monthOfYear + 1, dayOfMonth);
                     
-                    buttonToUpdate.setText(date);
+                    buttonToUpdate.setText(dateUI);
                     buttonToUpdate.setError(null);
 
-                    if (isRecogida) mFechaRecogidaStr = date;
-                    else mFechaDevolucionStr = date;
+                    if (isRecogida) mFechaRecogidaStr = dateDB;
+                    else mFechaDevolucionStr = dateDB;
                 }, year, month, day);
         datePickerDialog.show();
     }

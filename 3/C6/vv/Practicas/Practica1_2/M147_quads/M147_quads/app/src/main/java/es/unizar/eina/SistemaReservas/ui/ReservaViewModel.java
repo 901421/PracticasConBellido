@@ -108,42 +108,29 @@ public class ReservaViewModel extends AndroidViewModel {
 
         List<ReservaConQuads> newList = new ArrayList<>(originalList);
 
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-
         Collections.sort(newList, new Comparator<ReservaConQuads>() {
             @Override
             public int compare(ReservaConQuads o1, ReservaConQuads o2) {
-                try {
-                    switch (type) {
-                        case CLIENTE:
-                            String c1 = o1.reserva.getNombreCliente() != null ? o1.reserva.getNombreCliente() : "";
-                            String c2 = o2.reserva.getNombreCliente() != null ? o2.reserva.getNombreCliente() : "";
-                            return c1.compareToIgnoreCase(c2);
+                switch (type) {
+                    case CLIENTE:
+                        String c1 = o1.reserva.getNombreCliente() != null ? o1.reserva.getNombreCliente() : "";
+                        String c2 = o2.reserva.getNombreCliente() != null ? o2.reserva.getNombreCliente() : "";
+                        return c1.compareToIgnoreCase(c2);
 
-                        case TELEFONO:
-                            return Integer.compare(o1.reserva.getTelefono(), o2.reserva.getTelefono());
+                    case TELEFONO:
+                        return Integer.compare(o1.reserva.getTelefono(), o2.reserva.getTelefono());
 
-                        case FECHA_IN:
-                            Date d1 = sdf.parse(o1.reserva.getFechaRecogida());
-                            Date d2 = sdf.parse(o2.reserva.getFechaRecogida());
-                            if (d1 == null || d2 == null) return 0;
-                            return d1.compareTo(d2);
+                    case FECHA_IN:
+                        String fIn1 = o1.reserva.getFechaRecogida() != null ? o1.reserva.getFechaRecogida() : "";
+                        String fIn2 = o2.reserva.getFechaRecogida() != null ? o2.reserva.getFechaRecogida() : "";
+                        return fIn1.compareTo(fIn2);
 
-                        case FECHA_OUT:
-                            Date do1 = sdf.parse(o1.reserva.getFechaDevolucion());
-                            Date do2 = sdf.parse(o2.reserva.getFechaDevolucion());
-                            if (do1 == null || do2 == null) return 0;
-                            return do1.compareTo(do2);
-                            
-                        default: return 0;
-                    }
-                } catch (ParseException e) {
-                    if (type == SortType.FECHA_IN) {
-                        return o1.reserva.getFechaRecogida().compareTo(o2.reserva.getFechaRecogida());
-                    }
-                    return 0;
-                } catch (Exception ex) {
-                    return 0;
+                    case FECHA_OUT:
+                        String fOut1 = o1.reserva.getFechaDevolucion() != null ? o1.reserva.getFechaDevolucion() : "";
+                        String fOut2 = o2.reserva.getFechaDevolucion() != null ? o2.reserva.getFechaDevolucion() : "";
+                        return fOut1.compareTo(fOut2);
+                        
+                    default: return 0;
                 }
             }
         });

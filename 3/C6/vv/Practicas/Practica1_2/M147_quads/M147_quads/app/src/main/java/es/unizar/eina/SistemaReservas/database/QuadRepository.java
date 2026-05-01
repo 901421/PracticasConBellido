@@ -111,13 +111,15 @@ public class QuadRepository {
      * @return Lista de objetos Quad que están disponibles para las fechas indicadas.
      */
     public List<Quad> getAvailableQuadsSync(String fechaInStr, String fechaOutStr, int currentReservaId) {
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         List<Quad> availableQuads = new ArrayList<>();
 
         try {
-            // OPTIMIZACIÓN: Parsear fechas SOLAMENTE UNA VEZ fuera del bucle
-            Date newStart = sdf.parse(fechaInStr);
-            Date newEnd = sdf.parse(fechaOutStr);
+            // ISO 8601 permite comparaciones directas de cadenas si el formato es yyyy-MM-dd
+            // No obstante, para mayor seguridad y cálculo de solapamientos complejos, seguimos parseando.
+            SimpleDateFormat dbSdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            
+            Date newStart = dbSdf.parse(fechaInStr);
+            Date newEnd = dbSdf.parse(fechaOutStr);
 
             if (newStart == null || newEnd == null) return new ArrayList<>();
 
@@ -130,8 +132,8 @@ public class QuadRepository {
                     if (resConQuads.reserva.getId() == currentReservaId) continue;
 
                     try {
-                        Date resStart = sdf.parse(resConQuads.reserva.getFechaRecogida());
-                        Date resEnd = sdf.parse(resConQuads.reserva.getFechaDevolucion());
+                        Date resStart = dbSdf.parse(resConQuads.reserva.getFechaRecogida());
+                        Date resEnd = dbSdf.parse(resConQuads.reserva.getFechaDevolucion());
 
                         if (resStart != null && resEnd != null) {
                             // Si hay solapamiento de fechas

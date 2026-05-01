@@ -113,33 +113,27 @@ public class ReservaRepository {
      * @return El ID de la reserva insertada o -1 si falla alguna validación o hay error.
      */
     public long insertSync(Reserva reserva, List<ReservaQuad> quads) {
-        // 1. Definir el formato (Requiere import java.text.SimpleDateFormat)
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault());
-        
         try {
-            // 2. Validar Nombre y Teléfono (Casos 2 y 5 de tu tabla)
+            // 1. Validar Nombre y Teléfono (Casos 2 y 5 de tu tabla)
             if (reserva.getNombreCliente().trim().isEmpty() || reserva.getTelefono() == 0) {
                 return -1;
             }
 
-            // 3. Validar que hay al menos un Quad (Caso 4 de tu tabla)
+            // 2. Validar que hay al menos un Quad (Caso 4 de tu tabla)
             if (quads == null || quads.isEmpty()) {
                 return -1;
             }
 
-            // 4. Validar coherencia de fechas (Caso 3 de tu tabla)
-            // USAMOS LOS NOMBRES CORRECTOS: getFechaRecogida() y getFechaDevolucion()
-            java.util.Date fechaIn = sdf.parse(reserva.getFechaRecogida());
-            java.util.Date fechaOut = sdf.parse(reserva.getFechaDevolucion());
+            // 3. Validar coherencia de fechas (Caso 3 de tu tabla)
+            // Al usar ISO 8601 (yyyy-MM-dd), la comparación alfanumérica es equivalente a la cronológica.
+            String fechaIn = reserva.getFechaRecogida();
+            String fechaOut = reserva.getFechaDevolucion();
 
-            if (fechaIn != null && fechaOut != null) {
-                if (fechaOut.before(fechaIn)) {
-                    return -1; // Fallo: Devolución anterior a la recogida
-                }
+            if (fechaIn == null || fechaOut == null || fechaOut.compareTo(fechaIn) < 0) {
+                return -1; // Fallo: Devolución anterior a la recogida
             }
 
         } catch (Exception e) {
-            // Si hay error en el formato de fecha, devolvemos -1
             return -1;
         }
 

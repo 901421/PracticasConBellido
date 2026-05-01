@@ -243,13 +243,22 @@ public class ReservaListActivity extends AppCompatActivity {
     private String construirMensajeCompleto(ReservaConQuads item, java.util.List<ReservaQuad> relaciones) {
         StringBuilder sb = new StringBuilder();
         
+        SimpleDateFormat uiSdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        SimpleDateFormat dbSdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        
+        String displayIn = item.reserva.getFechaRecogida();
+        String displayOut = item.reserva.getFechaDevolucion();
         long dias = 1;
+        
         try {
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-            Date in = sdf.parse(item.reserva.getFechaRecogida());
-            Date out = sdf.parse(item.reserva.getFechaDevolucion());
-            long diff = out.getTime() - in.getTime();
-            dias = TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
+            Date in = dbSdf.parse(item.reserva.getFechaRecogida());
+            Date out = dbSdf.parse(item.reserva.getFechaDevolucion());
+            if (in != null && out != null) {
+                long diff = out.getTime() - in.getTime();
+                dias = TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
+                displayIn = uiSdf.format(in);
+                displayOut = uiSdf.format(out);
+            }
             if (dias < 1) dias = 1; 
         } catch (Exception e) {
             e.printStackTrace();
@@ -272,8 +281,8 @@ public class ReservaListActivity extends AppCompatActivity {
         sb.append("👤 *Cliente:* ").append(item.reserva.getNombreCliente()).append("\n");
         sb.append("📞 *Contacto:* ").append(String.valueOf(item.reserva.getTelefono())).append("\n\n");
         
-        sb.append("🗓 *Recogida:* ").append(item.reserva.getFechaRecogida()).append("\n");
-        sb.append("🗓 *Devolución:* ").append(item.reserva.getFechaDevolucion()).append("\n");
+        sb.append("🗓 *Recogida:* ").append(displayIn).append("\n");
+        sb.append("🗓 *Devolución:* ").append(displayOut).append("\n");
         sb.append("⏳ *Duración:* ").append(dias).append(" día(s)\n\n");
         
         sb.append("🏍 *Vehículos:* ").append(item.quads.size()).append("\n");
@@ -316,9 +325,18 @@ public class ReservaListActivity extends AppCompatActivity {
             .setTitle("Enviar confirmación de reserva")
             .setItems(options, (dialog, which) -> {
                 String method = (which == 0) ? "WHATSAPP" : "SMS";
+                
+                SimpleDateFormat uiSdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                SimpleDateFormat dbSdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                String displayIn = reservaItem.reserva.getFechaRecogida();
+                try {
+                    Date dIn = dbSdf.parse(displayIn);
+                    if (dIn != null) displayIn = uiSdf.format(dIn);
+                } catch (Exception e) {}
+
                 String mensaje = "Hola " + reservaItem.reserva.getNombreCliente() + 
                                  ", tu reserva de Quads está confirmada para el " + 
-                                 reservaItem.reserva.getFechaRecogida() + ".";
+                                 displayIn + ".";
                 SendAbstraction sender = new SendAbstractionImpl(ReservaListActivity.this, method);
                 sender.send(String.valueOf(reservaItem.reserva.getTelefono()), mensaje);
             })
@@ -365,9 +383,20 @@ public class ReservaListActivity extends AppCompatActivity {
                 TextView tvFechas = view.findViewById(R.id.dialog_fechas);
                 TextView tvQuads = view.findViewById(R.id.dialog_lista_quads);
 
+                SimpleDateFormat uiSdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                SimpleDateFormat dbSdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                String displayIn = item.reserva.getFechaRecogida();
+                String displayOut = item.reserva.getFechaDevolucion();
+                try {
+                    Date dIn = dbSdf.parse(displayIn);
+                    Date dOut = dbSdf.parse(displayOut);
+                    if (dIn != null) displayIn = uiSdf.format(dIn);
+                    if (dOut != null) displayOut = uiSdf.format(dOut);
+                } catch (Exception e) {}
+
                 tvCliente.setText(item.reserva.getNombreCliente());
                 tvTelefono.setText(String.valueOf(item.reserva.getTelefono()));
-                tvFechas.setText("Desde: " + item.reserva.getFechaRecogida() + "\nHasta: " + item.reserva.getFechaDevolucion());
+                tvFechas.setText("Desde: " + displayIn + "\nHasta: " + displayOut);
 
                 if (item.quads != null && !item.quads.isEmpty()) {
                     StringBuilder sb = new StringBuilder();

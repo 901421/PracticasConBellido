@@ -6,6 +6,9 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 import androidx.recyclerview.widget.RecyclerView;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import es.unizar.eina.SistemaReservas.R;
 import es.unizar.eina.SistemaReservas.database.ReservaConQuads; 
 
@@ -15,6 +18,11 @@ import es.unizar.eina.SistemaReservas.database.ReservaConQuads;
  * el rendimiento del RecyclerView y gestiona la vinculación de los datos del cliente.
  */
 class ReservaViewHolder extends RecyclerView.ViewHolder {
+
+    /** Formateador de fechas para la interfaz de usuario (local). */
+    private final SimpleDateFormat uiDateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+    /** Formateador de fechas para la base de datos (ISO 8601). */
+    private final SimpleDateFormat dbDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
     /** Vista de texto para el nombre del cliente titular. */
     private final TextView tvCliente;
@@ -59,7 +67,20 @@ class ReservaViewHolder extends RecyclerView.ViewHolder {
     public void bind(ReservaConQuads item, ReservaListAdapter.OnItemClickListener listener) {
         tvCliente.setText(item.reserva.getNombreCliente());
         tvTelefono.setText("Tlf: " + item.reserva.getTelefono());
-        tvFechas.setText(item.reserva.getFechaRecogida() + " -> " + item.reserva.getFechaDevolucion());
+        
+        String displayDateIn = item.reserva.getFechaRecogida();
+        String displayDateOut = item.reserva.getFechaDevolucion();
+        
+        try {
+            Date dIn = dbDateFormat.parse(item.reserva.getFechaRecogida());
+            Date dOut = dbDateFormat.parse(item.reserva.getFechaDevolucion());
+            if (dIn != null) displayDateIn = uiDateFormat.format(dIn);
+            if (dOut != null) displayDateOut = uiDateFormat.format(dOut);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        tvFechas.setText(displayDateIn + " -> " + displayDateOut);
 
         btnDetails.setOnClickListener(v -> listener.onDetails(item));
         btnEdit.setOnClickListener(v -> listener.onEdit(item));

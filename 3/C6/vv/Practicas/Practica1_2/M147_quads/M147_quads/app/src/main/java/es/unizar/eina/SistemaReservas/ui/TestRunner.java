@@ -70,23 +70,23 @@ public class TestRunner {
             listaValida.add(new ReservaQuad(0, (int)idQ1, 1, 45.0));
         }
 
-        Reserva r1 = new Reserva("Juan Pérez", 600111222, "10/01/2026", "12/01/2026");
+        Reserva r1 = new Reserva("Juan Pérez", 600111222, "2026-01-10", "2026-01-12");
         long idR1 = mResRepo.insertSync(r1, listaValida);
         checkResult("UNIT RES 1: Juan Pérez (Válida)", idR1 > 0);
 
-        Reserva r2 = new Reserva("", 600111222, "10/01/2026", "12/01/2026");
+        Reserva r2 = new Reserva("", 600111222, "2026-01-10", "2026-01-12");
         long idR2 = mResRepo.insertSync(r2, listaValida);
         checkResult("UNIT RES 2: Fallo por nombre vacío", idR2 > 0);
 
-        Reserva r3 = new Reserva("Juan Pérez", 600111222, "15/01/2026", "10/01/2026");
+        Reserva r3 = new Reserva("Juan Pérez", 600111222, "2026-01-15", "2026-01-10");
         long idR3 = mResRepo.insertSync(r3, listaValida);
         checkResult("UNIT RES 3: Fallo por fechas incoherentes", idR3 > 0);
 
-        Reserva r4 = new Reserva("Juan Pérez", 600111222, "10/01/2026", "12/01/2026");
+        Reserva r4 = new Reserva("Juan Pérez", 600111222, "2026-01-10", "2026-01-12");
         long idR4 = mResRepo.insertSync(r4, new ArrayList<>()); 
         checkResult("UNIT RES 4: Fallo por falta de vehículos", idR4 > 0);
 
-        Reserva r5 = new Reserva("Juan Pérez", 0, "10/01/2026", "12/01/2026");
+        Reserva r5 = new Reserva("Juan Pérez", 0, "2026-01-10", "2026-01-12");
         long idR5 = mResRepo.insertSync(r5, listaValida);
         checkResult("UNIT RES 5: Fallo por teléfono vacío", idR5 > 0);
 
@@ -133,7 +133,7 @@ public class TestRunner {
             }
 
             for (int i = 1; i <= 20000; i++) {
-                Reserva r = new Reserva("Cliente Vol " + i, 600000000, "01/01/2026", "02/01/2026");
+                Reserva r = new Reserva("Cliente Vol " + i, 600000000, "2026-01-01", "2026-01-02");
                 
                 // Usamos insertSync para asegurar que la inserción termina antes de la siguiente iteración
                 // Pasamos la lista con el vehículo vinculado para cumplir la regla de "reserva no vacía"
