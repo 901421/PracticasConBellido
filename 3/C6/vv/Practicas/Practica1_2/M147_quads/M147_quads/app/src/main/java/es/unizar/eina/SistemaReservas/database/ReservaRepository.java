@@ -21,6 +21,9 @@ public class ReservaRepository {
     /** Lista observable de todas las reservas incluyendo sus vehículos asociados. */
     private final LiveData<List<ReservaConQuads>> mAllReservas;
 
+    /** DAO para el acceso a los datos de los vehículos (necesario para validaciones). */
+    private final QuadDao mQuadDao;
+
     /**
      * Constructor del repositorio de reservas.
      * @param application Contexto de la aplicación utilizado para inicializar la base de datos.
@@ -28,6 +31,7 @@ public class ReservaRepository {
     public ReservaRepository(Application application) {
         QuadRoomDatabase db = QuadRoomDatabase.getDatabase(application);
         mReservaDao = db.ReservaDao();
+        mQuadDao = db.QuadDao();
         mAllReservas = mReservaDao.getReservasConQuads();
     }
 
@@ -37,15 +41,40 @@ public class ReservaRepository {
     }
 
     /**
-     * Realiza la inserción asíncrona de una reserva y sus quads asociados.
-     * Primero inserta la reserva para obtener su ID y luego asigna dicho ID 
-     * a cada entrada de la tabla intermedia.
-     * 
-     * @param reserva Objeto reserva a insertar.
-     * @param quads Lista de vehículos vinculados a dicha reserva.
+     * Obtiene una lista de reservas filtrada y ordenada mediante SQL (RNF 1).
+     */
+    public LiveData<List<ReservaConQuads>> getFilteredReservas(int filter, String today, String sort, String dir) {
+        return mReservaDao.getFilteredReservas(filter, today, sort, dir);
+    }
+
+    /**
+     * Realiza la validación integral de una reserva (RF 6).
+     * @return true si es válida, false en caso contrario.
+     */
+    private boolean validateReserva(Reserva reserva, List<ReservaQuad> quads) {
+        if (reserva.getNombreCliente().trim().isEmpty() || reserva.getTelefono() <= 0) return false;
+        if (quads == null || quads.isEmpty()) return false;
+        
+        String fIn = reserva.getFechaRecogida();
+        String fOut = reserva.getFechaDevolucion();
+        if (fIn == null || fOut == null || fOut.compareTo(fIn) < 0) return false;
+
+        // Validación de Cascos (RF 6): Un monoplaza no puede tener > 1 casco
+        for (ReservaQuad rq : quads) {
+            Quad q = mQuadDao.getQuadSync(rq.getQuadId());
+            if (q != null && q.getEsmonoplaza() && rq.getNumCascos() > 1) {
+                return false; 
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Realiza la inserción asíncrona de una reserva y sus quads asociados previa validación.
      */
     public void insert(Reserva reserva, List<ReservaQuad> quads) {
         QuadRoomDatabase.databaseWriteExecutor.execute(() -> {
+            if (!validateReserva(reserva, quads)) return;
             long reservaId = mReservaDao.insert(reserva);
             for (ReservaQuad rq : quads) {
                 rq.setReservaId((int) reservaId);
@@ -67,14 +96,10 @@ public class ReservaRepository {
     
     /**
      * Actualiza una reserva existente y gestiona la actualización de sus vehículos.
-     * El proceso consiste en actualizar los datos básicos, eliminar todos los quads 
-     * previamente asignados e insertar la nueva lista proporcionada.
-     * 
-     * @param reserva Objeto reserva con los datos actualizados.
-     * @param quads Nueva lista de vehículos para esta reserva.
      */
     public void update(Reserva reserva, List<ReservaQuad> quads) {
         QuadRoomDatabase.databaseWriteExecutor.execute(() -> {
+            if (!validateReserva(reserva, quads)) return;
             mReservaDao.update(reserva);
             mReservaDao.deleteReservaQuads(reserva.getId());
             for (ReservaQuad rq : quads) {
@@ -105,40 +130,10 @@ public class ReservaRepository {
 
     /**
      * Inserta una reserva de forma síncrona validando reglas de negocio específicas.
-     * Verifica que el nombre/teléfono no estén vacíos, que haya quads asignados y 
-     * que la fecha de devolución sea posterior a la de recogida.
-     * 
-     * @param reserva Objeto reserva a validar e insertar.
-     * @param quads Lista de vehículos vinculados.
-     * @return El ID de la reserva insertada o -1 si falla alguna validación o hay error.
      */
     public long insertSync(Reserva reserva, List<ReservaQuad> quads) {
-        try {
-            // 1. Validar Nombre y Teléfono (Casos 2 y 5 de tu tabla)
-            if (reserva.getNombreCliente().trim().isEmpty() || reserva.getTelefono() == 0) {
-                return -1;
-            }
-
-            // 2. Validar que hay al menos un Quad (Caso 4 de tu tabla)
-            if (quads == null || quads.isEmpty()) {
-                return -1;
-            }
-
-            // 3. Validar coherencia de fechas (Caso 3 de tu tabla)
-            // Al usar ISO 8601 (yyyy-MM-dd), la comparación alfanumérica es equivalente a la cronológica.
-            String fechaIn = reserva.getFechaRecogida();
-            String fechaOut = reserva.getFechaDevolucion();
-
-            if (fechaIn == null || fechaOut == null || fechaOut.compareTo(fechaIn) < 0) {
-                return -1; // Fallo: Devolución anterior a la recogida
-            }
-
-        } catch (Exception e) {
-            return -1;
-        }
-
-        // 5. Si todo es correcto, procedemos con la inserción
         java.util.concurrent.Future<Long> future = QuadRoomDatabase.databaseWriteExecutor.submit(() -> {
+            if (!validateReserva(reserva, quads)) return -1L;
             long id = mReservaDao.insert(reserva);
             for (ReservaQuad rq : quads) {
                 rq.setReservaId((int) id);

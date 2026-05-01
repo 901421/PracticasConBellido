@@ -306,14 +306,15 @@ public class ReservaListActivity extends AppCompatActivity {
             if (dias < 1) dias = 1; 
         } catch (Exception e) { e.printStackTrace(); }
 
-        double precioBaseQuads = 0;
-        for (Quad q : item.quads) precioBaseQuads += q.getPrecio();
-        double precioTotal = precioBaseQuads * dias; 
-
+        double precioTotalAcordado = 0;
         int totalCascos = 0;
         if (relaciones != null) {
-            for (ReservaQuad rq : relaciones) totalCascos += rq.getNumCascos();
+            for (ReservaQuad rq : relaciones) {
+                precioTotalAcordado += rq.getPrecioDiarioAcordado();
+                totalCascos += rq.getNumCascos();
+            }
         }
+        double precioFinalCalculado = precioTotalAcordado * dias; 
 
         sb.append("📅 *CONFIRMACIÓN DE RESERVA* 📅\n\n");
         sb.append("👤 *Cliente:* ").append(item.reserva.getNombreCliente()).append("\n");
@@ -323,7 +324,7 @@ public class ReservaListActivity extends AppCompatActivity {
         sb.append("⏳ *Duración:* ").append(dias).append(" día(s)\n\n");
         sb.append("🏍 *Vehículos:* ").append(item.quads.size()).append("\n");
         sb.append("🪖 *Total Cascos:* ").append(totalCascos).append("\n\n");
-        sb.append("💶 *PRECIO ESTIMADO:* ").append(String.format(Locale.getDefault(), "%.2f", precioTotal)).append("€");
+        sb.append("💶 *PRECIO ESTIMADO:* ").append(String.format(Locale.getDefault(), "%.2f", precioFinalCalculado)).append("€");
 
         return sb.toString();
     }

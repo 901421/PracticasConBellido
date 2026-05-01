@@ -73,7 +73,32 @@ public interface ReservaDao {
     LiveData<List<ReservaConQuads>> getReservasConQuads();
 
     /**
-     * Obtiene la lista de vínculos técnicos (incluyendo número de cascos) para una reserva específica.
+     * Obtiene reservas filtradas por estado (previstas, vigentes, caducadas) y ordenadas 
+     * según el criterio solicitado. Implementa la lógica de filtrado en SQL para RNF 1.
+     * 
+     * @param filter Filtro de estado: 0=Todas, 1=Previstas, 2=Vigentes, 3=Caducadas.
+     * @param today Fecha actual en formato ISO 8601 (yyyy-MM-dd).
+     * @return LiveData con la lista de reservas filtrada y ordenada.
+     */
+    @Transaction
+    @Query("SELECT * FROM Reserva WHERE estaActivo = 1 AND (" +
+           "(:filter = 0) OR " +
+           "(:filter = 1 AND fecha_recogida > :today) OR " +
+           "(:filter = 2 AND fecha_recogida <= :today AND fecha_devolucion >= :today) OR " +
+           "(:filter = 3 AND fecha_devolucion < :today)) " +
+           "ORDER BY " +
+           "CASE WHEN :sort = 'CLIENTE' AND :dir = 'ASC' THEN nombre_cliente END ASC, " +
+           "CASE WHEN :sort = 'CLIENTE' AND :dir = 'DESC' THEN nombre_cliente END DESC, " +
+           "CASE WHEN :sort = 'TELEFONO' AND :dir = 'ASC' THEN num_telefono END ASC, " +
+           "CASE WHEN :sort = 'TELEFONO' AND :dir = 'DESC' THEN num_telefono END DESC, " +
+           "CASE WHEN :sort = 'FECHA_IN' AND :dir = 'ASC' THEN fecha_recogida END ASC, " +
+           "CASE WHEN :sort = 'FECHA_IN' AND :dir = 'DESC' THEN fecha_recogida END DESC, " +
+           "CASE WHEN :sort = 'FECHA_OUT' AND :dir = 'ASC' THEN fecha_devolucion END ASC, " +
+           "CASE WHEN :sort = 'FECHA_OUT' AND :dir = 'DESC' THEN fecha_devolucion END DESC")
+    LiveData<List<ReservaConQuads>> getFilteredReservas(int filter, String today, String sort, String dir);
+
+    /**
+     * Obtiene todos los vínculos de quads asociados a una reserva específica.
      * 
      * @param reservaId Identificador de la reserva consultada.
      * @return Lista síncrona de objetos {@link ReservaQuad}.

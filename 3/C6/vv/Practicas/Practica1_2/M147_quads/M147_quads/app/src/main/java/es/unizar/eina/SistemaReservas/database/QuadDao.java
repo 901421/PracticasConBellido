@@ -82,4 +82,12 @@ public interface QuadDao {
      */
     @Query("SELECT * FROM Quad WHERE estaActivo = 1 ORDER BY precio ASC, Matricula ASC")
     LiveData<List<Quad>> getOrderedQuadsByPrecio();
+
+    /**
+     * Obtiene un Quad específico por su identificador.
+     * @param id Identificador del quad.
+     * @return El objeto Quad o null si no se encuentra.
+     */
+    @Query("SELECT * FROM Quad WHERE Id = :id")
+    Quad getQuadSync(int id);
 }

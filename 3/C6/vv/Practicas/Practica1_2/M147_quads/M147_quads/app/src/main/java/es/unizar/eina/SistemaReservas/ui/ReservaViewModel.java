@@ -48,32 +48,45 @@ public class ReservaViewModel extends AndroidViewModel {
     /** Estado observable del tipo de filtrado. */
     private final MutableLiveData<FilterType> mFilterType = new MutableLiveData<>(FilterType.TODAS);
     
-    /** Flujo de datos final procesado (Filtrado + Ordenado). */
-    private final MediatorLiveData<List<ReservaConQuads>> mProcessedReservas = new MediatorLiveData<>();
+    /** Flujo de datos final procesado (Filtrado + Ordenado vía SQL). */
+    private final LiveData<List<ReservaConQuads>> mProcessedReservas;
 
     /**
-     * Constructor del ViewModel. Configura el MediatorLiveData para reaccionar a cambios 
-     * en la base de datos, el criterio de ordenación, la dirección o el filtro.
+     * Constructor del ViewModel. Configura el switchMap para reaccionar a cambios 
+     * en el criterio de ordenación, la dirección o el filtro delegando en el DAO.
      */
     public ReservaViewModel(Application application) {
         super(application);
         mRepository = new ReservaRepository(application);
         
-        LiveData<List<ReservaConQuads>> source = mRepository.getAllReservas();
+        // Combinamos los estados en un único trigger para el switchMap
+        MediatorLiveData<CombinedParams> combinedParams = new MediatorLiveData<>();
+        combinedParams.setValue(new CombinedParams(mFilterType.getValue(), mSortType.getValue(), mSortDirection.getValue()));
 
-        // Reaccionar a cambios en los datos base
-        mProcessedReservas.addSource(source, data -> updateProcessedList(data, mSortType.getValue(), mSortDirection.getValue(), mFilterType.getValue()));
-        // Reaccionar a cambios en el tipo de orden
-        mProcessedReservas.addSource(mSortType, sort -> updateProcessedList(source.getValue(), sort, mSortDirection.getValue(), mFilterType.getValue()));
-        // Reaccionar a cambios en la dirección del orden
-        mProcessedReservas.addSource(mSortDirection, dir -> updateProcessedList(source.getValue(), mSortType.getValue(), dir, mFilterType.getValue()));
-        // Reaccionar a cambios en el filtro
-        mProcessedReservas.addSource(mFilterType, filter -> updateProcessedList(source.getValue(), mSortType.getValue(), mSortDirection.getValue(), filter));
+        combinedParams.addSource(mFilterType, f -> combinedParams.setValue(new CombinedParams(f, mSortType.getValue(), mSortDirection.getValue())));
+        combinedParams.addSource(mSortType, s -> combinedParams.setValue(new CombinedParams(mFilterType.getValue(), s, mSortDirection.getValue())));
+        combinedParams.addSource(mSortDirection, d -> combinedParams.setValue(new CombinedParams(mFilterType.getValue(), mSortType.getValue(), d)));
+
+        mProcessedReservas = androidx.lifecycle.Transformations.switchMap(combinedParams, params -> {
+            String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+            int filterId = 0;
+            switch (params.filter) {
+                case PREVISTAS: filterId = 1; break;
+                case VIGENTES:  filterId = 2; break;
+                case CADUCADAS: filterId = 3; break;
+            }
+            return mRepository.getFilteredReservas(filterId, today, params.sort.name(), params.dir.name());
+        });
     }
 
-    /** Helper para disparar la actualización de la lista procesada. */
-    private void updateProcessedList(List<ReservaConQuads> data, SortType sort, SortDirection dir, FilterType filter) {
-        mProcessedReservas.setValue(processList(data, sort, dir, filter));
+    /** Helper class para agrupar parámetros de consulta */
+    private static class CombinedParams {
+        FilterType filter;
+        SortType sort;
+        SortDirection dir;
+        CombinedParams(FilterType f, SortType s, SortDirection d) {
+            this.filter = f; this.sort = s; this.dir = d;
+        }
     }
 
     /** Getters y Setters de estado */
@@ -88,53 +101,6 @@ public class ReservaViewModel extends AndroidViewModel {
 
     /** @return LiveData con la lista final para la UI. */
     public LiveData<List<ReservaConQuads>> getAllReservas() { return mProcessedReservas; }
-
-    /**
-     * Aplica secuencialmente el filtrado por estado y la ordenación elegida.
-     */
-    private List<ReservaConQuads> processList(List<ReservaConQuads> originalList, SortType sort, SortDirection dir, FilterType filter) {
-        if (originalList == null) return new ArrayList<>();
-
-        // 1. FILTRADO
-        List<ReservaConQuads> filteredList = new ArrayList<>();
-        String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
-
-        for (ReservaConQuads item : originalList) {
-            boolean matches = false;
-            String fIn = item.reserva.getFechaRecogida();
-            String fOut = item.reserva.getFechaDevolucion();
-
-            switch (filter) {
-                case TODAS: matches = true; break;
-                case PREVISTAS: matches = (fIn.compareTo(today) > 0); break;
-                case VIGENTES:  matches = (fIn.compareTo(today) <= 0 && fOut.compareTo(today) >= 0); break;
-                case CADUCADAS: matches = (fOut.compareTo(today) < 0); break;
-            }
-            if (matches) filteredList.add(item);
-        }
-
-        // 2. ORDENACIÓN
-        Collections.sort(filteredList, (o1, o2) -> {
-            int result = 0;
-            switch (sort) {
-                case CLIENTE:
-                    result = o1.reserva.getNombreCliente().compareToIgnoreCase(o2.reserva.getNombreCliente());
-                    break;
-                case TELEFONO:
-                    result = Integer.compare(o1.reserva.getTelefono(), o2.reserva.getTelefono());
-                    break;
-                case FECHA_IN:
-                    result = o1.reserva.getFechaRecogida().compareTo(o2.reserva.getFechaRecogida());
-                    break;
-                case FECHA_OUT:
-                    result = o1.reserva.getFechaDevolucion().compareTo(o2.reserva.getFechaDevolucion());
-                    break;
-            }
-            return (dir == SortDirection.ASC) ? result : -result;
-        });
-
-        return filteredList;
-    }
 
     /**
      * Solicita la inserción de una nueva reserva junto con sus vínculos a quads.
