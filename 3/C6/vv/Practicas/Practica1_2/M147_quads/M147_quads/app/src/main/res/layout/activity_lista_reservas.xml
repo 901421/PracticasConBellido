@@ -7,78 +7,30 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <TextView
+    <!-- NUEVA SECCIÓN DE CONTROLES RF13 -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="ORDENAR POR:"
-        android:gravity="center"
-        android:textStyle="italic"
-        android:textSize="12sp"
-        android:layout_marginBottom="4dp" />
+        android:orientation="horizontal"
+        android:layout_marginBottom="12dp">
 
-    <com.google.android.material.button.MaterialButtonToggleGroup
-        android:id="@+id/toggleGroupReservas"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        app:singleSelection="true"
-        app:selectionRequired="true"
-        app:checkedButton="@id/sort_fecha_in">
-
-        <!-- BOTÓN 1: CLIENTE -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/sort_cliente"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        <Button
+            android:id="@+id/btn_open_sort"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="CLIENTE"
-            android:textSize="9sp"
-            android:padding="0dp"
-            app:strokeColor="@color/colorBtnEdit"
-            android:textColor="@color/black"/> 
-            <!-- ELIMINADO app:backgroundTint, CAMBIADO textColor a black -->
+            android:text="ORDENAR"
+            android:layout_marginEnd="8dp"
+            style="@style/Widget.MaterialComponents.Button" />
 
-        <!-- BOTÓN 2: TELÉFONO -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/sort_telefono"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        <Button
+            android:id="@+id/btn_open_filter"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="TLF"
-            android:textSize="9sp"
-            android:padding="0dp"
-            app:strokeColor="@color/colorBtnEdit"
-            android:textColor="@color/black"/>
-
-        <!-- BOTÓN 3: ENTRADA -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/sort_fecha_in"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="ENTRADA"
-            android:textSize="9sp"
-            android:padding="0dp"
-            app:strokeColor="@color/colorBtnEdit"
-            android:textColor="@color/black"/>
-
-        <!-- BOTÓN 4: SALIDA -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/sort_fecha_out"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="SALIDA"
-            android:textSize="9sp"
-            android:padding="0dp"
-            app:strokeColor="@color/colorBtnEdit"
-            android:textColor="@color/black"/>
-
-    </com.google.android.material.button.MaterialButtonToggleGroup>
+            android:text="FILTRAR"
+            style="@style/Widget.MaterialComponents.Button" />
+    </LinearLayout>
     
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerview_reservas"
