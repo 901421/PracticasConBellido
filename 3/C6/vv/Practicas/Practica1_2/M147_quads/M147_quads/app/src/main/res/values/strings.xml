@@ -10,7 +10,7 @@
     <string name="menu_edit">Editar Quad</string>
     <string name="matricula">Matrícula</string>
     <string name="descripcion">Descripción</string>
-    <string name="precio">Precio (€/h)</string>
+    <string name="precio">Precio (€/día)</string>
     <string name="esmonoplaza">Monoplaza</string>
     <string name="titulo_crear_reserva">CREAR RESERVA</string>
     <string name="label_cliente">Cliente</string>
