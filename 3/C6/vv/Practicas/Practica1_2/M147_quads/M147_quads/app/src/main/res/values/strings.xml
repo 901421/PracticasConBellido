@@ -26,4 +26,45 @@
     <string name="no_data_reservas">No hay reservas registradas.\nPulsa "Crear Reserva" en el menú.</string>
     <string name="error_datos_reserva">Por favor, rellena todos los campos obligatorios.</string>
     <string name="no_available_quads">No hay quads disponibles para las fechas seleccionadas.</string>
+
+    <!-- LISTADO DE RESERVAS Y UX -->
+    <string name="delete_reserva_title">Eliminar Reserva</string>
+    <string name="delete_reserva_msg">¿Eliminar reserva de %1$s?</string>
+    <string name="delete">Eliminar</string>
+    <string name="reserva_deleted">Reserva eliminada</string>
+    <string name="cancel">Cancelar</string>
+    <string name="reserva_updated">Reserva actualizada</string>
+    <string name="close">Cerrar</string>
+
+    <string name="filter">FILTRAR</string>
+    <string name="filter_previstas_label">VER: PREVISTAS</string>
+    <string name="filter_vigentes_label">VER: VIGENTES</string>
+    <string name="filter_caducadas_label">VER: CADUCADAS</string>
+
+    <string name="sort">ORDENAR</string>
+    <string name="sort_name_label">ORDEN: NOMBRE</string>
+    <string name="sort_phone_label">ORDEN: TEL.</string>
+    <string name="sort_in_label">ORDEN: INICIO</string>
+    <string name="sort_out_label">ORDEN: FINAL</string>
+
+    <!-- MENSAJERÍA -->
+    <string name="send_confirm_title">Enviar confirmación</string>
+    <string name="whatsapp">WhatsApp</string>
+    <string name="sms">SMS</string>
+    <string name="msg_confirm_header">📅 *CONFIRMACIÓN DE RESERVA* 📅</string>
+    <string name="msg_client">👤 *Cliente:* </string>
+    <string name="msg_contact">📞 *Contacto:* </string>
+    <string name="msg_in">🗓 *Recogida:* </string>
+    <string name="msg_out">🗓 *Devolución:* </string>
+    <string name="msg_duration">⏳ *Duración:* </string>
+    <string name="days">día(s)</string>
+    <string name="msg_quads">🏍 *Vehículos:* </string>
+    <string name="msg_cascos">🪖 *Total Cascos:* </string>
+    <string name="msg_price">💶 *PRECIO ESTIMADO:* </string>
+
+    <!-- DETALLES -->
+    <string name="date_range">Desde: %1$s\nHasta: %2$s</string>
+    <string name="biplaza">Biplaza</string>
+    <string name="total_day">Total/día: </string>
+    <string name="no_quads_assigned">No hay quads asignados.</string>
 </resources>

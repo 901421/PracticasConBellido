@@ -10,25 +10,34 @@
     <!-- NUEVA SECCIÓN DE CONTROLES RF13 -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="60dp"
         android:orientation="horizontal"
-        android:layout_marginBottom="12dp">
+        android:padding="8dp"
+        android:gravity="center_vertical">
 
         <Button
             android:id="@+id/btn_open_sort"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:text="ORDENAR"
             android:layout_marginEnd="8dp"
+            app:icon="@drawable/ic_arrow_drop_down"
+            app:iconGravity="textEnd"
+            app:iconPadding="4dp"
+            app:backgroundTint="@color/colorBtnEdit"
             style="@style/Widget.MaterialComponents.Button" />
 
         <Button
             android:id="@+id/btn_open_filter"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:text="FILTRAR"
+            app:icon="@drawable/ic_arrow_drop_down"
+            app:iconGravity="textEnd"
+            app:iconPadding="4dp"
+            app:backgroundTint="@color/colorBtnEdit"
             style="@style/Widget.MaterialComponents.Button" />
     </LinearLayout>
     

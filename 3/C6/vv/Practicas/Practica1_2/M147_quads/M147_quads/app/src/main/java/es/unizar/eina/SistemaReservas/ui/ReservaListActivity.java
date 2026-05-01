@@ -3,6 +3,7 @@ package es.unizar.eina.SistemaReservas.ui;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -11,6 +12,7 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -34,36 +36,26 @@ import es.unizar.eina.SistemaReservas.send.SendAbstraction;
 import es.unizar.eina.SistemaReservas.send.SendAbstractionImpl;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 
 /**
  * Actividad encargada de gestionar y visualizar el listado completo de reservas.
- * Permite realizar la ordenación dinámica de los datos, consultar detalles,
- * editar registros, eliminar reservas y enviar confirmaciones mediante servicios externos
- * (WhatsApp/SMS) aplicando el patrón Bridge.
  */
 public class ReservaListActivity extends AppCompatActivity {
+
+    private static final String TAG = "ReservaListActivity";
 
     /** ViewModel que gestiona el acceso a los datos de las reservas. */
     private ReservaViewModel mReservaViewModel;
     
-    /** Botón para abrir el panel de ordenación. */
+    /** Botones de control de UI. */
     private Button btnOpenSort;
-    /** Botón para abrir el panel de filtrado. */
     private Button btnOpenFilter;
     
-    /** Componente para la visualización de la lista. */
+    /** Componentes de la lista. */
     private RecyclerView recyclerView;
-    /** Vista mostrada cuando no existen reservas registradas en el sistema. */
     private TextView emptyView;
     
-    /**
-     * Configura la interfaz de usuario, inicializa los ViewModels y establece 
-     * los escuchadores para la gestión de clics en la lista y botones de ordenación.
-     * 
-     * @param savedInstanceState Estado de la instancia guardada.
-     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,7 +63,6 @@ public class ReservaListActivity extends AppCompatActivity {
 
         recyclerView = findViewById(R.id.recyclerview_reservas);
         emptyView = findViewById(R.id.empty_view_reservas);
-
         btnOpenSort = findViewById(R.id.btn_open_sort);
         btnOpenFilter = findViewById(R.id.btn_open_filter);
         
@@ -86,27 +77,7 @@ public class ReservaListActivity extends AppCompatActivity {
                     if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                         Bundle extras = result.getData().getExtras();
                         if (extras != null && extras.containsKey(ReservaEdit.RES_ID)) {
-                            int id = extras.getInt(ReservaEdit.RES_ID);
-                            String cliente = extras.getString(ReservaEdit.RES_CLIENTE);
-                            String tlfStr = extras.getString(ReservaEdit.RES_TELEFONO);
-                            int tlf = 0;
-                            try { tlf = Integer.parseInt(tlfStr); } catch (Exception e) {}
-                            
-                            String fechaIn = extras.getString(ReservaEdit.RES_FECHA_IN);
-                            String fechaOut = extras.getString(ReservaEdit.RES_FECHA_OUT);
-                            ArrayList<SelectedQuad> selectedUI = (ArrayList<SelectedQuad>) extras.getSerializable(ReservaEdit.RES_LISTA_QUADS);
-
-                            Reserva reserva = new Reserva(cliente, tlf, fechaIn, fechaOut);
-                            reserva.setId(id);
-
-                            List<ReservaQuad> dbQuads = new ArrayList<>();
-                            if (selectedUI != null) {
-                                for (SelectedQuad sq : selectedUI) {
-                                    dbQuads.add(new ReservaQuad(id, sq.getId(), sq.getNumCascos(), sq.getPrecio()));
-                                }
-                            }
-                            mReservaViewModel.update(reserva, dbQuads);
-                            Toast.makeText(this, "Reserva actualizada", Toast.LENGTH_SHORT).show();
+                            procesarResultadoEdicion(extras);
                         }
                     }
                 }
@@ -120,27 +91,7 @@ public class ReservaListActivity extends AppCompatActivity {
                 @Override
                 public void onEdit(ReservaConQuads reservaItem) {
                     mReservaViewModel.getReservaQuads(reservaItem.reserva.getId(), listaRelaciones -> {
-                        ArrayList<SelectedQuad> listForEdit = new ArrayList<>();
-                        for(Quad q : reservaItem.quads) {
-                            SelectedQuad sq = new SelectedQuad(
-                                q.getId(), 
-                                q.getMatricula(), 
-                                q.getEsmonoplaza(), 
-                                q.getPrecio(), 
-                                q.getDescripcion()
-                            ); 
-
-                            sq.setSelected(true);
-                            int cascosReales = 1; 
-                            for (ReservaQuad rq : listaRelaciones) {
-                                if (rq.getQuadId() == q.getId()) {
-                                    cascosReales = rq.getNumCascos();
-                                    break;
-                                }
-                            }
-                            sq.setNumCascos(cascosReales);
-                            listForEdit.add(sq);
-                        }
+                        ArrayList<SelectedQuad> listForEdit = buildSelectedQuadList(reservaItem, listaRelaciones);
                         
                         runOnUiThread(() -> {
                             Intent intent = new Intent(ReservaListActivity.this, ReservaEdit.class);
@@ -158,13 +109,13 @@ public class ReservaListActivity extends AppCompatActivity {
                 @Override
                 public void onDelete(ReservaConQuads reserva) {
                     new AlertDialog.Builder(ReservaListActivity.this)
-                        .setTitle("Eliminar Reserva")
-                        .setMessage("¿Eliminar reserva de " + reserva.reserva.getNombreCliente() + "?")
-                        .setPositiveButton("Eliminar", (dialog, which) -> {
+                        .setTitle(R.string.delete_reserva_title)
+                        .setMessage(getString(R.string.delete_reserva_msg, reserva.reserva.getNombreCliente()))
+                        .setPositiveButton(R.string.delete, (dialog, which) -> {
                             mReservaViewModel.delete(reserva.reserva);
-                            Toast.makeText(ReservaListActivity.this, "Reserva eliminada", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(ReservaListActivity.this, R.string.reserva_deleted, Toast.LENGTH_SHORT).show();
                         })
-                        .setNegativeButton("Cancelar", null)
+                        .setNegativeButton(R.string.cancel, null)
                         .show();
                 }
 
@@ -184,28 +135,72 @@ public class ReservaListActivity extends AppCompatActivity {
 
         mReservaViewModel.getAllReservas().observe(this, reservas -> {
             adapter.submitList(reservas);
-            
-            if (reservas == null || reservas.isEmpty()) {
-                recyclerView.setVisibility(View.GONE);
-                emptyView.setVisibility(View.VISIBLE);
-            } else {
-                recyclerView.setVisibility(View.VISIBLE);
-                emptyView.setVisibility(View.GONE);
-            }
+            boolean isEmpty = (reservas == null || reservas.isEmpty());
+            recyclerView.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+            emptyView.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
         });
 
         updateButtonsColor();
     }
 
-    /**
-     * Muestra el panel desplegable para elegir el criterio y dirección de ordenación.
-     */
+    private void procesarResultadoEdicion(@NonNull Bundle extras) {
+        int id = extras.getInt(ReservaEdit.RES_ID);
+        String cliente = extras.getString(ReservaEdit.RES_CLIENTE, "");
+        String tlfStr = extras.getString(ReservaEdit.RES_TELEFONO, "0");
+        int tlf = 0;
+        try { tlf = Integer.parseInt(tlfStr); } catch (NumberFormatException ignored) {}
+        
+        String fechaIn = extras.getString(ReservaEdit.RES_FECHA_IN, "");
+        String fechaOut = extras.getString(ReservaEdit.RES_FECHA_OUT, "");
+        
+        @SuppressWarnings("unchecked")
+        ArrayList<SelectedQuad> selectedUI = (ArrayList<SelectedQuad>) extras.getSerializable(ReservaEdit.RES_LISTA_QUADS);
+
+        Reserva reserva = new Reserva(cliente, tlf, fechaIn, fechaOut);
+        reserva.setId(id);
+
+        List<ReservaQuad> dbQuads = new ArrayList<>();
+        if (selectedUI != null) {
+            for (SelectedQuad sq : selectedUI) {
+                dbQuads.add(new ReservaQuad(id, sq.getId(), sq.getNumCascos(), sq.getPrecio()));
+            }
+        }
+        mReservaViewModel.update(reserva, dbQuads);
+        Toast.makeText(this, R.string.reserva_updated, Toast.LENGTH_SHORT).show();
+    }
+
+    private ArrayList<SelectedQuad> buildSelectedQuadList(ReservaConQuads item, List<ReservaQuad> relaciones) {
+        ArrayList<SelectedQuad> listForEdit = new ArrayList<>();
+        for (Quad q : item.quads) {
+            SelectedQuad sq = new SelectedQuad(q.getId(), q.getMatricula(), q.getEsmonoplaza(), q.getPrecio(), q.getDescripcion());
+            sq.setSelected(true);
+            int cascosReales = 1; 
+            for (ReservaQuad rq : relaciones) {
+                if (rq.getQuadId() == q.getId()) {
+                    cascosReales = rq.getNumCascos();
+                    break;
+                }
+            }
+            sq.setNumCascos(cascosReales);
+            listForEdit.add(sq);
+        }
+        return listForEdit;
+    }
+
     private void mostrarPanelOrdenacion() {
         BottomSheetDialog dialog = new BottomSheetDialog(this);
         View view = getLayoutInflater().inflate(R.layout.layout_bottom_sheet_sort, null);
         dialog.setContentView(view);
 
         updateSortIcons(view);
+
+        int colorHighlight = ContextCompat.getColor(this, R.color.app_background_pastel);
+        ReservaViewModel.SortType current = mReservaViewModel.getSortType();
+        
+        if (current == ReservaViewModel.SortType.CLIENTE) view.findViewById(R.id.option_sort_name).setBackgroundColor(colorHighlight);
+        else if (current == ReservaViewModel.SortType.TELEFONO) view.findViewById(R.id.option_sort_phone).setBackgroundColor(colorHighlight);
+        else if (current == ReservaViewModel.SortType.FECHA_IN) view.findViewById(R.id.option_sort_date_in).setBackgroundColor(colorHighlight);
+        else if (current == ReservaViewModel.SortType.FECHA_OUT) view.findViewById(R.id.option_sort_date_out).setBackgroundColor(colorHighlight);
 
         view.findViewById(R.id.btn_close_sort).setOnClickListener(v -> dialog.dismiss());
         view.findViewById(R.id.option_sort_name).setOnClickListener(v -> { toggleSort(ReservaViewModel.SortType.CLIENTE); dialog.dismiss(); });
@@ -216,9 +211,6 @@ public class ReservaListActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    /**
-     * Gestiona la alternancia de ordenación. Si el tipo es el mismo, invierte la dirección.
-     */
     private void toggleSort(ReservaViewModel.SortType type) {
         if (mReservaViewModel.getSortType() == type) {
             ReservaViewModel.SortDirection currentDir = mReservaViewModel.getSortDirection();
@@ -231,13 +223,18 @@ public class ReservaListActivity extends AppCompatActivity {
         updateButtonsColor();
     }
 
-    /**
-     * Muestra el panel desplegable para filtrar por el estado de las reservas.
-     */
     private void mostrarPanelFiltrado() {
         BottomSheetDialog dialog = new BottomSheetDialog(this);
         View view = getLayoutInflater().inflate(R.layout.layout_bottom_sheet_filter, null);
         dialog.setContentView(view);
+
+        int colorHighlight = ContextCompat.getColor(this, R.color.app_background_pastel);
+        ReservaViewModel.FilterType current = mReservaViewModel.getFilterType();
+
+        if (current == ReservaViewModel.FilterType.PREVISTAS) view.findViewById(R.id.option_filter_previstas).setBackgroundColor(colorHighlight);
+        else if (current == ReservaViewModel.FilterType.VIGENTES) view.findViewById(R.id.option_filter_vigentes).setBackgroundColor(colorHighlight);
+        else if (current == ReservaViewModel.FilterType.CADUCADAS) view.findViewById(R.id.option_filter_caducadas).setBackgroundColor(colorHighlight);
+        else if (current == ReservaViewModel.FilterType.TODAS) view.findViewById(R.id.option_filter_todas).setBackgroundColor(colorHighlight);
 
         view.findViewById(R.id.option_filter_previstas).setOnClickListener(v -> { mReservaViewModel.setFilterType(ReservaViewModel.FilterType.PREVISTAS); dialog.dismiss(); updateButtonsColor(); });
         view.findViewById(R.id.option_filter_vigentes).setOnClickListener(v -> { mReservaViewModel.setFilterType(ReservaViewModel.FilterType.VIGENTES); dialog.dismiss(); updateButtonsColor(); });
@@ -248,7 +245,6 @@ public class ReservaListActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    /** Sincroniza los iconos de flecha (↑/↓) en el panel. */
     private void updateSortIcons(View panelView) {
         ReservaViewModel.SortType currentType = mReservaViewModel.getSortType();
         int iconRes = (mReservaViewModel.getSortDirection() == ReservaViewModel.SortDirection.ASC) ? R.drawable.ic_arrow_up : R.drawable.ic_arrow_down;
@@ -269,24 +265,33 @@ public class ReservaListActivity extends AppCompatActivity {
         else if (currentType == ReservaViewModel.SortType.FECHA_OUT) ivOut.setImageResource(iconRes);
     }
 
-    /** Feedback visual: Resalta el botón si hay un filtro activo. */
     private void updateButtonsColor() {
-        if (mReservaViewModel.getFilterType() != ReservaViewModel.FilterType.TODAS) {
-            btnOpenFilter.setBackgroundColor(ContextCompat.getColor(this, R.color.colorBtnEdit));
-            btnOpenFilter.setTextColor(Color.WHITE);
-        } else {
-            btnOpenFilter.setBackgroundColor(0xFFCCCCCC);
-            btnOpenFilter.setTextColor(Color.BLACK);
+        ReservaViewModel.FilterType filter = mReservaViewModel.getFilterType();
+        String filterLabel = getString(R.string.filter);
+        switch (filter) {
+            case PREVISTAS: filterLabel = getString(R.string.filter_previstas_label); break;
+            case VIGENTES:  filterLabel = getString(R.string.filter_vigentes_label);  break;
+            case CADUCADAS: filterLabel = getString(R.string.filter_caducadas_label); break;
+            case TODAS:     filterLabel = getString(R.string.filter);        break;
         }
+        btnOpenFilter.setText(filterLabel);
+
+        ReservaViewModel.SortType sort = mReservaViewModel.getSortType();
+        ReservaViewModel.SortDirection dir = mReservaViewModel.getSortDirection();
+        String dirSymbol = (dir == ReservaViewModel.SortDirection.ASC) ? " ↑" : " ↓";
+        
+        String sortLabel = getString(R.string.sort);
+        switch (sort) {
+            case CLIENTE:  sortLabel = getString(R.string.sort_name_label) + dirSymbol; break;
+            case TELEFONO: sortLabel = getString(R.string.sort_phone_label) + dirSymbol; break;
+            case FECHA_IN: sortLabel = getString(R.string.sort_in_label) + dirSymbol; break;
+            case FECHA_OUT:sortLabel = getString(R.string.sort_out_label) + dirSymbol; break;
+        }
+        btnOpenSort.setText(sortLabel);
     }
 
-    /**
-     * Calcula la duración del alquiler, el coste total estimado y el total de cascos 
-     * para generar un mensaje estructurado destinado a la confirmación del cliente.
-     */
-    private String construirMensajeCompleto(ReservaConQuads item, java.util.List<ReservaQuad> relaciones) {
+    private String construirMensajeCompleto(ReservaConQuads item, List<ReservaQuad> relaciones) {
         StringBuilder sb = new StringBuilder();
-        
         SimpleDateFormat uiSdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         SimpleDateFormat dbSdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         
@@ -304,7 +309,9 @@ public class ReservaListActivity extends AppCompatActivity {
                 displayOut = uiSdf.format(out);
             }
             if (dias < 1) dias = 1; 
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) { 
+            Log.e(TAG, "Error al parsear fechas del mensaje", e);
+        }
 
         double precioTotalAcordado = 0;
         int totalCascos = 0;
@@ -316,28 +323,24 @@ public class ReservaListActivity extends AppCompatActivity {
         }
         double precioFinalCalculado = precioTotalAcordado * dias; 
 
-        sb.append("📅 *CONFIRMACIÓN DE RESERVA* 📅\n\n");
-        sb.append("👤 *Cliente:* ").append(item.reserva.getNombreCliente()).append("\n");
-        sb.append("📞 *Contacto:* ").append(String.valueOf(item.reserva.getTelefono())).append("\n\n");
-        sb.append("🗓 *Recogida:* ").append(displayIn).append("\n");
-        sb.append("🗓 *Devolución:* ").append(displayOut).append("\n");
-        sb.append("⏳ *Duración:* ").append(dias).append(" día(s)\n\n");
-        sb.append("🏍 *Vehículos:* ").append(item.quads.size()).append("\n");
-        sb.append("🪖 *Total Cascos:* ").append(totalCascos).append("\n\n");
-        sb.append("💶 *PRECIO ESTIMADO:* ").append(String.format(Locale.getDefault(), "%.2f", precioFinalCalculado)).append("€");
+        sb.append(getString(R.string.msg_confirm_header)).append("\n\n");
+        sb.append(getString(R.string.msg_client)).append(item.reserva.getNombreCliente()).append("\n");
+        sb.append(getString(R.string.msg_contact)).append(item.reserva.getTelefono()).append("\n\n");
+        sb.append(getString(R.string.msg_in)).append(displayIn).append("\n");
+        sb.append(getString(R.string.msg_out)).append(displayOut).append("\n");
+        sb.append(getString(R.string.msg_duration)).append(dias).append(" ").append(getString(R.string.days)).append("\n\n");
+        sb.append(getString(R.string.msg_quads)).append(item.quads.size()).append("\n");
+        sb.append(getString(R.string.msg_cascos)).append(totalCascos).append("\n\n");
+        sb.append(getString(R.string.msg_price)).append(String.format(Locale.getDefault(), "%.2f", precioFinalCalculado)).append("€");
 
         return sb.toString();
     }
 
-    /**
-     * Muestra un diálogo de selección para elegir el método de envío y 
-     * ejecuta el patrón Bridge para transmitir la información.
-     */
     private void mostrarDialogoEnvio(ReservaConQuads reservaItem, String mensajeFinal) {
-        String[] options = {"WhatsApp", "SMS"};
+        String[] options = {getString(R.string.whatsapp), getString(R.string.sms)};
 
         new AlertDialog.Builder(this)
-            .setTitle("Enviar confirmación")
+            .setTitle(R.string.send_confirm_title)
             .setItems(options, (dialog, which) -> {
                 String method = (which == 0) ? "WHATSAPP" : "SMS";
                 SendAbstraction sender = new SendAbstractionImpl(ReservaListActivity.this, method);
@@ -346,87 +349,60 @@ public class ReservaListActivity extends AppCompatActivity {
             .show();
     }
 
-    /**
-     * Variante simplificada para el envío de confirmación con mensaje predeterminado.
-     */
-    private void mostrarDialogoEnvio(ReservaConQuads reservaItem) {
-        String[] options = {"WhatsApp", "SMS"};
-
-        new AlertDialog.Builder(this)
-            .setTitle("Enviar confirmación de reserva")
-            .setItems(options, (dialog, which) -> {
-                String method = (which == 0) ? "WHATSAPP" : "SMS";
-                SimpleDateFormat uiSdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-                SimpleDateFormat dbSdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-                String displayIn = reservaItem.reserva.getFechaRecogida();
-                try {
-                    Date dIn = dbSdf.parse(displayIn);
-                    if (dIn != null) displayIn = uiSdf.format(dIn);
-                } catch (Exception e) {}
-
-                String mensaje = "Hola " + reservaItem.reserva.getNombreCliente() + 
-                                 ", tu reserva de Quads está confirmada para el " + 
-                                 displayIn + ".";
-                SendAbstraction sender = new SendAbstractionImpl(ReservaListActivity.this, method);
-                sender.send(String.valueOf(reservaItem.reserva.getTelefono()), mensaje);
-            })
-            .show();
-    }
-    
-    /**
-     * Crea y muestra un diálogo de alerta con el desglose detallado de la reserva.
-     */
     private void mostrarDialogoDetalles(ReservaConQuads item) {
-        mReservaViewModel.getReservaQuads(item.reserva.getId(), relaciones -> {
-            runOnUiThread(() -> {
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                View view = LayoutInflater.from(this).inflate(R.layout.dialog_reserva_detalles, null);
-                builder.setView(view);
+        mReservaViewModel.getReservaQuads(item.reserva.getId(), relaciones -> runOnUiThread(() -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            View view = LayoutInflater.from(this).inflate(R.layout.dialog_reserva_detalles, findViewById(android.R.id.content), false);
+            builder.setView(view);
 
-                TextView tvCliente = view.findViewById(R.id.dialog_cliente);
-                TextView tvTelefono = view.findViewById(R.id.dialog_telefono);
-                TextView tvFechas = view.findViewById(R.id.dialog_fechas);
-                TextView tvQuads = view.findViewById(R.id.dialog_lista_quads);
+            TextView tvCliente = view.findViewById(R.id.dialog_cliente);
+            TextView tvTelefono = view.findViewById(R.id.dialog_telefono);
+            TextView tvFechas = view.findViewById(R.id.dialog_fechas);
+            TextView tvQuads = view.findViewById(R.id.dialog_lista_quads);
 
-                SimpleDateFormat uiSdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-                SimpleDateFormat dbSdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-                String displayIn = item.reserva.getFechaRecogida();
-                String displayOut = item.reserva.getFechaDevolucion();
-                try {
-                    Date dIn = dbSdf.parse(displayIn);
-                    Date dOut = dbSdf.parse(displayOut);
-                    if (dIn != null) displayIn = uiSdf.format(dIn);
-                    if (dOut != null) displayOut = uiSdf.format(dOut);
-                } catch (Exception e) {}
+            SimpleDateFormat uiSdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            SimpleDateFormat dbSdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            String displayIn = item.reserva.getFechaRecogida();
+            String displayOut = item.reserva.getFechaDevolucion();
+            try {
+                Date dIn = dbSdf.parse(displayIn);
+                Date dOut = dbSdf.parse(displayOut);
+                if (dIn != null) displayIn = uiSdf.format(dIn);
+                if (dOut != null) displayOut = uiSdf.format(dOut);
+            } catch (Exception e) {
+                Log.e(TAG, "Error parseando fechas en detalles", e);
+            }
 
-                tvCliente.setText(item.reserva.getNombreCliente());
-                tvTelefono.setText(String.valueOf(item.reserva.getTelefono()));
-                tvFechas.setText("Desde: " + displayIn + "\nHasta: " + displayOut);
+            tvCliente.setText(item.reserva.getNombreCliente());
+            tvTelefono.setText(String.valueOf(item.reserva.getTelefono()));
+            tvFechas.setText(getString(R.string.date_range, displayIn, displayOut));
 
-                if (item.quads != null && !item.quads.isEmpty()) {
-                    StringBuilder sb = new StringBuilder();
-                    double totalPrecioDia = 0;
-                    for (Quad q : item.quads) {
-                        double precioAcordado = q.getPrecio(); 
-                        for (ReservaQuad rq : relaciones) {
-                            if (rq.getQuadId() == q.getId()) {
-                                precioAcordado = rq.getPrecioDiarioAcordado();
-                                break;
-                            }
-                        }
-                        sb.append("• [").append(q.getMatricula()).append("] ");
-                        sb.append(q.getEsmonoplaza() ? "Monoplaza" : "Biplaza");
-                        sb.append(" - ").append(precioAcordado).append("€/día\n");
-                        totalPrecioDia += precioAcordado;
-                    }
-                    sb.append("\nTotal/día: ").append(totalPrecioDia).append("€");
-                    tvQuads.setText(sb.toString());
-                } else {
-                    tvQuads.setText("No hay quads asignados.");
+            if (item.quads != null && !item.quads.isEmpty()) {
+                StringBuilder sb = new StringBuilder();
+                double totalPrecioDia = 0;
+                for (Quad q : item.quads) {
+                    double precioAcordado = getPrecioAcordado(q, relaciones);
+                    sb.append("• [").append(q.getMatricula()).append("] ");
+                    sb.append(q.getEsmonoplaza() ? getString(R.string.esmonoplaza) : getString(R.string.biplaza));
+                    sb.append(" - ").append(precioAcordado).append("€/día\n");
+                    totalPrecioDia += precioAcordado;
                 }
-                builder.setPositiveButton("Cerrar", null);
-                builder.show();
-            });
-        });
+                sb.append("\n").append(getString(R.string.total_day)).append(totalPrecioDia).append("€");
+                tvQuads.setText(sb.toString());
+            } else {
+                tvQuads.setText(R.string.no_quads_assigned);
+            }
+            builder.setPositiveButton(R.string.close, null);
+            builder.show();
+        }));
+    }
+
+    private double getPrecioAcordado(Quad q, List<ReservaQuad> relaciones) {
+        for (ReservaQuad rq : relaciones) {
+            if (rq.getQuadId() == q.getId()) {
+                return rq.getPrecioDiarioAcordado();
+            }
+        }
+        return q.getPrecio();
     }
 }
