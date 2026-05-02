@@ -100,7 +100,7 @@ public class TestsUnitariosDeleteQuads {
         List<ReservaQuad> listaVehiculos = new ArrayList<>();
         listaVehiculos.add(new ReservaQuad(0, (int) idQuad, 1, 0.0));
         
-        Reserva reservaTest = new Reserva("Pedro Cascada", 654321987, "20/01/2026", "22/01/2026");
+        Reserva reservaTest = new Reserva("Pedro Cascada", 654321987, "2026-01-20", "2026-01-22");
         long idReserva = reservaRepo.insertSync(reservaTest, listaVehiculos);
         assertTrue(idReserva > 0);
         reservaTest.setId((int) idReserva);

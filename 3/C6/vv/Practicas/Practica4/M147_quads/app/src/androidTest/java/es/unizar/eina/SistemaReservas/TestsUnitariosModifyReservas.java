@@ -55,7 +55,7 @@ public class TestsUnitariosModifyReservas {
         listaValida.add(new ReservaQuad(0, (int) idQ, 1, 0.0));
 
         // Crear e insertar Reserva Base
-        reservaBase = new Reserva("Base", 123456789, "01/01/2026", "02/01/2026");
+        reservaBase = new Reserva("Base", 123456789, "2026-01-01", "2026-01-02");
         long idR = reservaRepo.insertSync(reservaBase, listaValida);
         reservaBase.setId((int) idR);
 
@@ -69,7 +69,7 @@ public class TestsUnitariosModifyReservas {
         ReservaRepository rRepo = getReservaRepository();
         List<ReservaQuad> lista = prepararEntorno(qRepo, rRepo, "0001-MOD");
 
-        Reserva reservaModificada = new Reserva("Juan Pérez", 600111222, "10/01/2026", "12/01/2026");
+        Reserva reservaModificada = new Reserva("Juan Pérez", 600111222, "2026-01-10", "2026-01-12");
         reservaModificada.setId(reservaBase.getId());
 
         int filasActualizadas = rRepo.update(reservaModificada, lista);
@@ -83,7 +83,7 @@ public class TestsUnitariosModifyReservas {
         ReservaRepository rRepo = getReservaRepository();
         List<ReservaQuad> lista = prepararEntorno(qRepo, rRepo, "0002-MOD");
 
-        Reserva reservaModificada = new Reserva("Juan Pérez", 600111222, "10/01/2026", "10/01/2026");
+        Reserva reservaModificada = new Reserva("Juan Pérez", 600111222, "2026-01-10", "2026-01-10");
         reservaModificada.setId(reservaBase.getId());
 
         int filasActualizadas = rRepo.update(reservaModificada, lista);
@@ -97,7 +97,7 @@ public class TestsUnitariosModifyReservas {
         ReservaRepository rRepo = getReservaRepository();
         List<ReservaQuad> lista = prepararEntorno(qRepo, rRepo, "0003-MOD");
 
-        Reserva reservaModificada = new Reserva("", 600111222, "10/01/2026", "12/01/2026");
+        Reserva reservaModificada = new Reserva("", 600111222, "2026-01-10", "2026-01-12");
         reservaModificada.setId(reservaBase.getId());
 
         int filasActualizadas = rRepo.update(reservaModificada, lista);
@@ -111,7 +111,7 @@ public class TestsUnitariosModifyReservas {
         ReservaRepository rRepo = getReservaRepository();
         List<ReservaQuad> lista = prepararEntorno(qRepo, rRepo, "0004-MOD");
 
-        Reserva reservaModificada = new Reserva(null, 600111222, "10/01/2026", "12/01/2026");
+        Reserva reservaModificada = new Reserva(null, 600111222, "2026-01-10", "2026-01-12");
         reservaModificada.setId(reservaBase.getId());
 
         int filasActualizadas = rRepo.update(reservaModificada, lista);
@@ -126,7 +126,7 @@ public class TestsUnitariosModifyReservas {
         List<ReservaQuad> lista = prepararEntorno(qRepo, rRepo, "0005-MOD");
 
         // Según tu tabla: Teléfono vacío y además fechas incoherentes
-        Reserva reservaModificada = new Reserva("Juan Pérez", 0, "15/01/2026", "10/01/2026");
+        Reserva reservaModificada = new Reserva("Juan Pérez", 0, "2026-01-15", "2026-01-10");
         reservaModificada.setId(reservaBase.getId());
 
         int filasActualizadas = rRepo.update(reservaModificada, lista);
@@ -140,7 +140,7 @@ public class TestsUnitariosModifyReservas {
         ReservaRepository rRepo = getReservaRepository();
         List<ReservaQuad> lista = prepararEntorno(qRepo, rRepo, "0006-MOD");
 
-        Reserva reservaModificada = new Reserva("Juan Pérez", 0, "10/01/2026", "12/01/2026");
+        Reserva reservaModificada = new Reserva("Juan Pérez", 0, "2026-01-10", "2026-01-12");
         reservaModificada.setId(reservaBase.getId());
 
         int filasActualizadas = rRepo.update(reservaModificada, lista);
@@ -154,7 +154,7 @@ public class TestsUnitariosModifyReservas {
         ReservaRepository rRepo = getReservaRepository();
         List<ReservaQuad> lista = prepararEntorno(qRepo, rRepo, "0007-MOD");
 
-        Reserva reservaModificada = new Reserva("Juan Pérez", 600111222, "2026/01/10", "12/01/2026");
+        Reserva reservaModificada = new Reserva("Juan Pérez", 600111222, "10/01/2026", "2026-01-12");
         reservaModificada.setId(reservaBase.getId());
 
         int filasActualizadas = rRepo.update(reservaModificada, lista);
@@ -169,7 +169,7 @@ public class TestsUnitariosModifyReservas {
         ReservaRepository rRepo = getReservaRepository();
         List<ReservaQuad> lista = prepararEntorno(qRepo, rRepo, "0008-MOD");
 
-        Reserva reservaModificada = new Reserva("Juan Pérez", 600111222, null, "12/01/2026");
+        Reserva reservaModificada = new Reserva("Juan Pérez", 600111222, null, "2026-01-12");
         reservaModificada.setId(reservaBase.getId());
 
         int filasActualizadas = rRepo.update(reservaModificada, lista);
@@ -185,7 +185,7 @@ public class TestsUnitariosModifyReservas {
         ReservaRepository rRepo = getReservaRepository();
         List<ReservaQuad> lista = prepararEntorno(qRepo, rRepo, "0009-MOD");
 
-        Reserva reservaModificada = new Reserva("Juan Pérez", 600111222, "30/02/2026", "01/01/2026");
+        Reserva reservaModificada = new Reserva("Juan Pérez", 600111222, "2026-02-30", "2026-01-01");
         reservaModificada.setId(reservaBase.getId());
 
         int filasActualizadas = rRepo.update(reservaModificada, lista);
@@ -199,7 +199,7 @@ public class TestsUnitariosModifyReservas {
         ReservaRepository rRepo = getReservaRepository();
         List<ReservaQuad> lista = prepararEntorno(qRepo, rRepo, "0010-MOD");
 
-        Reserva reservaModificada = new Reserva("Juan Pérez", 600111222, "10/01/2026", "2026/01/10");
+        Reserva reservaModificada = new Reserva("Juan Pérez", 600111222, "2026-01-10", "10/01/2026");
         reservaModificada.setId(reservaBase.getId());
 
         int filasActualizadas = rRepo.update(reservaModificada, lista);
@@ -213,7 +213,7 @@ public class TestsUnitariosModifyReservas {
         ReservaRepository rRepo = getReservaRepository();
         List<ReservaQuad> lista = prepararEntorno(qRepo, rRepo, "0011-MOD");
 
-        Reserva reservaModificada = new Reserva("Juan Pérez", 600111222, "10/01/2026", null);
+        Reserva reservaModificada = new Reserva("Juan Pérez", 600111222, "2026-01-10", null);
         reservaModificada.setId(reservaBase.getId());
 
         int filasActualizadas = rRepo.update(reservaModificada, lista);
@@ -228,7 +228,7 @@ public class TestsUnitariosModifyReservas {
         ReservaRepository rRepo = getReservaRepository();
         List<ReservaQuad> lista = prepararEntorno(qRepo, rRepo, "0012-MOD");
 
-        Reserva reservaModificada = new Reserva("Juan Pérez", 600111222, "10/01/2026", "30/02/2026");
+        Reserva reservaModificada = new Reserva("Juan Pérez", 600111222, "2026-01-10", "2026-02-30");
         reservaModificada.setId(reservaBase.getId());
 
         int filasActualizadas = rRepo.update(reservaModificada, lista);
@@ -242,7 +242,7 @@ public class TestsUnitariosModifyReservas {
         ReservaRepository rRepo = getReservaRepository();
         List<ReservaQuad> lista = prepararEntorno(qRepo, rRepo, "0013-MOD");
 
-        Reserva reservaModificada = new Reserva("Juan Pérez", 600111222, "12/01/2026", "10/01/2026");
+        Reserva reservaModificada = new Reserva("Juan Pérez", 600111222, "2026-01-12", "2026-01-10");
         reservaModificada.setId(reservaBase.getId());
 
         int filasActualizadas = rRepo.update(reservaModificada, lista);
@@ -264,7 +264,7 @@ public class TestsUnitariosModifyReservas {
         List<ReservaQuad> listaValida = new ArrayList<>();
         listaValida.add(new ReservaQuad(0, (int) idQ, 1, 0.0));
 
-        Reserva reservaInexistente = new Reserva("Juan Pérez", 600111222, "10/01/2026", "12/01/2026");
+        Reserva reservaInexistente = new Reserva("Juan Pérez", 600111222, "2026-01-10", "2026-01-12");
         reservaInexistente.setId(999999); // ID inventado
 
         int filasActualizadas = reservaRepo.update(reservaInexistente, listaValida);

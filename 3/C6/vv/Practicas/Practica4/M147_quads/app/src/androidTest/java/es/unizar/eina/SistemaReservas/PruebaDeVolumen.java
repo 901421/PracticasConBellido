@@ -67,7 +67,7 @@ public class PruebaDeVolumen {
         assertTrue("ERROR: Abortando volumen. No hay quads válidos para vincular.", !quadsParaVinculo.isEmpty());
 
         for (int i = 1; i <= 20000; i++) {
-            Reserva r = new Reserva("Cliente Vol " + i, 600000000, "01/01/2026", "02/01/2026");
+            Reserva r = new Reserva("Cliente Vol " + i, 600000000, "2026-01-01", "2026-01-02");
 
             long idReserva = resRepo.insertSync(r, quadsParaVinculo);
             assertTrue("Fallo insertando la reserva número " + i, idReserva > 0);

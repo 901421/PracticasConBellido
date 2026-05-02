@@ -60,7 +60,7 @@ public class TestsUnitariosInsertReservas {
     @Test
     public void testReservaValida() {
         ReservaRepository repository = getReservaRepository();
-        reservaTest = new Reserva("Juan Pérez", 600111222, "10/01/2026", "12/01/2026");
+        reservaTest = new Reserva("Juan Pérez", 600111222, "2026-01-10", "2026-01-12");
         long idR1 = repository.insertSync(reservaTest, listaValida);
         assertTrue("UNIT RES 1: Juan Pérez (Válida)", idR1 > 0);
         
@@ -71,7 +71,7 @@ public class TestsUnitariosInsertReservas {
     @Test
     public void testReservaNombreVacio() {
         ReservaRepository repository = getReservaRepository();
-        reservaTest = new Reserva("", 600111222, "10/01/2026", "12/01/2026");
+        reservaTest = new Reserva("", 600111222, "2026-01-10", "2026-01-12");
         long idR2 = repository.insertSync(reservaTest, listaValida);
         assertTrue("UNIT RES 2: Fallo por nombre vacío", idR2 < 0);
     }
@@ -79,7 +79,7 @@ public class TestsUnitariosInsertReservas {
     @Test
     public void testReservaFechasIncoherentes() {
         ReservaRepository repository = getReservaRepository();
-        reservaTest = new Reserva("Juan Pérez", 600111222, "15/01/2026", "10/01/2026");
+        reservaTest = new Reserva("Juan Pérez", 600111222, "2026-01-15", "2026-01-10");
         long idR3 = repository.insertSync(reservaTest, listaValida);
         assertTrue("UNIT RES 3: Fallo por fechas incoherentes", idR3 < 0);
     }
@@ -87,7 +87,7 @@ public class TestsUnitariosInsertReservas {
     @Test
     public void testReservaFaltaDeVehiculos() {
         ReservaRepository repository = getReservaRepository();
-        reservaTest = new Reserva("Juan Pérez", 600111222, "10/01/2026", "12/01/2026");
+        reservaTest = new Reserva("Juan Pérez", 600111222, "2026-01-10", "2026-01-12");
         // Le pasamos intencionadamente un ArrayList vacío en vez de listaValida
         long idR4 = repository.insertSync(reservaTest, new ArrayList<>());
         assertTrue("UNIT RES 4: Fallo por falta de vehículos", idR4 < 0);
@@ -96,7 +96,7 @@ public class TestsUnitariosInsertReservas {
     @Test
     public void testReservaTelefonoVacio() {
         ReservaRepository repository = getReservaRepository();
-        reservaTest = new Reserva("Juan Pérez", 0, "10/01/2026", "12/01/2026");
+        reservaTest = new Reserva("Juan Pérez", 0, "2026-01-10", "2026-01-12");
         long idR5 = repository.insertSync(reservaTest, listaValida);
         assertTrue("UNIT RES 5: Fallo por teléfono vacío", idR5 < 0);
     }
@@ -105,7 +105,7 @@ public class TestsUnitariosInsertReservas {
     public void testReservaValida2() {
         ReservaRepository repository = getReservaRepository();
         // Test de valor límite: Fecha de inicio igual a fecha de fin
-        reservaTest = new Reserva("Juan Pérez", 600111222, "12/01/2026", "12/01/2026");
+        reservaTest = new Reserva("Juan Pérez", 600111222, "2026-01-12", "2026-01-12");
         long idR6 = repository.insertSync(reservaTest, listaValida);
         assertTrue("UNIT RES 6: Juan Pérez (Válida, con fechas iguales)", idR6 > 0);
         
@@ -116,7 +116,7 @@ public class TestsUnitariosInsertReservas {
     @Test
     public void testReservaTelefonoNull() {
         ReservaRepository repository = getReservaRepository();
-        reservaTest = new Reserva("Juan Pérez", 0, "10/01/2026", "12/01/2026");
+        reservaTest = new Reserva("Juan Pérez", 0, "2026-01-10", "2026-01-12");
         long idR8 = repository.insertSync(reservaTest, listaValida);
         assertTrue("UNIT RES 8: Fallo por teléfono null", idR8 < 0);
     }
@@ -124,7 +124,7 @@ public class TestsUnitariosInsertReservas {
     @Test
     public void testReservaFechaNull() {
         ReservaRepository repository = getReservaRepository();
-        reservaTest = new Reserva("Juan Pérez", 600111222, null, "12/01/2026");
+        reservaTest = new Reserva("Juan Pérez", 600111222, null, "2026-01-12");
         long idR9 = repository.insertSync(reservaTest, listaValida);
         assertTrue("UNIT RES 9: Fallo por fecha null", idR9 < 0);
     }
@@ -132,7 +132,7 @@ public class TestsUnitariosInsertReservas {
     @Test
     public void testReservaFechaFormatoIncorrecto() {
         ReservaRepository repository = getReservaRepository();
-        reservaTest = new Reserva("Juan Pérez", 600111222, "10/01/2026", "2026/01/10");
+        reservaTest = new Reserva("Juan Pérez", 600111222, "2026-01-10", "2026/01/10");
         long idR10 = repository.insertSync(reservaTest, listaValida);
         assertTrue("UNIT RES 10: Fallo por fecha con formato incorrecto", idR10 < 0);
     }
@@ -140,7 +140,7 @@ public class TestsUnitariosInsertReservas {
     @Test
     public void testReservaFechaNull2() {
         ReservaRepository repository = getReservaRepository();
-        reservaTest = new Reserva("Juan Pérez", 600111222, "12/01/2026", null);
+        reservaTest = new Reserva("Juan Pérez", 600111222, "2026-01-12", null);
         long idR11 = repository.insertSync(reservaTest, listaValida);
         assertTrue("UNIT RES 11: Fallo por fecha null 2", idR11 < 0);
     }

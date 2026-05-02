@@ -71,7 +71,7 @@ public class ReservaRepository {
         String fOut = reserva.getFechaDevolucion();
         if (fIn == null || fOut == null) return false;
 
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         sdf.setLenient(false); // Validación estricta de días/meses reales
 
         try {
@@ -82,7 +82,7 @@ public class ReservaRepository {
             if (dateOut.before(dateIn)) return false;
 
         } catch (java.text.ParseException e) {
-            // El formato no es dd/MM/yyyy o la fecha no es real
+            // El formato no es yyyy-MM-dd o la fecha no es real
             return false;
         }
 

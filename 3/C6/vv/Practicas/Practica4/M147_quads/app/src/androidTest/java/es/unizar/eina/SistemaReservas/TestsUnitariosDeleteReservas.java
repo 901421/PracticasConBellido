@@ -60,7 +60,7 @@ public class TestsUnitariosDeleteReservas {
         List<ReservaQuad> listaVehiculos = new ArrayList<>();
         listaVehiculos.add(new ReservaQuad(0, quadBase.getId(), 1, 0.0));
         
-        Reserva reservaTest = new Reserva("Juan Borrado", 600111222, "15/01/2026", "18/01/2026");
+        Reserva reservaTest = new Reserva("Juan Borrado", 600111222, "2026-01-15", "2026-01-18");
         long idR = reservaRepo.insertSync(reservaTest, listaVehiculos);
         assertTrue("Fallo previo: No se pudo insertar la reserva", idR > 0);
         reservaTest.setId((int) idR);
@@ -77,7 +77,7 @@ public class TestsUnitariosDeleteReservas {
         ReservaRepository reservaRepo = getReservaRepository();
         
         // 1. Preparación: Creamos una Reserva pero NO la insertamos
-        Reserva reservaFantasma = new Reserva("Fantasma", 0, "01/01/2026", "02/01/2026");
+        Reserva reservaFantasma = new Reserva("Fantasma", 0, "2026-01-01", "2026-01-02");
         reservaFantasma.setId(999999); // ID falso que no está en base de datos
 
         // 2. Ejecución: Intentamos borrarla
