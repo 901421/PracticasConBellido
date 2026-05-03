@@ -1,14 +1,48 @@
 {
     "cola_resiliencia": {
-        "messages": []
+        "messages": [],
+        "unacked": []
     },
     "cola_persistente_disco": {
+        "messages": [],
+        "unacked": []
+    },
+    "test_tcp": {
+        "messages": [],
+        "unacked": []
+    },
+    "test_res": {
+        "messages": [],
+        "unacked": []
+    },
+    "disco_cola": {
+        "messages": [],
+        "unacked": []
+    },
+    "test_basico": {
+        "messages": [],
+        "unacked": []
+    },
+    "test_rr": {
+        "messages": [],
+        "unacked": []
+    },
+    "test_fair": {
+        "messages": [],
+        "unacked": []
+    },
+    "test_timeout": {
+        "messages": [],
+        "unacked": []
+    },
+    "test_crash": {
         "messages": [
             {
-                "id": "0af8c3df-f066-47e8-8975-51cba5866c98",
-                "data": "Hola Disco",
-                "timestamp": 1777396176.4022143
+                "id": "f20eae3a-99ea-435c-8628-2c9b4a27b982",
+                "data": "VALOR_CR\u00cdTICO",
+                "timestamp": 1777840957.8748975
             }
-        ]
+        ],
+        "unacked": []
     }
 }
