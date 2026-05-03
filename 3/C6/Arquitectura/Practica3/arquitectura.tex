@@ -91,25 +91,105 @@ Describe el sistema en tiempo de ejecución, mostrando los procesos y el flujo d
 \end{tikzpicture}
 \end{center}
 
-\section{3. Vista de Distribución}
-Mapeo de los componentes de software en nodos de hardware físicos.
+\section{3. Vista de Distribución e Instalación}
+Esta vista detalla el despliegue del sistema mediante tres niveles de abstracción física.
+
+\subsection{3.1. Vista de Asignación (Componentes a Artefactos)}
+Mapeo de la lógica del sistema a los archivos ejecutables reales.
 
 \begin{center}
 \begin{tikzpicture}[
-    nodeOS/.style={draw, thick, fill=gray!10, rectangle, minimum width=4.5cm, minimum height=3.5cm, align=center, font=\sffamily\small},
-    artifact/.style={draw, fill=white, rectangle, text width=3cm, align=center, font=\sffamily\tiny, rounded corners}
+    comp/.style={draw, rectangle, fill=blue!5, text width=2.5cm, align=center, font=\sffamily\tiny},
+    art/.style={draw, rectangle, fill=white, text width=2.2cm, align=center, font=\sffamily\tiny, double}
+]
+\node[comp] (c1) {Componente\\Broker Core};
+\node[comp, right=2cm of c1] (c2) {Componente\\Persistencia};
+
+\node[art, below=1cm of c1] (a1) {<<artifact>>\\server.py};
+\node[art, below=1cm of c2] (a2) {<<artifact>>\\storage.py};
+
+% Conexiones de asignación
+\draw[dashed, ->] (c1) -- (a1);
+\draw[dashed, ->] (c2) -- (a2);
+
+% Dependencia entre componentes
+\draw[->, thick] (c1) -- node[above, font=\tiny] {usa} (c2);
+\end{tikzpicture}
+\end{center}
+
+\subsection{3.2. Vista de Despliegue (Artefactos a Nodos)}
+Configuración de la red y ubicación de los artefactos en los nodos de ejecución.
+
+\begin{center}
+\begin{tikzpicture}[
+    nodeOS/.style={draw, thick, fill=gray!10, rectangle, minimum width=3.5cm, minimum height=2.5cm, align=center, font=\sffamily\tiny},
+    art/.style={draw, fill=white, rectangle, text width=2.5cm, align=center, font=\sffamily\tiny}
+]
+% Nodo Servidor (Efecto 3D)
+\node[nodeOS] (nodeA) at (0,0) {\textbf{Nodo: Servidor}\\ \footnotesize(Ubuntu/Windows)};
+\draw (nodeA.north west) -- ++(0.2,0.2) -- ($(nodeA.north east)+(0.2,0.2)$) -- (nodeA.north east);
+\draw (nodeA.north east) -- ++(0.2,0.2) -- ($(nodeA.south east)+(0.2,0.2)$) -- (nodeA.south east);
+
+\node[art, below=0.2cm of nodeA.center, anchor=north] (artS) {<<artifact>>\\server.py / storage.py};
+
+% Nodos Clientes
+\node[nodeOS] (nodeB) at (-5, -4) {\textbf{Nodo: Emisor}};
+\node[art, below=0.5cm of nodeB.north] {<<artifact>>\\client.py};
+
+\node[nodeOS] (nodeC) at (5, -4) {\textbf{Nodo: Receptor}};
+\node[art, below=0.5cm of nodeC.north] {<<artifact>>\\client.py};
+
+\draw[thick, <->] (nodeB) -- node[above, sloped, font=\tiny] {TCP:5555} (nodeA);
+\draw[thick, <->] (nodeC) -- node[above, sloped, font=\tiny] {TCP:5555} (nodeA);
+\end{tikzpicture}
+\end{center}
+
+\subsection{3.3. Vista de Instalación (Paquete de Aplicación)}
+Estructura física completa de los componentes, recursos y datos necesarios para el funcionamiento del sistema en los entornos de destino.
+
+\begin{center}
+\begin{tikzpicture}[
+    node distance=0.5cm,
+    package/.style={draw, rectangle, fill=yellow!5, text width=8cm, align=left, font=\sffamily\tiny, thick},
+    module/.style={font=\sffamily\tiny, inner sep=1pt},
+    data/.style={font=\sffamily\tiny\itshape, color=gray!80!black}
 ]
 
-\node[nodeOS] (nodeA) at (0, 0) {\textbf{Nodo Servidor}};
-\node[nodeOS] (nodeB) at (-5, -5) {\textbf{Nodo Emisor}};
-\node[nodeOS] (nodeC) at (5, -5) {\textbf{Nodo Receptor}};
+% Paquete Servidor
+\node[package] (serverPkg) {
+    \textbf{Directorio del Servidor (/broker-srv/)} \\
+    \vspace{0.1cm}
+    \begin{tabular}{l l}
+    \module $\bullet$ \texttt{server.py} & \module Núcleo del Message Broker (Gestión de colas y red) \\
+    \module $\bullet$ \texttt{storage.py} & \module Gestor de Persistencia Atómica (I/O Disco) \\
+    \data $\bullet$ \texttt{broker\_storage.json} & \data Base de datos persistente (Estado de colas y mensajes) \\
+    \data $\bullet$ \texttt{broker.log} & \data Trazas de ejecución, auditoría y errores del sistema \\
+    \end{tabular}
+};
 
-\node[artifact, below=0.3cm of nodeA.north] (artS) {<<artifact>> \\ Broker Server};
-\node[artifact, below=0.5cm of nodeB.north] (artP) {<<artifact>> \\ Producer App};
-\node[artifact, below=0.5cm of nodeC.north] (artC) {<<artifact>> \\ Consumer App};
+% Paquete Cliente
+\node[package, below=1cm of serverPkg] (clientPkg) {
+    \textbf{Directorio de Aplicación Cliente (/client-app/)} \\
+    \vspace{0.1cm}
+    \begin{tabular}{l l}
+    \module $\bullet$ \texttt{client.py} & \module Librería Cliente (API de comunicación JSON sobre TCP) \\
+    \module $\bullet$ \texttt{productor.py} & \module Lógica de aplicación para publicación de mensajes \\
+    \module $\bullet$ \texttt{consumidor.py} & \module Lógica de aplicación para procesamiento de mensajes \\
+    \end{tabular}
+};
 
-\draw[ultra thick, -{Stealth}] (artP) -- node[above, sloped, font=\tiny] {TCP/IP} (nodeA.west);
-\draw[ultra thick, {Stealth}-{Stealth}] (artC) -- node[above, sloped, font=\tiny] {TCP/IP + ACK} (nodeA.east);
+% Recursos Comunes
+\node[package, below=1cm of clientPkg] (docPkg) {
+    \textbf{Documentación y Pruebas} \\
+    \vspace{0.1cm}
+    \begin{tabular}{l l}
+    \module $\bullet$ \texttt{test\_main.py} & \module Suite de Pruebas de Integración y Stress (6 casos) \\
+    \module $\bullet$ \texttt{arquitectura.pdf} & \module Documento de diseño arquitectónico (Vistas 1-3) \\
+    \end{tabular}
+};
+
+\draw[thick, gray] (serverPkg.west) -- ++(-0.4,0) |- (clientPkg.west);
+\draw[thick, gray] (clientPkg.west) -- ++(-0,0) |- (docPkg.west);
 
 \end{tikzpicture}
 \end{center}
