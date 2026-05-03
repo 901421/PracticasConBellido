@@ -85,6 +85,7 @@ def cleanup_task():
                 ]
                 if orig != len(q_data["messages"]):
                     logger.info(f"TTL: Limpieza en '{q_name}'.")
+                    save_broker_state()
 
                 # --- Gestión de ACK Timeout (Punto 3) ---
                 requeue_ids = []
@@ -256,7 +257,7 @@ def main():
     with queues_master_lock:
         for q_name, data in saved.items():
             # Punto 2: Rescate de mensajes que estaban 'en vuelo' en la sesión anterior
-            all_msgs = data.get("messages", []) + data.get("unacked", [])
+            all_msgs = data.get("unacked", []) + data.get("messages", [])
             queues[q_name] = {
                 "messages": all_msgs,
                 "consumers": [],
