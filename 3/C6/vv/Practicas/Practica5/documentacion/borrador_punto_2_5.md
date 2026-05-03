@@ -1,38 +1,85 @@
-# Borrador Punto 2.5: Búsqueda del 100% de Cobertura
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{booktabs}
 
-Tras la implementación de las pruebas diseñadas en la fase de "Caja Negra" (Excel), la cobertura de ramas (branch coverage) se situó en un **91% (33/36)**. El análisis visual en IntelliJ reveló tres líneas en amarillo (cobertura parcial) dentro del bloque de artículos caducados (`sellIn < 0`).
+\geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
 
-Este documento detalla el análisis de esas ramas y los métodos de prueba "quirúrgicos" añadidos para alcanzar la cobertura total.
+% Configuración para código Java
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
 
-## 1. Análisis de Ramas No Cubiertas (Líneas Amarillas)
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
 
-Para alcanzar el 100%, fue necesario diseñar pruebas que forzaran la evaluación a `False` de las siguientes condiciones lógicas que solo habían sido evaluadas como `True`:
+\title{\textbf{Práctica 5: Depuración y Análisis Estático de Código}\\Verificación y Validación\\Grupo 215}
+\author{Imad Habib Jali (901421) \\ Jorge Bellido Lobera (903080)}
+\date{}
 
-*   **Línea 49: `if (items[i].getQuality() > 0)`**
-    *   *Situación:* Se habían probado artículos normales caducados con calidad > 0, pero no con calidad 0.
-    *   *Solución:* Probar un artículo normal con `sellIn = 0` (que pasa a -1) y `quality = 0`.
-*   **Línea 50: `if (items[i].getName() != "Sulfuras, Hand of Ragnaros")`**
-    *   *Situación:* No se había probado que un objeto de tipo "Sulfuras" entrara en el bloque de caducados.
-    *   *Solución:* Crear un objeto Sulfuras con `sellIn` negativo inicial.
-*   **Línea 59: `if (items[i].getQuality() < 50)`**
-    *   *Situación:* Se probó el aumento de calidad de Aged Brie caducado, pero no el caso en que ya tiene la calidad máxima (50).
-    *   *Solución:* Probar Aged Brie con `sellIn = 0` y `quality = 50`.
+\begin{document}
 
-## 2. Métodos de Prueba Añadidos para el 100%
+\maketitle
 
-A continuación se detallan los métodos finales incorporados a `InventoryTest.java`:
+\section{Métodos de prueba en \texttt{InventoryTest} no diseñados en pizarra}
+Tras analizar la clase \texttt{InventoryTest.java} original en el módulo \texttt{GildedRose0}, se observa que, aunque la mayoría de los escenarios tienen correspondencia con el Excel, la estructura del código es más granular:
 
-```java
-// Prueba P2d (quality): Aged Brie en el limite de caducidad (sellIn=0) aumenta +2
+\begin{itemize}
+    \item \textbf{Fragmentación por atributo:} Mientras que en el diseño de pizarra (Excel) una única prueba (ej. P9) define resultados para \texttt{sellIn} y \texttt{quality}, el código original separa estas validaciones en métodos independientes: \\ \texttt{should\_lower\_the\_sellIn\_by\_one\_ for\_normal\_items} y \\ \texttt{should\_lower\_the\_quality\_by\_one\_for\_normal\_items}.
+    \item \textbf{Tests de Límite Mínimo:} El test \texttt{should\_not\_lower\_the\_quality\_below\_zero} (P9b) ya estaba implementado originalmente para asegurar que la calidad de los artículos normales nunca sea negativa, un caso de borde fundamental no siempre detallado en el diseño inicial.
+\end{itemize}
+
+\section{Métodos diseñados en pizarra que no aparecen en \texttt{InventoryTest}}
+Al contrastar la clase original con la hoja de cálculo \texttt{pruebas-kata-Gilded-Rose.xlsx}, se detectaron ausencias significativas en la batería de pruebas inicial:
+
+\begin{itemize}
+    \item \textbf{Aged Brie (P1, P1b, P2, P2b, P2c):} No existían pruebas para el aumento de calidad de este artículo, ni para su comportamiento tras la fecha de venta (P2*).
+    \item \textbf{Backstage Passes (P4 a P8):} Faltaba toda la lógica compleja de incrementos de calidad (+1, +2, +3) según los días, limite 50 y la caída a 0 tras el concierto.
+    \item \textbf{Artículos Normales Expirados (P10, P10b, P10c):} No se validaba el decrecimiento doble de calidad una vez que \texttt{sellIn < 0}.
+    \item \textbf{Valores Límite de Frontera:} Casos específicos para \texttt{sellIn = 0} (P2d, P5d, P10d) no estaban cubiertos originalmente.
+\end{itemize}
+
+\section{Pruebas añadidas para lograr una cobertura del 100\%}
+Tras completar los casos del Excel, la cobertura de ramas se situó en un 91\%. Se añadieron pruebas específicas para cubrir las condiciones de "calidad máxima" y "Sulfuras en bloque caducado". A continuación se muestra el código final de las pruebas añadidas:
+\\
+\begin{lstlisting}[language=Java]
+// Prueba P2d: Aged Brie en el limite de caducidad (sellIn=0) aumenta +2
 @Test
-public void should_increase_the_quality_of_aged_brie_twice_as_fast_once_the_sell_in_date_has_passed() {
+public void should_increase_the_quality_of_aged_brie_twice_as_fast_once_the_sell
+    _in_date_has_passed() {
     Item agedBrie = new Item("Aged Brie", 0, 25);
     Inventory inventory = createInventory(agedBrie);
     inventory.updateQuality();
     assertEquals(27, agedBrie.getQuality());
 }
 
-// Prueba P10c (quality): Articulo normal caducado con calidad 0 (Cubre rama False linea 49)
+// Prueba P10c: Articulo normal caducado con calidad 0 (Cobertura linea 49)
 @Test
 public void should_not_lower_the_quality_below_zero_when_expired() {
     Item normalItem = new Item("+5 Dexterity Vest", 0, 0);
@@ -41,7 +88,7 @@ public void should_not_lower_the_quality_below_zero_when_expired() {
     assertEquals(0, normalItem.getQuality());
 }
 
-// Prueba P3 variante (quality): Sulfuras con sellIn negativo (Cubre rama False linea 50)
+// Prueba P3 variante: Sulfuras con sellIn negativo (Cobertura linea 50)
 @Test
 public void should_never_changes_quailty_of_Sulfuras_when_expired() {
     Item sulfuras = new Item("Sulfuras, Hand of Ragnaros", -1, 80);
@@ -50,7 +97,7 @@ public void should_never_changes_quailty_of_Sulfuras_when_expired() {
     assertEquals(80, sulfuras.getQuality());
 }
 
-// Prueba P2b (quality): Aged Brie caducado con calidad al maximo (Cubre rama False linea 59)
+// Prueba P2b: Aged Brie caducado con calidad al maximo (Cobertura linea 59)
 @Test
 public void should_not_increase_the_quality_of_aged_brie_over_50_when_expired() {
     Item agedBrie = new Item("Aged Brie", 0, 50);
@@ -58,9 +105,41 @@ public void should_not_increase_the_quality_of_aged_brie_over_50_when_expired() 
     inventory.updateQuality();
     assertEquals(50, agedBrie.getQuality());
 }
-```
+\end{lstlisting}
 
-## 3. Resultado Final
-Tras la incorporación de estos métodos, la ejecución con cobertura en IntelliJ reportó:
-*   **Clase Inventory:** 100% Lines, 100% Methods, **100% Branches**.
-*   **Estado:** Barra verde y desaparición de todas las marcas amarillas/rojas en el código de producción.
+\section{Descripción de los defectos de los módulos GildedRose1 y GildedRose2}
+
+\subsection*{Defecto en GildedRose1}
+\begin{itemize}
+    \item \textbf{Localización:} \texttt{Inventory.java}, línea 27.
+    \item \textbf{Descripción:} Error de límite (Off-by-one). Se usaba \texttt{<= 50} en lugar de \texttt{< 50} al incrementar la calidad de los \textit{Backstage passes}.
+    \item \textbf{Consecuencia:} Si un pase tenía calidad 49 y faltaban menos de 11 días, el primer incremento lo subía a 50, y la condición defectuosa permitía un segundo incremento ilegal a \textbf{51}.
+\end{itemize}
+
+\subsection*{Defecto en GildedRose2}
+\begin{itemize}
+    \item \textbf{Localización:} \texttt{Inventory.java}, línea 17.
+    \item \textbf{Descripción:} Inversión lógica. Se usaba el operador \texttt{==} para Sulfuras en una cláusula que requería \texttt{!=}.
+    \item \textbf{Consecuencia:} Se invertía el comportamiento del sistema: los artículos normales no perdían calidad, mientras que a \textit{Sulfuras} se le restaba calidad erróneamente.
+\end{itemize}
+
+\section{Violaciones del inspector (GildedRose0) y valoración crítica}
+
+\subsection*{Análisis Base (12 Warnings)}
+Se detectaron violaciones críticas para la robustez del código:
+\begin{itemize}
+    \item \textbf{Comparación de Strings con \texttt{==}:} Presente en 8 puntos de \texttt{Inventory.java}. Es un riesgo severo de estabilidad si los datos dejaran de ser constantes literales.
+    \item \textbf{Bucle For optimizable:} Sugerencia de usar \textit{for-each} en la línea 14 para mejorar la legibilidad.
+    \item \textbf{Lógica redundante:} La expresión \texttt{quality - quality} en la línea 55 es innecesaria y debe simplificarse a \texttt{setQuality(0)}.
+\end{itemize}
+
+\subsection*{Análisis Extremo (446 Warnings)}
+Al activar todas las reglas de Java, las alertas subieron de 12 a 446. Los ejemplos más absurdos incluyen:
+\begin{itemize}
+    \item \textbf{Naming Conventions:} Alertas masivas contra los tests por usar guiones bajos, ignorando su propósito de legibilidad en Testing.
+    \item \textbf{Javadoc:} Exigencia de comentarios en métodos triviales como \texttt{getQuality()}, generando ruido y mantenimiento innecesario.
+\end{itemize}
+
+\textbf{Opinión Crítica:} El experimento demuestra que la calidad no se logra mediante la acumulación de reglas, sino mediante su selección. El ruido masivo del análisis extremo provoca "fatiga de alertas", ocultando errores críticos entre cientos de avisos estilísticos insignificantes.
+
+\end{document}

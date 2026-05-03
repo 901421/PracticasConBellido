@@ -39,9 +39,9 @@
 }
 \lstset{style=mystyle}
 
-\title{\textbf{Práctica 5: Depuración y Análisis Estático de Código}\\Verificación y Validación}
-\author{Memoria de Prácticas}
-\date{\today}
+\title{\textbf{Práctica 5: Depuración y Análisis Estático de Código}\\Verificación y Validación\\Grupo 215}
+\author{Imad Habib Jali (901421) \\ Jorge Bellido Lobera (903080)}
+\date{}
 
 \begin{document}
 
@@ -51,7 +51,7 @@
 Tras analizar la clase \texttt{InventoryTest.java} original en el módulo \texttt{GildedRose0}, se observa que, aunque la mayoría de los escenarios tienen correspondencia con el Excel, la estructura del código es más granular:
 
 \begin{itemize}
-    \item \textbf{Fragmentación por atributo:} Mientras que en el diseño de pizarra (Excel) una única prueba (ej. P9) define resultados para \texttt{sellIn} y \texttt{quality}, el código original separa estas validaciones en métodos independientes: \texttt{should\_lower\_the\_sellIn\_by\_one\_for\_normal\_items} y \texttt{should\_lower\_the\_quality\_by\_one\_for\_normal\_items}.
+    \item \textbf{Fragmentación por atributo:} Mientras que en el diseño de pizarra (Excel) una única prueba (ej. P9) define resultados para \texttt{sellIn} y \texttt{quality}, el código original separa estas validaciones en métodos independientes: \\ \texttt{should\_lower\_the\_sellIn\_by\_one\_} \\ \texttt{for\_normal\_items} y \\ \texttt{should\_lower\_the\_quality\_by\_one\_} \\ \texttt{for\_normal\_items}.
     \item \textbf{Tests de Límite Mínimo:} El test \texttt{should\_not\_lower\_the\_quality\_below\_zero} (P9b) ya estaba implementado originalmente para asegurar que la calidad de los artículos normales nunca sea negativa, un caso de borde fundamental no siempre detallado en el diseño inicial.
 \end{itemize}
 
@@ -66,7 +66,7 @@ Al contrastar la clase original con la hoja de cálculo \texttt{pruebas-kata-Gil
 \end{itemize}
 
 \section{Pruebas añadidas para lograr una cobertura del 100\%}
-Tras completar los casos del Excel, la cobertura de ramas se situó en un 91\%. Se añadieron pruebas quirúrgicas para cubrir las condiciones de "calidad máxima" y "Sulfuras en bloque caducado". A continuación se muestra el código final de las pruebas añadidas:
+Tras completar los casos del Excel, la cobertura de ramas se situó en un 91\%. Se añadieron pruebas específicas para cubrir las condiciones de "calidad máxima" y "Sulfuras en bloque caducado". A continuación se muestra el código final de las pruebas añadidas:
 
 \begin{lstlisting}[language=Java]
 // Prueba P2d: Aged Brie en el limite de caducidad (sellIn=0) aumenta +2
