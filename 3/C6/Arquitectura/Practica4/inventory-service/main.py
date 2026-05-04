@@ -61,6 +61,7 @@ class StockUpdate(BaseModel):
     cantidad: int
 
 @app.get("/health")
+@app.get("/inventory/health")
 def health():
     """Endpoint de diagnóstico para monitorización de salud del servicio."""
     return {"status": "ok", "service": "inventory"}

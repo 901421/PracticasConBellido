@@ -1,15 +1,12 @@
-FROM python:3.9-slim
-
-# Entorno para evitar buffering en los logs
-ENV PYTHONUNBUFFERED=1
+﻿FROM python:3.9-slim
 
 WORKDIR /app
 
-# Copiar el código del broker
-COPY . .
+COPY server.py storage.py ./
 
-# Exponer el puerto del servidor TCP
+# Crear el directorio para la persistencia
+RUN mkdir -p /app/storage
+
 EXPOSE 5555
 
-# Ejecutar el servidor
 CMD ["python", "server.py"]

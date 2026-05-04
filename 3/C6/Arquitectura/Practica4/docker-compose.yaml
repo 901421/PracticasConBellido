@@ -1,0 +1,60 @@
+version: '3.8'
+services:
+  postgres-service:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: inventory_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - ./k8s/init-inventory.sql:/docker-entrypoint-initdb.d/init.sql
+
+  mariadb-service:
+    image: mariadb:10.5
+    environment:
+      MYSQL_DATABASE: orders_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: root_password
+    volumes:
+      - ./k8s/init-orders.sql:/docker-entrypoint-initdb.d/init.sql
+
+  broker-service:
+    build: ./broker
+    ports:
+      - "5555:5555"
+
+  inventory-service:
+    build: ./inventory-service
+    environment:
+      DB_HOST: postgres-service
+      DB_NAME: inventory_db
+      DB_USER: user
+      DB_PASS: password
+
+  orders-service:
+    build: ./orders-service
+    environment:
+      DB_HOST: mariadb-service
+      DB_USER: user
+      DB_PASS: password
+      INVENTORY_URL: http://inventory-service:8000
+      BROKER_HOST: broker-service
+
+  notifications-service:
+    build: ./notifications-service
+    environment:
+      BROKER_HOST: broker-service
+
+  api-gateway:
+    build: ./api-gateway
+    environment:
+      ORDERS_URL: http://orders-service:8000
+      INVENTORY_URL: http://inventory-service:8000
+      API_TOKEN: mi_clave_secreta
+    ports:
+      - "8000:8000"
+    depends_on:
+      - orders-service
+      - inventory-service
+      - broker-service

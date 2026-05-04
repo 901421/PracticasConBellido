@@ -15,9 +15,10 @@ Responsabilidades:
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from anyio import to_thread
 import os
 import mysql.connector
-import requests
+import httpx
 import logging
 from mom_client import MOMClient
 
@@ -69,79 +70,85 @@ class OrderRequest(BaseModel):
     customer_name: str
 
 @app.get("/health")
+@app.get("/orders/health")
 def health():
     """Endpoint de diagnóstico de salud (Liveness Check)."""
     return {"status": "ok", "service": "orders"}
 
 @app.post("/orders")
-def create_order(order: OrderRequest):
-    """Flujo Transaccional de Creación de Pedido."""
+async def create_order(order: OrderRequest):
+    """Flujo Transaccional de Creación de Pedido con Patrón Saga (Compensación)."""
     logger.info(f"Transacción: Iniciando procesamiento para el cliente {order.customer_name}...")
 
-    # --- PASO 1: Validación y Reserva de Stock (Comunicación Síncrona REST) ---
-    # Realizamos una llamada bloqueante al microservicio de Inventario antes de confirmar la venta.
+    # --- PASO 1: Reserva Atómica de Stock (Comunicación Síncrona REST - httpx) ---
+    # Eliminamos el GET previo (Anti-patrón de Validación) y realizamos directamente el PUT.
+    # El inventory-service ya es atómico y valida existencia/stock.
     try:
-        # 1.1 Verificamos si el producto existe
-        inv_check = requests.get(f"{INVENTORY_URL}/inventory/{order.product_id}", timeout=5)
-        if inv_check.status_code != 200:
-            logger.warning(f"Negocio: Producto {order.product_id} no localizado en catálogo.")
-            raise HTTPException(status_code=404, detail="Producto no encontrado")
-        
-        # 1.2 Intentamos descontar el stock
-        # Si el inventario no tiene existencias, devolverá un error 400 y abortaremos.
-        inv_update = requests.put(
-            f"{INVENTORY_URL}/inventory/{order.product_id}", 
-            json={"cantidad": -order.quantity},
-            timeout=5
-        )
-        if inv_update.status_code != 200:
-            raise HTTPException(
-                status_code=inv_update.status_code, 
-                detail="Operación cancelada: Stock insuficiente o error en inventario"
+        async with httpx.AsyncClient() as client:
+            inv_update = await client.put(
+                f"{INVENTORY_URL}/inventory/{order.product_id}", 
+                json={"cantidad": -order.quantity},
+                timeout=5
             )
             
-    except requests.exceptions.RequestException as e:
-        # Si el microservicio de inventario está caído, no podemos garantizar la venta.
+            if inv_update.status_code != 200:
+                logger.warning(f"Negocio: No se pudo reservar stock. Status: {inv_update.status_code}")
+                # Si el error es 404 o 400, lo propagamos (Producto no encontrado o Stock insuficiente)
+                detail = inv_update.json().get("detail", "Error en inventario")
+                raise HTTPException(status_code=inv_update.status_code, detail=detail)
+            
+    except httpx.RequestError as e:
         logger.error(f"Falla Sistémica: El servicio de Inventario es inalcanzable: {e}")
         raise HTTPException(status_code=503, detail="Servicio de Inventario temporalmente fuera de servicio")
 
-    # --- PASO 2: Persistencia de la Venta (Base de Datos Local MariaDB) ---
-    # Una vez reservado el stock, registramos el pedido en nuestra propia base de datos.
+    # --- PASO 2: Persistencia de la Venta (MariaDB) con Compensación ---
+    # Usamos to_thread.run_sync para no bloquear el Event Loop con la DB síncrona.
     try:
-        conn = get_db_connection()
-        cur = conn.cursor()
-        # Insertamos los datos del pedido para auditoría y facturación
-        cur.execute(
-            "INSERT INTO orders (product_id, quantity, customer_name) VALUES (%s, %s, %s)",
-            (order.product_id, order.quantity, order.customer_name)
-        )
-        # Obtenemos el ID autogenerado para el mensaje de confirmación
-        order_id = cur.lastrowid
-        conn.commit() # Consolidamos la grabación en el volumen persistente (PVC)
-        cur.close()
-        conn.close()
+        def persist_order_sync():
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute(
+                "INSERT INTO orders (product_id, quantity, customer_name) VALUES (%s, %s, %s)",
+                (order.product_id, order.quantity, order.customer_name)
+            )
+            order_id = cur.lastrowid
+            conn.commit()
+            cur.close()
+            conn.close()
+            return order_id
+
+        order_id = await to_thread.run_sync(persist_order_sync)
         logger.info(f"Persistencia: Pedido #{order_id} consolidado en MariaDB.")
     except Exception as e:
-        # Error crítico: hemos descontado stock pero no hemos grabado el pedido.
-        logger.error(f"Fallo de Persistencia: Error al registrar pedido en MariaDB: {e}")
-        raise HTTPException(status_code=500, detail="Error crítico al persistir la transacción de venta")
+        # --- COMPENSACIÓN (SAGA) ---
+        # Si la DB local falla, debemos "deshacer" el descuento de stock en el Inventario.
+        logger.error(f"Fallo de Persistencia: Error en MariaDB: {e}. Iniciando compensación...")
+        try:
+            async with httpx.AsyncClient() as client:
+                # Sumamos la cantidad que restamos previamente
+                await client.put(
+                    f"{INVENTORY_URL}/inventory/{order.product_id}", 
+                    json={"cantidad": order.quantity},
+                    timeout=5
+                )
+                logger.info("Compensación: Stock restaurado correctamente.")
+        except Exception as comp_e:
+            logger.error(f"CRÍTICO: Error en compensación de stock: {comp_e}. El sistema ha quedado inconsistente.")
+        
+        raise HTTPException(status_code=500, detail="Error crítico al persistir la transacción. Stock restaurado.")
 
-    # --- PASO 3: Notificación Asíncrona (Comunicación MOM) ---
-    # Enviamos un evento al Broker de la P3 para que el servicio de Notificaciones actúe.
-    # Usamos un bloque try-except independiente para no arruinar la venta si el broker falla.
+    # --- PASO 3: Notificación Asíncrona (MOM) ---
+    # Usamos to_thread.run_sync para el Broker MOM que también es síncrono.
     try:
         mensaje_notif = {
             "order_id": order_id,
             "customer": order.customer_name,
             "message": f"Su pedido #{order_id} ha sido procesado con éxito."
         }
-        # Aseguramos la existencia de la cola (idempotente)
-        broker.declarar_cola(COLA_NOTIFICACIONES)
-        # Publicamos el mensaje JSON en el broker MOM
-        broker.publicar(COLA_NOTIFICACIONES, mensaje_notif)
+        await to_thread.run_sync(broker.declarar_cola, COLA_NOTIFICACIONES)
+        await to_thread.run_sync(broker.publicar, COLA_NOTIFICACIONES, mensaje_notif)
         logger.debug(f"Asíncrono: Evento publicado en cola '{COLA_NOTIFICACIONES}'.")
     except Exception as e:
-        # Registramos el fallo del broker pero la transacción principal se considera éxito.
         logger.error(f"Aviso: El pedido se guardó pero la notificación falló: {e}")
 
     # Retornamos éxito al cliente final a través del Gateway
