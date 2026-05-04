@@ -1,15 +1,21 @@
 \documentclass[11pt,a4paper]{article}
 \usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
 \usepackage[spanish]{babel}
 \usepackage{tikz}
-\usetikzlibrary{shapes,arrows,positioning,fit,backgrounds,calc}
+\usetikzlibrary{shapes.geometric,shapes.symbols,arrows.meta,positioning,fit,backgrounds,calc,babel}
 \usepackage{geometry}
 \geometry{a4paper, margin=2cm}
 \usepackage{parskip}
 \usepackage{hyperref}
+\usepackage{xcolor}
+
+% Definición segura de comandos para la tabla (sin recursión)
+\newcommand{\fmodule}{\hspace{0pt}}
+\newcommand{\fdata}{\color{gray}}
 
 \title{\textbf{Documentación de la Arquitectura}\\ \Large Práctica 4 - Desarrollo y Orquestación de Microservicios}
-\author{Ingeniería Informática - Arquitectura Software}
+\author{Imad Habib Jali (901421) \\ Jorge Bellido Lobera (903080)}
 \date{\today}
 
 \begin{document}
@@ -17,123 +23,154 @@
 \maketitle
 
 \section{Introducción}
-El presente documento detalla la arquitectura del sistema de gestión de pedidos e inventario desarrollado para la Práctica 4. El sistema evoluciona desde una solución monolítica hacia un ecosistema de microservicios orquestados mediante \textbf{Kubernetes}. Se integran patrones de comunicación síncrona (REST) y asíncrona (MOM), seguridad perimetral y persistencia descentralizada (políglota).
+El presente documento detalla la arquitectura del sistema de gestión de pedidos e inventario desarrollado para la Práctica 4. El sistema evoluciona desde una solución monolítica hacia un ecosistema de microservicios orquestados. Se integran patrones de comunicación asíncrona (MOM), seguridad perimetral y el patrón de consistencia eventual \textbf{Saga} para garantizar la integridad de los datos en un entorno distribuido.
 
 \section{1. Vista de Módulos}
-La vista de módulos ilustra la organización lógica del código y las dependencias estáticas. Cada microservicio es un artefacto independiente con su propia lógica y librerías de cliente.
+Ilustra la estructura estática del código y las dependencias entre los microservicios. Se ha priorizado la programación asíncrona mediante la librería \textit{httpx}.
 
 \begin{center}
 \begin{tikzpicture}[
-    module/.style={draw, rectangle, rounded corners, fill=blue!10, text centered, text width=3cm, minimum height=1.2cm, font=\sffamily\small},
-    shared/.style={draw, rectangle, rounded corners, fill=orange!10, text centered, text width=3cm, minimum height=1cm, font=\sffamily\small},
-    dependency/.style={-latex, dashed, thick}
+    module/.style={draw, rectangle, rounded corners, fill=blue!10, text centered, text width=2.8cm, minimum height=1.2cm, font=\sffamily\tiny},
+    shared/.style={draw, rectangle, rounded corners, fill=orange!10, text centered, text width=2.8cm, minimum height=1cm, font=\sffamily\tiny},
+    dependency/.style={-{Stealth}, dashed, thick}
 ]
 
 % Microservicios
-\node[module] (gateway) {\textbf{API Gateway} \\ main.py};
-\node[module, below left=1.5cm and 0.5cm of gateway] (orders) {\textbf{Orders Svc} \\ main.py};
-\node[module, below right=1.5cm and 0.5cm of gateway] (inventory) {\textbf{Inventory Svc} \\ main.py};
-\node[module, below=4cm of gateway] (notif) {\textbf{Notif Svc} \\ main.py};
+\node[module] (gateway) {\textbf{api-gateway/} \\ main.py (Proxy Async)};
+\node[module, below left=1.5cm and 0.5cm of gateway] (orders) {\textbf{orders-service/} \\ main.py (Saga/Orq)};
+\node[module, below right=1.5cm and 0.5cm of gateway] (inventory) {\textbf{inventory-service/} \\ main.py (Stock)};
+\node[module, below=3.5cm of gateway] (notif) {\textbf{notifications-service/} \\ main.py (Worker)};
 
 % Cliente MOM Compartido
-\node[shared, left=2.5cm of orders] (momClient) {mom\_client.py \\ \footnotesize(Cliente P3 Corregido)};
+\node[shared, left=2cm of orders] (momClient) {mom\_client.py \\ \footnotesize(Librería P3 Corregida)};
 
-% Dependencias
-\draw[dependency] (orders) -- node[anchor=south] {usa} (momClient);
-\draw[dependency, bend right=45] (notif) -- node[anchor=east] {usa} (momClient);
-\draw[dependency] (gateway) -- node[anchor=east] {enruta} (orders);
-\draw[dependency] (gateway) -- node[anchor=west] {enruta} (inventory);
+% Conexiones
+\draw[dependency] (gateway) -- (orders);
+\draw[dependency] (gateway) -- (inventory);
+\draw[dependency] (orders) -- (inventory);
+\draw[dependency] (orders) -- (momClient);
+\draw[dependency, bend right=30] (notif) -- (momClient);
 
-% Agrupación lógica
+% Frontera
 \begin{scope}[on background layer]
-    \node[draw, dashed, fill=gray!5, fit=(gateway) (orders) (inventory) (notif) (momClient), inner sep=0.8cm, label={[anchor=north west]north west:\textbf{Sistema Microservicios P4}}] {};
+    \node[draw, dashed, fill=gray!5, fit=(gateway) (orders) (inventory) (notif) (momClient), inner sep=0.5cm, label={[anchor=north west]north west:\textbf{Ecosistema Microservicios P4}}] {};
 \end{scope}
 
 \end{tikzpicture}
-}
-\end{center}
-
-\section{2. Vista de Componentes y Conectores}
-Muestra los procesos en ejecución y los conectores (protocolos) que facilitan la interacción distribuida.
-
-\begin{center}
-\begin{tikzpicture}[
-    component/.style={draw, rectangle, fill=green!10, text centered, text width=2.8cm, minimum height=1.5cm, font=\sffamily\scriptsize},
-    connector/.style={-latex, thick, font=\sffamily\tiny},
-    database/.style={draw, cylinder, shape border rotate=90, aspect=0.25, fill=yellow!20, minimum height=1.2cm, minimum width=1.5cm, text centered, font=\sffamily\tiny}
-]
-
-% Componentes
-\node[component] (agw) {API Gateway \\ (FastAPI)};
-\node[component, below=2cm of agw] (ord) {Orders Svc \\ (Orquestador)};
-\node[component, right=3.5cm of ord] (inv) {Inventory Svc \\ (Postgres Backend)};
-\node[component, below=2cm of ord] (brk) {Broker MOM \\ (P3 Server)};
-\node[component, right=3.5cm of brk] (not) {Notif Svc \\ (Worker)};
-
-% Bases de Datos
-\node[database, left=1.5cm of ord] (mariadb) {MariaDB \\ (Pedidos)};
-\node[database, right=1.5cm of inv] (postgres) {PostgreSQL \\ (Stock)};
-
-% Flujos
-\draw[connector] (agw) -- node[left] {HTTP (REST)} (ord);
-\draw[connector] (ord) -- node[above] {Sync HTTP} (inv);
-\draw[connector] (ord) -- node[left] {TCP (JSON)} (brk);
-\draw[connector] (brk) -- node[above] {Push + ACK} (not);
-
-\draw[connector, dashed] (ord) -- node[above] {SQL} (mariadb);
-\draw[connector, dashed] (inv) -- node[above] {SQL} (postgres);
-
-% Ingress
-\node[draw, diamond, fill=red!10, above=1.5cm of agw, font=\sffamily\tiny] (ing) {K8s Ingress};
-\draw[connector] (ing) -- node[right] {Port 80} (agw);
-
-\end{tikzpicture}
-}
 \end{center}
 
 \newpage
-
-\section{3. Vista de Distribución (Deployment)}
-Representa la infraestructura virtual sobre la cual se orquestan los contenedores mediante Kubernetes.
+\section{2. Vista de Componentes y Conectores}
+Describe el sistema en tiempo de ejecución. El servicio de pedidos coordina la reserva de stock y gestiona la \textbf{compensación automática} si la persistencia local falla.
 
 \begin{center}
 \begin{tikzpicture}[
-    k8snode/.style={draw, thick, fill=gray!10, rectangle, minimum width=10cm, minimum height=9cm, align=center, font=\sffamily\small},
-    pod/.style={draw, fill=white, rectangle, text width=4cm, align=center, font=\sffamily\tiny, rounded corners},
-    pvc/.style={draw, cylinder, shape border rotate=90, aspect=0.25, fill=yellow!20, minimum width=1.5cm, minimum height=1cm, font=\tiny}
+    component/.style={draw, rectangle, fill=green!10, text centered, text width=2.5cm, minimum height=1.5cm, font=\sffamily\tiny},
+    connector/.style={-{Stealth}, thick, color=blue!70!black},
+    database/.style={draw, cylinder, shape border rotate=90, aspect=0.25, fill=yellow!20, minimum height=1.2cm, minimum width=1.8cm, align=center, text centered, font=\sffamily\tiny},
+    mocloud/.style={draw, cloud, cloud puffs=10, fill=red!5, minimum width=3cm, minimum height=2cm, align=center, font=\sffamily\tiny}
 ]
 
-% Nodo K8s
-\node[k8snode] (cluster) at (0, 0) {};
-\node[anchor=north, font=\sffamily\bfseries] at (cluster.north) {Cluster Kubernetes (Minikube / Docker Desktop)};
+% Componentes
+\node[component] (agw) {API Gateway \\ (Proxy + Auth)};
+\node[component, below=2cm of agw] (ord) {Orders Service \\ (Orquestador Saga)};
+\node[component, right=2.5cm of ord] (inv) {Inventory Service \\ (Gestor Stock)};
+\node[mocloud, below=2.5cm of ord] (brk) {Broker MOM \\ (P3 Server Stateful)};
+\node[component, right=2.5cm of brk] (not) {Notif Service \\ (Consumer)};
 
-% Pods
-\node[pod, xshift=-2.5cm, yshift=3cm] (p1) {\textbf{Pod: API Gateway} \\ 2 Réplicas \\ Env: API\_TOKEN};
-\node[pod, xshift=2.5cm, yshift=3cm] (p2) {\textbf{Pod: Orders Service} \\ 2 Réplicas \\ Env: DB\_HOST};
-\node[pod, xshift=-2.5cm, yshift=1cm] (p3) {\textbf{Pod: Inventory} \\ 2 Réplicas \\ Init: schema.sql};
-\node[pod, xshift=2.5cm, yshift=1cm] (p4) {\textbf{Pod: Notif Service} \\ 1 Réplica};
-\node[pod, xshift=0cm, yshift=-1.5cm] (p5) {\textbf{Pod: Broker P3} \\ 1 Réplica \\ Port: 5555};
+% Bases de Datos
+\node[database, left=1.2cm of ord] (dbOrd) {MariaDB \\ (Orders DB)};
+\node[database, right=1.2cm of inv] (dbInv) {PostgreSQL \\ (Inventory DB)};
 
-% PVCs
-\node[pvc, xshift=-3cm, yshift=-3.5cm] (v1) {PVC: Postgres};
-\node[pvc, xshift=0cm, yshift=-3.5cm] (v2) {PVC: MariaDB};
-\node[pvc, xshift=3cm, yshift=-3.5cm] (v3) {PVC: Broker};
-
-% Líneas PVC
-\draw[dashed] (p3) -- (v1);
-\draw[dashed] (p2) -- (v2);
-\draw[dashed] (p5) -- (v3);
+% Conectores
+\draw[connector] (agw) -- node[left, font=\tiny] {REST} (ord);
+\draw[connector] (ord) -- node[above, font=\tiny] {Atomic PUT} (inv);
+\draw[connector] (ord) -- node[left, font=\tiny] {TCP/JSON} (brk);
+\draw[connector] (brk) -- node[above, font=\tiny] {Push + ACK} (not);
+\draw[connector, dashed] (ord) -- (dbOrd);
+\draw[connector, dashed] (inv) -- (dbInv);
 
 \end{tikzpicture}
-}
 \end{center}
 
-\section{Conclusión y Patrones Aplicados}
-\begin{itemize}
-    \item \textbf{API Gateway:} Punto único de entrada con seguridad por token.
-    \item \textbf{Descentralización de Datos:} Persistencia independiente para Pedidos y Stock.
-    \item \textbf{Resiliencia:} Uso de \textit{PersistentVolumeClaims} para durabilidad de estado.
-    \item \textbf{Sincronía vs Asincronía:} Orquestación híbrida para optimizar la experiencia de usuario.
-\end{itemize}
+\section{3. Vista de Distribución e Instalación}
+Detalla el despliegue del sistema mediante abstracción de contenedores y orquestación.
+
+\subsection{3.1. Vista de Despliegue (Nodos y Pods)}
+Configuración de la red y orquestación de réplicas en el clúster Kubernetes.
+
+\begin{center}
+\begin{tikzpicture}[
+    nodeOS/.style={draw, thick, fill=gray!10, rectangle, minimum width=4cm, minimum height=3cm, align=center, font=\sffamily\tiny},
+    art/.style={draw, fill=white, rectangle, text width=2.8cm, align=center, font=\sffamily\tiny}
+]
+% Nodo K8s
+\node[nodeOS] (k8s) at (0,0) {\textbf{Nodo: Kubernetes Cluster}\\ \footnotesize(Minikube / Docker Compose)};
+\draw (k8s.north west) -- ++(0.2,0.2) -- ($(k8s.north east)+(0.2,0.2)$) -- (k8s.north east);
+
+% Pods principales
+\node[art, below=0.2cm of k8s.center, anchor=north] (pods) {
+    \textbf{Deployments (Stateless)} \\
+    $\bullet$ api-gateway (x2) \\
+    $\bullet$ orders-service (x2) \\
+    $\bullet$ inventory-service (x2) \\
+    $\bullet$ notifications-service (x1) \\
+    \vspace{0.1cm}
+    \textbf{StatefulSets (Persistent)} \\
+    $\bullet$ postgres-db (x1) \\
+    $\bullet$ mariadb-db (x1) \\
+    $\bullet$ broker-deployment (x1)
+};
+\end{tikzpicture}
+\end{center}
+
+\subsection{3.2. Vista de Instalación (Estructura de Ficheros)}
+Mapeo físico de los componentes del sistema en el espacio de trabajo.
+
+\begin{center}
+\begin{tikzpicture}[
+    node distance=0.5cm,
+    package/.style={draw, rectangle, fill=yellow!5, text width=9.5cm, align=left, font=\sffamily\tiny, thick},
+    module/.style={font=\sffamily\tiny, inner sep=1pt},
+    data/.style={font=\sffamily\tiny\itshape, color=gray!80!black}
+]
+
+% Paquetes de servicios
+\node[package] (services) {
+    \textbf{Microservicios (/api-gateway, /orders-service, /inventory-service, /notifications-service)} \\
+    \vspace{0.1cm}
+    \begin{tabular}{l l}
+    \fmodule $\bullet$ \texttt{main.py} & \fmodule Lógica del servicio (FastAPI/Async) \\
+    \fmodule $\bullet$ \texttt{Dockerfile} & \fmodule Definición de imagen del contenedor \\
+    \fmodule $\bullet$ \texttt{requirements.txt} & \fmodule Dependencias (httpx, anyio, etc.) \\
+    \end{tabular}
+};
+
+% Orquestación
+\node[package, below=0.8cm of services] (k8sPkg) {
+    \textbf{Configuración de Infraestructura (/k8s, /)} \\
+    \vspace{0.1cm}
+    \begin{tabular}{l l}
+    \fmodule $\bullet$ \texttt{*.yaml} (en /k8s) & \fmodule Manifiestos K8s (StatefulSets, Services, Ingress) \\
+    \fmodule $\bullet$ \texttt{docker-compose.yaml} & \fmodule Entorno de validación rápida local \\
+    \fdata $\bullet$ \texttt{init-*.sql} & \fdata Scripts de inicialización de bases de datos \\
+    \end{tabular}
+};
+
+% Pruebas
+\node[package, below=0.8cm of k8sPkg] (testPkg) {
+    \textbf{Validación y Documentación} \\
+    \vspace{0.1cm}
+    \begin{tabular}{l l}
+    \fmodule $\bullet$ \texttt{smoke\_test.py} & \fmodule Suite de Pruebas de Integración (E2E) \\
+    \fmodule $\bullet$ \texttt{arquitectura\_p4.pdf} & \fmodule Documento de diseño actual (Vistas 1-3) \\
+    \end{tabular}
+};
+
+\draw[thick, gray] (services.west) -- ++(-0.4,0) |- (k8sPkg.west);
+\draw[thick, gray] (k8sPkg.west) -- ++(-0,0) |- (testPkg.west);
+
+\end{tikzpicture}
+\end{center}
 
 \end{document}
