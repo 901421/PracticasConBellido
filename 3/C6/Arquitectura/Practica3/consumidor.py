@@ -1,38 +1,59 @@
 """
 Aplicación Consumidora de Ejemplo.
 
-Implementa un worker que procesa mensajes mediante el sistema de push 
-y confirma la recepción mediante ACKs automáticos.
+Implementa un worker (trabajador) que procesa mensajes de manera asíncrona
+mediante un modelo 'Push'.
+Confirma la recepción al servidor automáticamente mediante ACKs.
 """
 
-import sys
-from client import MOMClient
+import sys # Usado para capturar la IP por argumentos y salir
+from client import MOMClient # Importamos la fachada de nuestra librería cliente
 
 def procesar_mensaje(mensaje):
     """
-    Manejador de lógica de negocio.
-    Si esta función termina sin errores, el MOMClient envía el ACK al Broker.
+    Función Callback (Manejador de Lógica de Negocio).
+    Esta función es invocada automáticamente por la librería MOMClient cada vez 
+    que un mensaje nuevo llega por la red.
+    
+    Args:
+        mensaje (dict): El diccionario exacto que envió el productor.
     """
-    print(f"[x] Procesando tarea -> {mensaje}")
+    # En un entorno real, aquí iría la escritura a base de datos, el envío de email, el renderizado de vídeo, etc.
+    print(f"[x] Tarea recibida y completada -> {mensaje}")
+    
+    # IMPORTANTE: Si esta función llega al final (return implícito) sin lanzar excepciones, 
+    # la librería cliente asume "Éxito" e inyecta un paquete ACK (Reconocimiento) hacia el broker
+    # para que borre el mensaje.
 
 def main():
     """
-    Suscribe al consumidor a una cola y entra en bucle de escucha.
+    Punto de entrada principal para el consumidor.
+    Se suscribe a una cola específica y delega el control del hilo principal a la librería.
     """
+    # Capturamos la IP del broker desde la línea de comandos, si existe
     broker_ip = sys.argv[1] if len(sys.argv) > 1 else "127.0.0.1"
+    
+    # Instanciamos el cliente
     broker = MOMClient(host=broker_ip)
     cola_nombre = "mi_cola_pruebas"
     
     print(f"[*] Conectando al Broker en {broker_ip}...")
+    
+    # Al igual que el productor, el consumidor intenta declarar la cola para asegurar que existe
+    # antes de intentar suscribirse a ella.
     broker.declarar_cola(cola_nombre)
     
-    print(f"[*] Esperando mensajes en '{cola_nombre}'...")
+    print(f"[*] Esperando mensajes en la cola '{cola_nombre}'... (Pulsa CTRL+C para salir)")
     
     try:
-        # Llamada bloqueante con callback
+        # --- SUSCRIPCIÓN BLOQUEANTE ---
+        # La llamada broker.consumir() inicia un bucle infinito de red interno.
+        # El hilo se quedará en esta línea para siempre esperando paquetes TCP.
+        # Pasamos por referencia la función 'procesar_mensaje' (Inyección de Dependencias).
         broker.consumir(cola_nombre, callback=procesar_mensaje)
     except KeyboardInterrupt:
-        print("\n[*] Consumidor finalizado.")
+        # Salida controlada al pulsar Control+C
+        print("\n[*] Desconectando Consumidor de forma segura.")
         sys.exit(0)
 
 if __name__ == "__main__":

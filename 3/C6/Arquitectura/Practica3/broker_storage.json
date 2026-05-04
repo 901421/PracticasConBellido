@@ -1,36 +1,12 @@
 {
-    "mi_cola_pruebas": {
-        "messages": [],
-        "unacked": [
-            {
-                "id": "b248c476-7513-40eb-9ec9-435b3c442e78",
-                "data": {
-                    "id_mensaje": 1300,
-                    "texto": "Evento de telemetr\u00eda #1300",
-                    "timestamp": 1777890130.6177547
-                },
-                "timestamp": 1777890130.6180224
-            }
-        ]
-    },
-    "test_basico": {
-        "messages": [],
-        "unacked": []
-    },
-    "test_rr": {
-        "messages": [],
-        "unacked": []
-    },
-    "test_fair": {
-        "messages": [],
-        "unacked": []
-    },
     "test_timeout": {
-        "messages": [],
-        "unacked": []
-    },
-    "test_crash": {
-        "messages": [],
+        "messages": [
+            {
+                "id": "42fbf676-e181-4b45-802b-c76603dd8560",
+                "data": "MENSAJE_ZOMBIE",
+                "timestamp": 1777932122.8699102
+            }
+        ],
         "unacked": []
     }
 }
