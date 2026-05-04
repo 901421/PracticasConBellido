@@ -1,23 +1,17 @@
 {
-    "cola_resiliencia": {
+    "mi_cola_pruebas": {
         "messages": [],
-        "unacked": []
-    },
-    "cola_persistente_disco": {
-        "messages": [],
-        "unacked": []
-    },
-    "test_tcp": {
-        "messages": [],
-        "unacked": []
-    },
-    "test_res": {
-        "messages": [],
-        "unacked": []
-    },
-    "disco_cola": {
-        "messages": [],
-        "unacked": []
+        "unacked": [
+            {
+                "id": "b248c476-7513-40eb-9ec9-435b3c442e78",
+                "data": {
+                    "id_mensaje": 1300,
+                    "texto": "Evento de telemetr\u00eda #1300",
+                    "timestamp": 1777890130.6177547
+                },
+                "timestamp": 1777890130.6180224
+            }
+        ]
     },
     "test_basico": {
         "messages": [],
@@ -36,13 +30,7 @@
         "unacked": []
     },
     "test_crash": {
-        "messages": [
-            {
-                "id": "f20eae3a-99ea-435c-8628-2c9b4a27b982",
-                "data": "VALOR_CR\u00cdTICO",
-                "timestamp": 1777840957.8748975
-            }
-        ],
+        "messages": [],
         "unacked": []
     }
 }

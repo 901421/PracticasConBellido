@@ -10,166 +10,144 @@
 \usepackage{hyperref}
 \usepackage{xcolor}
 
-% Definición segura de comandos para la tabla (sin recursión)
-\newcommand{\fmodule}{\hspace{0pt}}
-\newcommand{\fdata}{\color{gray}}
-
 \title{\textbf{Documentación de la Arquitectura}\\ \Large Práctica 4 - Desarrollo y Orquestación de Microservicios}
 \author{Imad Habib Jali (901421) \\ Jorge Bellido Lobera (903080)}
 \date{\today}
 
 \begin{document}
 
+\shorthandoff{<>}
 \maketitle
 
 \section{Introducción}
-El presente documento detalla la arquitectura del sistema de gestión de pedidos e inventario desarrollado para la Práctica 4. El sistema evoluciona desde una solución monolítica hacia un ecosistema de microservicios orquestados. Se integran patrones de comunicación asíncrona (MOM), seguridad perimetral y el patrón de consistencia eventual \textbf{Saga} para garantizar la integridad de los datos en un entorno distribuido.
+El presente documento detalla la arquitectura del sistema de gestión de pedidos e inventario desarrollado para la Práctica 4. El sistema evoluciona desde una solución monolítica hacia un ecosistema de microservicios orquestados en Kubernetes. Se integran patrones de comunicación asíncrona (MOM), seguridad perimetral mediante API Key y el patrón de consistencia eventual \textbf{Saga} para garantizar la integridad de los datos entre MariaDB y PostgreSQL.
 
-\section{1. Vista de Módulos}
-Ilustra la estructura estática del código y las dependencias entre los microservicios. Se ha priorizado la programación asíncrona mediante la librería \textit{httpx}.
+\section{1. Vista de Módulos (UML Package Diagram)}
+Ilustra la estructura estática del código y las dependencias lógicas. Se destaca el uso de la librería compartida \textit{mom\_client.py} (evolución de la P3).
 
 \begin{center}
 \begin{tikzpicture}[
-    module/.style={draw, rectangle, rounded corners, fill=blue!10, text centered, text width=2.8cm, minimum height=1.2cm, font=\sffamily\tiny},
-    shared/.style={draw, rectangle, rounded corners, fill=orange!10, text centered, text width=2.8cm, minimum height=1cm, font=\sffamily\tiny},
+    package/.style={draw, rectangle, fill=blue!10, minimum width=3.2cm, minimum height=1.2cm, align=center, font=\sffamily\scriptsize, rounded corners=2pt},
     dependency/.style={-{Stealth}, dashed, thick}
 ]
 
-% Microservicios
-\node[module] (gateway) {\textbf{api-gateway/} \\ main.py (Proxy Async)};
-\node[module, below left=1.5cm and 0.5cm of gateway] (orders) {\textbf{orders-service/} \\ main.py (Saga/Orq)};
-\node[module, below right=1.5cm and 0.5cm of gateway] (inventory) {\textbf{inventory-service/} \\ main.py (Stock)};
-\node[module, below=3.5cm of gateway] (notif) {\textbf{notifications-service/} \\ main.py (Worker)};
+\node[package] (gateway) {\guillemotleft module\guillemotright \\ \textbf{api-gateway}};
+\node[package, below left=1.2cm and 0.5cm of gateway] (orders) {\guillemotleft module\guillemotright \\ \textbf{orders-service}};
+\node[package, below right=1.2cm and 0.5cm of gateway] (inventory) {\guillemotleft module\guillemotright \\ \textbf{inventory-service}};
+\node[package, below=3cm of gateway] (notif) {\guillemotleft module\guillemotright \\ \textbf{notifications-service}};
+\node[package, left=1.5cm of orders, fill=orange!10] (mom) {\guillemotleft module\guillemotright \\ \textbf{mom\_client.py}};
 
-% Cliente MOM Compartido
-\node[shared, left=2cm of orders] (momClient) {mom\_client.py \\ \footnotesize(Librería P3 Corregida)};
-
-% Conexiones
-\draw[dependency] (gateway) -- (orders);
-\draw[dependency] (gateway) -- (inventory);
-\draw[dependency] (orders) -- (inventory);
-\draw[dependency] (orders) -- (momClient);
-\draw[dependency, bend right=30] (notif) -- (momClient);
-
-% Frontera
-\begin{scope}[on background layer]
-    \node[draw, dashed, fill=gray!5, fit=(gateway) (orders) (inventory) (notif) (momClient), inner sep=0.5cm, label={[anchor=north west]north west:\textbf{Ecosistema Microservicios P4}}] {};
-\end{scope}
+\draw[dependency] (gateway) -- node[left, font=\tiny, sloped] {\guillemotleft proxy\guillemotright} (orders);
+\draw[dependency] (gateway) -- node[right, font=\tiny, sloped] {\guillemotleft proxy\guillemotright} (inventory);
+\draw[dependency] (orders) -- node[above, font=\tiny] {\guillemotleft rest\guillemotright} (inventory);
+\draw[dependency] (orders) -- node[above, font=\tiny] {\guillemotleft import\guillemotright} (mom);
+\draw[dependency] (notif) -| node[pos=0.2, right, font=\tiny] {\guillemotleft import\guillemotright} (mom);
 
 \end{tikzpicture}
 \end{center}
 
 \newpage
-\section{2. Vista de Componentes y Conectores}
-Describe el sistema en tiempo de ejecución. El servicio de pedidos coordina la reserva de stock y gestiona la \textbf{compensación automática} si la persistencia local falla.
+\section{2. Vista de Componentes y Conectores (UML Component Diagram)}
+Describe la interacción en tiempo de ejecución. El servicio de pedidos orquestas la transacción distribuida.
 
 \begin{center}
 \begin{tikzpicture}[
-    component/.style={draw, rectangle, fill=green!10, text centered, text width=2.5cm, minimum height=1.5cm, font=\sffamily\tiny},
-    connector/.style={-{Stealth}, thick, color=blue!70!black},
-    database/.style={draw, cylinder, shape border rotate=90, aspect=0.25, fill=yellow!20, minimum height=1.2cm, minimum width=1.8cm, align=center, text centered, font=\sffamily\tiny},
-    mocloud/.style={draw, cloud, cloud puffs=10, fill=red!5, minimum width=3cm, minimum height=2cm, align=center, font=\sffamily\tiny}
+    component/.style={draw, rectangle, fill=green!10, text centered, text width=2.8cm, minimum height=1.3cm, font=\sffamily\scriptsize},
+    port/.style={draw, rectangle, fill=white, minimum size=4pt, inner sep=0pt},
+    connector/.style={-{Stealth}, thick},
+    database/.style={draw, cylinder, shape border rotate=90, aspect=0.25, fill=yellow!20, minimum height=1.2cm, minimum width=1.6cm, align=center, text centered, font=\sffamily\tiny}
 ]
 
-% Componentes
-\node[component] (agw) {API Gateway \\ (Proxy + Auth)};
-\node[component, below=2cm of agw] (ord) {Orders Service \\ (Orquestador Saga)};
-\node[component, right=2.5cm of ord] (inv) {Inventory Service \\ (Gestor Stock)};
-\node[mocloud, below=2.5cm of ord] (brk) {Broker MOM \\ (P3 Server Stateful)};
-\node[component, right=2.5cm of brk] (not) {Notif Service \\ (Consumer)};
+\node[component] (agw) {\guillemotleft component\guillemotright \\ \textbf{API Gateway}};
+\node[component, below=1.5cm of agw] (ord) {\guillemotleft component\guillemotright \\ \textbf{Orders Service}};
+\node[component, right=2.2cm of ord] (inv) {\guillemotleft component\guillemotright \\ \textbf{Inventory Service}};
+\node[component, below=2cm of ord, fill=red!10] (brk) {\guillemotleft component\guillemotright \\ \textbf{Broker MOM}};
+\node[component, right=2.2cm of brk] (not) {\guillemotleft component\guillemotright \\ \textbf{Notif Service}};
 
-% Bases de Datos
-\node[database, left=1.2cm of ord] (dbOrd) {MariaDB \\ (Orders DB)};
-\node[database, right=1.2cm of inv] (dbInv) {PostgreSQL \\ (Inventory DB)};
+\node[database, left=1cm of ord] (db1) {\guillemotleft db\guillemotright \\ MariaDB};
+\node[database, right=1cm of inv] (db2) {\guillemotleft db\guillemotright \\ PostgreSQL};
 
-% Conectores
-\draw[connector] (agw) -- node[left, font=\tiny] {REST} (ord);
-\draw[connector] (ord) -- node[above, font=\tiny] {Atomic PUT} (inv);
+\draw[connector] (agw) -- node[right, font=\tiny] {HTTP/Auth} (ord);
+\draw[connector] (ord) -- node[above, font=\tiny] {REST Async} (inv);
 \draw[connector] (ord) -- node[left, font=\tiny] {TCP/JSON} (brk);
-\draw[connector] (brk) -- node[above, font=\tiny] {Push + ACK} (not);
-\draw[connector, dashed] (ord) -- (dbOrd);
-\draw[connector, dashed] (inv) -- (dbInv);
+\draw[connector] (brk) -- node[above, font=\tiny] {Event Push} (not);
+\draw[connector, dashed] (ord) -- (db1);
+\draw[connector, dashed] (inv) -- (db2);
 
 \end{tikzpicture}
 \end{center}
 
-\section{3. Vista de Distribución e Instalación}
-Detalla el despliegue del sistema mediante abstracción de contenedores y orquestación.
-
-\subsection{3.1. Vista de Despliegue (Nodos y Pods)}
-Configuración de la red y orquestación de réplicas en el clúster Kubernetes.
+\section{3. Vista de Despliegue (UML Deployment Diagram)}
+Mapeo de los componentes sobre la infraestructura de Kubernetes (Pods y Volúmenes).
 
 \begin{center}
 \begin{tikzpicture}[
-    nodeOS/.style={draw, thick, fill=gray!10, rectangle, minimum width=4cm, minimum height=3cm, align=center, font=\sffamily\tiny},
-    art/.style={draw, fill=white, rectangle, text width=2.8cm, align=center, font=\sffamily\tiny}
+    nodeK8s/.style={draw, thick, rectangle, fill=gray!10, minimum width=10cm, minimum height=5cm, align=center, double distance=2pt},
+    pod/.style={draw, rectangle, fill=white, text width=2.5cm, align=center, font=\sffamily\tiny, minimum height=0.8cm}
 ]
-% Nodo K8s
-\node[nodeOS] (k8s) at (0,0) {\textbf{Nodo: Kubernetes Cluster}\\ \footnotesize(Minikube / Docker Compose)};
-\draw (k8s.north west) -- ++(0.2,0.2) -- ($(k8s.north east)+(0.2,0.2)$) -- (k8s.north east);
 
-% Pods principales
-\node[art, below=0.2cm of k8s.center, anchor=north] (pods) {
-    \textbf{Deployments (Stateless)} \\
-    $\bullet$ api-gateway (x2) \\
-    $\bullet$ orders-service (x2) \\
-    $\bullet$ inventory-service (x2) \\
-    $\bullet$ notifications-service (x1) \\
-    \vspace{0.1cm}
-    \textbf{StatefulSets (Persistent)} \\
-    $\bullet$ postgres-db (x1) \\
-    $\bullet$ mariadb-db (x1) \\
-    $\bullet$ broker-deployment (x1)
-};
+\node[nodeK8s] (cluster) at (0,0) {};
+\node[font=\sffamily\small, anchor=north] at (cluster.north) {\guillemotleft device\guillemotright\ \textbf{Kubernetes Cluster (Minikube)}};
+
+% Pods
+\node[pod] (p1) at (-3, 1) {\guillemotleft pod\guillemotright \\ api-gateway};
+\node[pod] (p2) at (0, 1) {\guillemotleft pod\guillemotright \\ orders-svc};
+\node[pod] (p3) at (3, 1) {\guillemotleft pod\guillemotright \\ inventory-svc};
+\node[pod] (p4) at (-3, -1) {\guillemotleft pod\guillemotright \\ broker-mom};
+\node[pod] (p5) at (0, -1) {\guillemotleft pod\guillemotright \\ mariadb};
+\node[pod] (p6) at (3, -1) {\guillemotleft pod\guillemotright \\ postgres};
+
+% Volumes
+\node[draw, cylinder, shape border rotate=90, aspect=0.2, fill=orange!20, minimum width=1cm, minimum height=0.6cm, font=\tiny, below=0.2cm of p4] (v1) {PVC};
+\node[draw, cylinder, shape border rotate=90, aspect=0.2, fill=orange!20, minimum width=1cm, minimum height=0.6cm, font=\tiny, below=0.2cm of p5] (v2) {PVC};
+\node[draw, cylinder, shape border rotate=90, aspect=0.2, fill=orange!20, minimum width=1cm, minimum height=0.6cm, font=\tiny, below=0.2cm of p6] (v3) {PVC};
+
+\draw[thick, <->] (p1) -- (p2);
+\draw[thick, <->] (p2) -- (p3);
+\draw[thick, ->] (p2) -- (p4);
+
 \end{tikzpicture}
 \end{center}
 
-\subsection{3.2. Vista de Instalación (Estructura de Ficheros)}
-Mapeo físico de los componentes del sistema en el espacio de trabajo.
+\section{4. Vista de Instalación (UML File/Artifact Structure)}
+Estructura física del entregable organizado por responsabilidades.
 
 \begin{center}
 \begin{tikzpicture}[
-    node distance=0.5cm,
-    package/.style={draw, rectangle, fill=yellow!5, text width=9.5cm, align=left, font=\sffamily\tiny, thick},
-    module/.style={font=\sffamily\tiny, inner sep=1pt},
-    data/.style={font=\sffamily\tiny\itshape, color=gray!80!black}
+    folder/.style={draw, rectangle, fill=yellow!20, font=\sffamily\tiny, minimum width=3cm, rounded corners=1pt},
+    file/.style={font=\sffamily\tiny, align=left}
 ]
+\node[folder] (root) {Raiz: \textbf{/Practica4/}};
+\node[file, below right=0.5cm and 0.3cm of root.west, anchor=west] (f1) {- \guillemotleft folder\guillemotright\ \textbf{api-gateway/}};
+\node[file, below=0.2cm of f1.west, anchor=west] (f2) {- \guillemotleft folder\guillemotright\ \textbf{orders-service/}};
+\node[file, below=0.2cm of f2.west, anchor=west] (f3) {- \guillemotleft folder\guillemotright\ \textbf{inventory-service/}};
+\node[file, below=0.2cm of f3.west, anchor=west] (f4) {- \guillemotleft folder\guillemotright\ \textbf{notifications-service/}};
+\node[file, below=0.2cm of f4.west, anchor=west] (f5) {- \guillemotleft folder\guillemotright\ \textbf{k8s/} (Manifiestos YAML)};
+\node[file, below=0.2cm of f5.west, anchor=west] (f6) {- \guillemotleft artifact\guillemotright\ \textbf{arquitectura\_p4.pdf}};
+\node[file, below=0.2cm of f6.west, anchor=west] (f7) {- \guillemotleft artifact\guillemotright\ \textbf{INSTRUCCIONES.md}};
 
-% Paquetes de servicios
-\node[package] (services) {
-    \textbf{Microservicios (/api-gateway, /orders-service, /inventory-service, /notifications-service)} \\
-    \vspace{0.1cm}
-    \begin{tabular}{l l}
-    \fmodule $\bullet$ \texttt{main.py} & \fmodule Lógica del servicio (FastAPI/Async) \\
-    \fmodule $\bullet$ \texttt{Dockerfile} & \fmodule Definición de imagen del contenedor \\
-    \fmodule $\bullet$ \texttt{requirements.txt} & \fmodule Dependencias (httpx, anyio, etc.) \\
-    \end{tabular}
-};
+\draw[thick, gray] (root.south west) ++(0.1,0) |- (f1.west);
+\draw[thick, gray] (root.south west) ++(0.1,0) |- (f2.west);
+\draw[thick, gray] (root.south west) ++(0.1,0) |- (f3.west);
+\draw[thick, gray] (root.south west) ++(0.1,0) |- (f4.west);
+\draw[thick, gray] (root.south west) ++(0.1,0) |- (f5.west);
+\draw[thick, gray] (root.south west) ++(0.1,0) |- (f6.west);
+\draw[thick, gray] (root.south west) ++(0.1,0) |- (f7.west);
+\end{tikzpicture}
+\end{center}
 
-% Orquestación
-\node[package, below=0.8cm of services] (k8sPkg) {
-    \textbf{Configuración de Infraestructura (/k8s, /)} \\
-    \vspace{0.1cm}
-    \begin{tabular}{l l}
-    \fmodule $\bullet$ \texttt{*.yaml} (en /k8s) & \fmodule Manifiestos K8s (StatefulSets, Services, Ingress) \\
-    \fmodule $\bullet$ \texttt{docker-compose.yaml} & \fmodule Entorno de validación rápida local \\
-    \fdata $\bullet$ \texttt{init-*.sql} & \fdata Scripts de inicialización de bases de datos \\
-    \end{tabular}
-};
+\section{5. Vista de Distribución (Arquitectura de Red)}
+\begin{center}
+\begin{tikzpicture}[
+    box/.style={draw, rectangle, fill=gray!5, text width=2.5cm, align=center, font=\sffamily\tiny, minimum height=1cm},
+    net/.style={thick, dashed, <->}
+]
+\node[box] (ext) {Cliente Externo \\ (Navegador/Curl)};
+\node[box, right=1.5cm of ext, fill=blue!5] (ing) {K8s Ingress \\ (mis-aplicaciones.com)};
+\node[box, right=1.5cm of ing] (mesh) {Service Mesh \\ (Internal Network)};
 
-% Pruebas
-\node[package, below=0.8cm of k8sPkg] (testPkg) {
-    \textbf{Validación y Documentación} \\
-    \vspace{0.1cm}
-    \begin{tabular}{l l}
-    \fmodule $\bullet$ \texttt{smoke\_test.py} & \fmodule Suite de Pruebas de Integración (E2E) \\
-    \fmodule $\bullet$ \texttt{arquitectura\_p4.pdf} & \fmodule Documento de diseño actual (Vistas 1-3) \\
-    \end{tabular}
-};
-
-\draw[thick, gray] (services.west) -- ++(-0.4,0) |- (k8sPkg.west);
-\draw[thick, gray] (k8sPkg.west) -- ++(-0,0) |- (testPkg.west);
-
+\draw[net] (ext) -- node[above, font=\tiny] {Internet} (ing);
+\draw[net] (ing) -- node[above, font=\tiny] {Port Forward} (mesh);
 \end{tikzpicture}
 \end{center}
 
