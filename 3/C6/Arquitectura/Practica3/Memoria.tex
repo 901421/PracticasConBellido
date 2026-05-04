@@ -1,0 +1,145 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric,arrows.meta,positioning,fit,backgrounds,calc}
+\usepackage{geometry}
+\geometry{a4paper, margin=2cm}
+\usepackage{parskip}
+
+\title{\textbf{Documentación de la Arquitectura}\\ \Large Práctica 3 - Broker de Mensajes}
+\author{Imad Habib Jali (901421) \\ Jorge Bellido Lobera (903080)}
+\date{\today}
+
+\begin{document}
+
+\shorthandoff{<>}
+\maketitle
+
+\section{Introducción}
+El presente documento describe la arquitectura del \textit{Message-Oriented Middleware (MOM)} desarrollado. Se detallan las vistas arquitectónicas exigidas en el enunciado y ampliadas a solicitud de auditoría, garantizando el estricto cumplimiento de los estándares UML.
+
+\section{1. Vista de Módulos (UML Package Diagram)}
+\begin{center}
+\begin{tikzpicture}[
+    package/.style={draw, rectangle, fill=blue!10, minimum width=3.5cm, minimum height=1.5cm, align=center, font=\sffamily\small, rounded corners=2pt},
+    dependency/.style={-{Stealth}, dashed, thick}
+]
+\node[package] (client) {$\ll$module$\gg$ \\ \textbf{client.py}};
+\node[package, above left=1.5cm and 1cm of client] (productor) {$\ll$module$\gg$ \\ \textbf{productor.py}};
+\node[package, above right=1.5cm and 1cm of client] (consumidor) {$\ll$module$\gg$ \\ \textbf{consumidor.py}};
+\node[package, below=2cm of client] (server) {$\ll$module$\gg$ \\ \textbf{server.py}};
+\node[package, below=1.5cm of server] (storage) {$\ll$module$\gg$ \\ \textbf{storage.py}};
+
+\draw[dependency] (productor) -- node[left, font=\tiny, sloped] {\guillemotleft import\guillemotright} (client);
+\draw[dependency] (consumidor) -- node[right, font=\tiny, sloped] {\guillemotleft import\guillemotright} (client);
+\draw[dependency] (server) -- node[right, font=\tiny, sloped] {\guillemotleft import\guillemotright} (storage);
+\end{tikzpicture}
+\end{center}
+
+\section{2. Vista de Componentes y Conectores (UML Component Diagram)}
+\begin{center}
+\begin{tikzpicture}[
+    component/.style={draw, rectangle, fill=green!10, text centered, text width=3cm, minimum height=1.3cm, font=\sffamily\small},
+    port/.style={draw, rectangle, fill=white, minimum size=5pt, inner sep=0pt},
+    connector/.style={-{Stealth}, thick},
+    database/.style={draw, cylinder, shape border rotate=90, aspect=0.25, fill=yellow!20, minimum height=1.3cm, minimum width=2cm, align=center, text centered, font=\sffamily\small}
+]
+\node[component] (prod) {\guillemotleft component\guillemotright \\ \textbf{Productor}};
+\node[component, below=1.8cm of prod] (cons) {\guillemotleft component\guillemotright \\ \textbf{Consumidor}};
+\node[component, right=3.2cm of prod, yshift=-1.2cm, fill=red!10, minimum height=2.5cm] (broker) {\guillemotleft component\guillemotright \\ \textbf{Broker Servidor}};
+\node[database, right=2cm of broker] (db) {\guillemotleft database\guillemotright \\ JSON Storage};
+
+% Ports
+\node[port, right=0pt of prod.east] (p_prod) {};
+\node[port, right=0pt of cons.east] (p_cons) {};
+\node[port, left=0pt of broker.160] (p_broker_in1) {};
+\node[port, left=0pt of broker.200] (p_broker_in2) {};
+\node[port, right=0pt of broker.east] (p_broker_out) {};
+
+% Connections
+\draw[connector] (p_prod) -- node[above, font=\tiny, pos=0.5] {TCP:5555} node[below, font=\tiny, pos=0.5] {\guillemotleft protocol\guillemotright\ RPC} (p_broker_in1);
+\draw[connector] (p_cons) -- node[above, font=\tiny, pos=0.5] {TCP:5555} node[below, font=\tiny, pos=0.5] {\guillemotleft protocol\guillemotright\ RPC} (p_broker_in2);
+\draw[connector, dashed] (p_broker_out) -- node[above, font=\tiny] {Local I/O} node[below, font=\tiny] {\guillemotleft format\guillemotright\ JSON} (db.west);
+
+% Roles labels
+\node[below=0.1cm of prod, font=\tiny] {role: Sender};
+\node[below=0.1cm of cons, font=\tiny] {role: Receiver};
+\node[below=0.1cm of broker, font=\tiny] {role: Mediator};
+\end{tikzpicture}
+\end{center}
+
+\section{3. Vista de Despliegue (UML Deployment Diagram)}
+\begin{center}
+\begin{tikzpicture}[
+    nodeOS/.style={draw, thick, rectangle, fill=gray!10, minimum width=3.8cm, minimum height=3.8cm, align=center, double distance=2pt},
+    artifact/.style={draw, rectangle, fill=white, text width=3cm, align=center, font=\sffamily\scriptsize}
+]
+% Nodo Servidor
+\node[nodeOS] (serverNode) at (0,0) {};
+\node[font=\sffamily\small, anchor=north, yshift=-0.2cm, align=center] (lblServer) at (serverNode.north) {\guillemotleft device\guillemotright \\ \textbf{Servidor Central}};
+\node[artifact, below=0.3cm of lblServer] (artServer) {\guillemotleft artifact\guillemotright \\ server.py};
+\node[artifact, below=0.1cm of artServer] (artStorage) {\guillemotleft artifact\guillemotright \\ storage.py};
+\node[artifact, below=0.1cm of artStorage] (artDB) {\guillemotleft artifact\guillemotright \\ broker\_storage.json};
+
+% Nodo Productor
+\node[nodeOS] (prodNode) at (-4.5, 0) {};
+\node[font=\sffamily\small, anchor=north, yshift=-0.2cm, align=center] (lblProd) at (prodNode.north) {\guillemotleft device\guillemotright \\ \textbf{Nodo Productor}};
+\node[artifact, below=0.3cm of lblProd] (artProd) {\guillemotleft artifact\guillemotright \\ productor.py};
+\node[artifact, below=0.1cm of artProd] (artClientP) {\guillemotleft artifact\guillemotright \\ client.py};
+
+% Nodo Consumidor
+\node[nodeOS] (consNode) at (4.5, 0) {};
+\node[font=\sffamily\small, anchor=north, yshift=-0.2cm, align=center] (lblCons) at (consNode.north) {\guillemotleft device\guillemotright \\ \textbf{Nodo Consumidor}};
+\node[artifact, below=0.3cm of lblCons] (artCons) {\guillemotleft artifact\guillemotright \\ consumidor.py};
+\node[artifact, below=0.1cm of artCons] (artClientC) {\guillemotleft artifact\guillemotright \\ client.py};
+
+\draw[thick, Stealth-Stealth] (prodNode) -- node[above, font=\tiny] {\guillemotleft network\guillemotright\ TCP/IP} (serverNode.west);
+\draw[thick, Stealth-Stealth] (consNode) -- node[above, font=\tiny] {\guillemotleft network\guillemotright\ TCP/IP} (serverNode.east);
+\end{tikzpicture}
+\end{center}
+
+\section{4. Vista de Instalación (UML File/Artifact Structure)}
+\begin{center}
+\begin{tikzpicture}[
+    folder/.style={draw, rectangle, fill=yellow!20, font=\sffamily\small, minimum width=4cm, rounded corners=1pt},
+    file/.style={font=\sffamily\footnotesize, align=left}
+]
+\node[folder] (root) {Raiz del Proyecto: \textbf{/Practica3/}};
+\node[file, below right=0.8cm and 0.5cm of root.west, anchor=west] (f1) {- \guillemotleft artifact\guillemotright\ \textbf{server.py}};
+\node[file, below=0.4cm of f1.west, anchor=west] (f2) {- \guillemotleft artifact\guillemotright\ \textbf{storage.py}};
+\node[file, below=0.4cm of f2.west, anchor=west] (f3) {- \guillemotleft artifact\guillemotright\ \textbf{client.py}};
+\node[file, below=0.4cm of f3.west, anchor=west] (f4) {- \guillemotleft artifact\guillemotright\ \textbf{productor.py}};
+\node[file, below=0.4cm of f4.west, anchor=west] (f5) {- \guillemotleft artifact\guillemotright\ \textbf{consumidor.py}};
+\node[file, below=0.4cm of f5.west, anchor=west] (f6) {- \guillemotleft artifact\guillemotright\ \textbf{test\_main.py}};
+\node[file, below=0.4cm of f6.west, anchor=west] (f7) {- \guillemotleft artifact\guillemotright\ \textbf{verify\_fixes.py}};
+\node[file, below=0.4cm of f7.west, anchor=west] (f8) {- \guillemotleft artifact\guillemotright\ \textbf{broker\_storage.json}};
+
+\draw[thick, gray] (root.south west) ++(0.2,0) |- (f1.west);
+\draw[thick, gray] (root.south west) ++(0.2,0) |- (f2.west);
+\draw[thick, gray] (root.south west) ++(0.2,0) |- (f3.west);
+\draw[thick, gray] (root.south west) ++(0.2,0) |- (f4.west);
+\draw[thick, gray] (root.south west) ++(0.2,0) |- (f5.west);
+\draw[thick, gray] (root.south west) ++(0.2,0) |- (f6.west);
+\draw[thick, gray] (root.south west) ++(0.2,0) |- (f7.west);
+\draw[thick, gray] (root.south west) ++(0.2,0) |- (f8.west);
+\end{tikzpicture}
+\end{center}
+
+\section{5. Vista de Distribución (UML Deployment View)}
+\begin{center}
+\begin{tikzpicture}[
+    node/.style={draw, rectangle, fill=gray!10, text centered, text width=2.8cm, minimum height=1.3cm, font=\sffamily\small, double distance=2pt},
+    comm/.style={thick, <->, >=Stealth}
+]
+\node[node] (server) {\guillemotleft device\guillemotright \\ \textbf{Servidor Broker}};
+\node[node, left=2.2cm of server] (prod) {\guillemotleft device\guillemotright \\ \textbf{Nodo Productor}};
+\node[node, right=2.2cm of server] (cons) {\guillemotleft device\guillemotright \\ \textbf{Nodo Consumidor}};
+
+\draw[comm] (prod) -- node[above, font=\tiny] {\guillemotleft TCP/IP\guillemotright} (server);
+\draw[comm] (cons) -- node[above, font=\tiny] {\guillemotleft TCP/IP\guillemotright} (server);
+\end{tikzpicture}
+\end{center}
+
+\end{document}
