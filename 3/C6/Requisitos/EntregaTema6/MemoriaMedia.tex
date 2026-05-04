@@ -1,0 +1,166 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{xcolor}
+
+\geometry{a4paper, margin=2.5cm}
+
+\title{Análisis técnico de la red blockchain Algorand y su posicionamiento en el ecosistema descentralizado}
+\author{Imad Habib Jali (901421) \and Jorge Bellido Lobera (903080)}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{Introducción}
+
+La tecnología blockchain ha experimentado una evolución significativa desde la aparición de Bitcoin, cuyo diseño se centró en la creación de un sistema de dinero digital descentralizado. Posteriormente, plataformas como Ethereum ampliaron este paradigma al introducir los smart contracts, permitiendo el desarrollo de aplicaciones descentralizadas (dApps) y configurando un nuevo modelo de infraestructura digital.
+
+No obstante, estas primeras generaciones de blockchain evidencian limitaciones estructurales, especialmente en términos de escalabilidad, eficiencia y coste operativo. En este contexto surge Algorand como una propuesta de tercera generación cuyo objetivo es resolver el denominado trilema blockchain, proporcionando simultáneamente seguridad, descentralización y alto rendimiento.
+
+El presente documento analiza en profundidad la naturaleza de Algorand, su arquitectura y funcionamiento, su posicionamiento frente a otras redes relevantes y su potencial de aplicación en escenarios reales.
+
+\section{Naturaleza y fundamentos de Algorand}
+
+Algorand es una red blockchain descentralizada fundada en 2017 por Silvio Micali, investigador de referencia en criptografía y galardonado con el Premio Turing. Su diseño parte de una premisa fundamental: la necesidad de construir una infraestructura blockchain capaz de ser utilizada a escala global sin sacrificar eficiencia ni seguridad.
+
+A diferencia de otras redes, Algorand no se limita a ser un sistema de transferencia de valor, sino que se configura como una plataforma integral para la ejecución de lógica programable, permitiendo la creación de activos digitales, contratos inteligentes y aplicaciones descentralizadas.
+
+Un elemento distintivo es su enfoque en la finalidad inmediata de las transacciones, eliminando la probabilidad de bifurcaciones (forks) y proporcionando certeza absoluta sobre el estado de la red en cuestión de segundos. Este aspecto resulta crítico en entornos financieros, donde la irreversibilidad y la rapidez son requisitos esenciales.
+
+\section{Arquitectura y funcionamiento de la red}
+
+El diseño técnico de Algorand se articula en torno a una serie de decisiones arquitectónicas orientadas a maximizar eficiencia y robustez.
+
+\subsection{Consenso: Pure Proof of Stake como mecanismo criptoeconómico}
+
+El núcleo del sistema es el algoritmo de consenso Pure Proof of Stake (PPoS), que introduce una innovación relevante frente a modelos tradicionales. En lugar de depender de la potencia computacional (como en Proof of Work) o de la concentración de capital bloqueado (como en algunos sistemas Proof of Stake), Algorand selecciona validadores mediante un proceso aleatorio verificable criptográficamente.
+
+Este mecanismo presenta varias implicaciones:
+\begin{itemize}
+    \item Reduce drásticamente el consumo energético.
+    \item Minimiza la probabilidad de ataques coordinados.
+    \item Favorece una distribución más equitativa del poder de validación.
+\end{itemize}
+
+Desde una perspectiva teórica, el modelo de Algorand se aproxima a un sistema de democracia criptográfica probabilística, donde la influencia de cada participante está ligada a su participación económica, pero sin requerir barreras técnicas significativas.
+
+\subsection{Separación funcional en capas}
+
+Algorand introduce una arquitectura en dos niveles que permite desacoplar complejidad computacional y seguridad:
+
+\paragraph{Capa 1 (Layer 1):}
+\begin{itemize}
+    \item Procesa transacciones básicas.
+    \item Ejecuta contratos inteligentes simples.
+    \item Gestiona activos digitales (ASA).
+\end{itemize}
+
+\paragraph{Capa 2 (Layer 2):}
+\begin{itemize}
+    \item Maneja operaciones de mayor complejidad.
+    \item Ejecuta lógica intensiva fuera de la cadena principal.
+    \item Reintegra resultados mediante verificación criptográfica.
+\end{itemize}
+
+Esta separación evita la congestión de la red principal, uno de los principales problemas observados en Ethereum, donde la ejecución de contratos complejos impacta directamente en los costes y tiempos de transacción.
+
+\subsection{Modelo de ejecución de smart contracts}
+
+Los smart contracts en Algorand se ejecutan en la Algorand Virtual Machine (AVM) y presentan un diseño más restrictivo pero altamente eficiente. A diferencia del enfoque altamente flexible de Ethereum, Algorand prioriza:
+\begin{itemize}
+    \item Previsibilidad.
+    \item Seguridad.
+    \item Eficiencia computacional.
+\end{itemize}
+
+Este enfoque implica un cierto sacrificio en expresividad, pero reduce significativamente la superficie de ataque y los errores de implementación.
+
+\subsection{Tokenización y estandarización de activos}
+
+El estándar ASA (Algorand Standard Asset) representa una aproximación simplificada y segura a la creación de tokens. Frente a modelos como ERC-20, que requieren la implementación manual de contratos inteligentes, ASA permite definir activos mediante configuraciones estructuradas, eliminando vulnerabilidades comunes.
+
+Este diseño favorece la adopción institucional, donde la seguridad y la fiabilidad son factores determinantes.
+
+\section{Análisis comparativo con otras redes blockchain}
+
+El valor de Algorand se aprecia con mayor claridad al compararlo con sus principales referentes.
+
+\subsection{Comparación con Bitcoin}
+
+Bitcoin constituye el paradigma de seguridad y descentralización, pero presenta limitaciones claras en escalabilidad y funcionalidad. Su modelo de consenso (Proof of Work) implica elevados costes energéticos y baja capacidad transaccional.
+
+Algorand supera estas limitaciones mediante:
+\begin{itemize}
+    \item Mayor rendimiento.
+    \item Menor consumo energético.
+    \item Capacidad de ejecución de lógica programable.
+\end{itemize}
+
+No obstante, Bitcoin mantiene una ventaja significativa en términos de adopción y reconocimiento como reserva de valor.
+
+\subsection{Comparación con Ethereum}
+
+Ethereum representa actualmente el ecosistema más desarrollado para aplicaciones descentralizadas. Sin embargo, su diseño original no anticipó el crecimiento masivo de uso, lo que ha derivado en problemas de escalabilidad y costes elevados.
+
+Algorand introduce mejoras relevantes:
+\begin{itemize}
+    \item Escalabilidad integrada (sin depender de soluciones externas).
+    \item Comisiones bajas y predecibles.
+    \item Mayor eficiencia energética.
+\end{itemize}
+
+Sin embargo, su ecosistema es aún más limitado, lo que reduce su efecto red y su adopción en comparación con Ethereum.
+
+\subsection{Evaluación crítica}
+
+Desde una perspectiva técnica, Algorand presenta una arquitectura más refinada y eficiente. No obstante, el éxito de una blockchain no depende únicamente de su diseño, sino también de factores como:
+\begin{itemize}
+    \item Adopción.
+    \item Comunidad de desarrolladores.
+    \item Integración con infraestructuras existentes.
+\end{itemize}
+
+En este sentido, Algorand se encuentra en una fase de consolidación, con un potencial significativo pero aún no plenamente materializado.
+
+\section{Escenario de aplicación: sistema de distribución de ayudas públicas}
+
+Para ilustrar el potencial de Algorand, se propone un sistema de gestión de ayudas económicas basado en blockchain.
+
+\subsection{Diseño del sistema}
+
+El proceso se estructura en varias fases:
+\begin{enumerate}
+    \item \textbf{Emisión de un activo digital (ASA):} El organismo público crea un token que representa unidades de ayuda económica.
+    \item \textbf{Implementación de smart contracts:} Se define la lógica que regula criterios de elegibilidad, condiciones de uso y límites de gasto.
+    \item \textbf{Integración con identidad digital:} Los ciudadanos vinculan su identidad a una wallet, permitiendo la verificación automatizada.
+    \item \textbf{Distribución programada de fondos:} Los contratos inteligentes ejecutan transferencias automáticas a los beneficiarios.
+    \item \textbf{Control del uso de fondos:} Los tokens pueden restringirse a determinados comercios o categorías de gasto.
+    \item \textbf{Auditoría en tiempo real:} Todas las transacciones quedan registradas, permitiendo supervisión continua.
+\end{enumerate}
+
+\subsection{Ventajas del modelo}
+
+Este sistema introduce mejoras sustanciales:
+\begin{itemize}
+    \item Eliminación de intermediarios.
+    \item Reducción de fraude.
+    \item Transparencia total.
+    \item Eficiencia administrativa.
+\end{itemize}
+
+Además, la rapidez y bajo coste de Algorand lo hacen especialmente adecuado para este tipo de aplicaciones a gran escala.
+
+\section*{Conclusión}
+
+Algorand representa una de las propuestas más sólidas dentro de las blockchain de tercera generación, destacando por su capacidad para abordar de forma efectiva el trilema de escalabilidad, seguridad y descentralización.
+
+Su arquitectura, basada en Pure Proof of Stake y en una separación funcional en capas, permite ofrecer un rendimiento elevado sin comprometer la integridad del sistema. En comparación con Bitcoin y Ethereum, Algorand introduce mejoras técnicas significativas, aunque todavía enfrenta desafíos en términos de adopción y desarrollo de ecosistema.
+
+En última instancia, el potencial de Algorand dependerá de su capacidad para atraer desarrolladores, consolidar casos de uso reales y competir en un entorno donde la ventaja tecnológica no siempre garantiza el liderazgo. No obstante, su diseño la posiciona como una infraestructura altamente prometedora en el futuro de la economía digital descentralizada.
+
+\end{document}

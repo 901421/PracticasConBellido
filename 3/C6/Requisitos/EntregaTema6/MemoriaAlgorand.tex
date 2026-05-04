@@ -1,0 +1,105 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{longtable}
+\usepackage{array}
+
+\geometry{a4paper, margin=2.5cm}
+
+\definecolor{accentblue}{HTML}{1A3A5C}
+\definecolor{accentteal}{HTML}{0D7377}
+\definecolor{midblue}{HTML}{2E75B6}
+
+\title{Memoria Técnica: Algorand (ALGO): Análisis Experto de la Red Blockchain}
+\author{Imad Habib Jali (901421) \and Jorge Bellido Lobera (903080)}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{Introducción}
+
+Algorand es una red blockchain de tercera generación diseñada desde sus cimientos para superar las limitaciones que históricamente han afectado a las blockchains de primera y segunda generación. Concebida por Silvio Micali (Premio Turing 2012), la red busca resolver el "trilema blockchain" de forma matemática y robusta.
+
+\section{Qué es Algorand}
+
+\subsection{Origen y visión fundacional}
+El proyecto fue concebido en 2017 por Silvio Micali, catedrático del MIT. Micali partió de la premisa de que el trilema blockchain (seguridad, escalabilidad y descentralización) podía resolverse mediante un mecanismo de consenso radicalmente diferente, basado en el rigor académico.
+
+\subsection{Definición y propósito}
+Algorand es una blockchain pública, permissionless y descentralizada, orientada a aplicaciones de alto rendimiento en finanzas descentralizadas (DeFi), CBDCs y activos digitales. Su token nativo es ALGO.
+
+\subsection{Ecosistema institucional}
+La Fundación Algorand (Singapur) gestiona la gobernanza y el ecosistema, mientras que Algorand Inc. (Boston) lidera el desarrollo técnico y la adopción empresarial.
+
+\section{Cómo funciona la red blockchain de Algorand}
+
+\subsection{Pure Proof of Stake (PPoS)}
+La innovación central es el Pure Proof of Stake (PPoS). El proceso se desarrolla en tres fases:
+\begin{enumerate}
+    \item \textbf{Selección del líder:} Mediante Función Aleatoria Verificable (VRF), se selecciona aleatoriamente un líder de bloque.
+    \item \textbf{Votación del comité:} Un comité seleccionado por VRF vota la aprobación del bloque.
+    \item \textbf{Certificación y difusión:} El bloque se añade a la cadena con finalidad definitiva en menos de 5 segundos.
+\end{enumerate}
+
+\subsection{Estructura en dos capas}
+\begin{itemize}
+    \item \textbf{Capa 1 (Layer 1):} Aloja transacciones básicas, ASAs y contratos inteligentes estándar. Optimización para velocidad.
+    \item \textbf{Capa 2 (Layer 2):} Maneja lógica compleja fuera de la cadena, reconciliando estados periódicamente con la Capa 1.
+\end{itemize}
+
+\subsection{Smart Contracts (ASC1) y el AVM}
+Los contratos se ejecutan en la Algorand Virtual Machine (AVM). Se dividen en \textit{stateful} (con estado) y \textit{smart signatures} (sin estado). Se programan principalmente en PyTeal o TEAL.
+
+\subsection{Tokenomics y sostenibilidad}
+Suministro fijo de 10.000 millones de ALGO. Comisiones extremadamente bajas (~0.001 ALGO). Algorand es \textit{carbon negative} mediante acuerdos de compensación de carbono.
+
+\section{Diferencias con Bitcoin y Ethereum}
+
+\begingroup
+\centering
+\begin{longtable}{|p{4cm}|p{3.5cm}|p{3.5cm}|p{3.5cm}|}
+\caption{Tabla comparativa integral} \\
+\hline
+\textbf{Criterio} & \textbf{Bitcoin} & \textbf{Ethereum} & \textbf{Algorand} \\ \hline
+\endhead
+Año de creación & 2009 & 2015 & 2017 (mainnet 2019) \\ \hline
+Mecanismo de consenso & Proof of Work (PoW) & Proof of Stake (PoS) desde 2022 & Pure Proof of Stake (PPoS) \\ \hline
+Velocidad (TPS) & $\sim$7 tx/seg & $\sim$15-30 tx/seg & $\sim$1.000-2.000 tx/seg \\ \hline
+Finalidad de tx & $\sim$60 min (6 bloques) & $\sim$12-15 min & $<$ 5 segundos \\ \hline
+Smart Contracts & No (limitado) & Sí (EVM/Solidity) & Sí (TEAL/PyTeal/AVM) \\ \hline
+Consumo energético & Muy alto & Bajo (PoS) & Muy bajo (PPoS) \\ \hline
+Huella de carbono & Negativa (alta) & Neutral/baja & Carbon negative \\ \hline
+Comisiones (fees) & Variables, altas & Variables, altas & Muy bajas ($\sim$0.001 ALGO) \\ \hline
+Suministro máximo & 21 millones BTC & Sin límite definido & 10.000 millones ALGO \\ \hline
+Staking mínimo & N/A & 32 ETH & 1 ALGO \\ \hline
+Gobernanza on-chain & No directamente & Parcial (EIPs) & Sí (90 días) \\ \hline
+CBDCs adoptadas & No & Exploraciones & Marshall Islands, +16 proy. \\ \hline
+Bifurcaciones (forks) & Posibles & Posibles & Imposibles por diseño \\ \hline
+\end{longtable}
+\endgroup
+
+\section{Escenario de Uso: Tokenización de Activos Agrícolas}
+
+\subsection{Contexto y justificación}
+Se propone la tokenización de una cooperativa olivarera ("AgroSur S.L.") para democratizar la inversión y automatizar la gestión mediante contratos inteligentes.
+
+\subsection{Desarrollo técnico paso a paso}
+\begin{enumerate}
+    \item \textbf{Tokenización:} Creación de tokens AGSUR mediante protocolo ASA (1 token = 1 $m^2$).
+    \item \textbf{Smart Contract de gobernanza:} Reglas de dividendos y votación programadas en PyTeal.
+    \item \textbf{Captación y Opt-In:} Inversores adquieren tokens y realizan el Opt-In al contrato.
+    \item \textbf{Operación de campaña:} Gastos auditables y votaciones on-chain.
+    \item \textbf{Distribución automática:} Pago de dividendos mediante Atomic Transfers al finalizar la campaña.
+    \item \textbf{Auditoría total:} Registro inmutable y transparente en el explorador de bloques.
+\end{enumerate}
+
+\section*{Conclusiones}
+Algorand representa una evolución técnica fundamentada en ciencia criptográfica. Su mecanismo PPoS ofrece una combinación única de velocidad, seguridad y descentralización. Frente a Bitcoin y Ethereum, aporta finalidad inmediata, costes despreciables y una arquitectura institucionalmente compatible y sostenible.
+
+\end{document}
