@@ -1,0 +1,95 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{xcolor}
+
+\geometry{a4paper, margin=2.5cm}
+
+\title{Análisis técnico de la red blockchain Algorand y su posicionamiento en el ecosistema descentralizado}
+\author{Imad Habib Jali (901421) \and Jorge Bellido Lobera (903080)}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{Introducción}
+
+La tecnología blockchain ha experimentado una evolución significativa desde la aparición de Bitcoin, cuyo diseño se centró en la creación de un sistema de dinero digital descentralizado. Posteriormente, plataformas como Ethereum ampliaron este paradigma al introducir los smart contracts, permitiendo el desarrollo de aplicaciones descentralizadas (dApps) y configurando un nuevo modelo de infraestructura digital.
+
+No obstante, estas primeras generaciones de blockchain evidencian limitaciones estructurales, especialmente en términos de escalabilidad, eficiencia y coste operativo. En este contexto surge Algorand como una propuesta de tercera generación cuyo objetivo es resolver el denominado trilema blockchain, proporcionando simultáneamente seguridad, descentralización y alto rendimiento.
+
+\section{Naturaleza y fundamentos de Algorand}
+
+Algorand es una red blockchain descentralizada fundada en 2017 por Silvio Micali, investigador de referencia en criptografía y galardonado con el Premio Turing (el equivalente al Nobel en informática). Su diseño parte de una premisa fundamental: la necesidad de construir una infraestructura blockchain capaz de ser utilizada a escala global sin sacrificar eficiencia ni seguridad.
+
+Básicamente, Algorand se configura como un libro de registro digital diseñado desde cero para solucionar los fallos de las plataformas anteriores. Su objetivo principal es equilibrar los tres pilares del trilema: lograr que una red sea segura, descentralizada y rápida al mismo tiempo, algo que hasta hace poco parecía imposible de equilibrar.
+
+A diferencia de otras redes, Algorand no se limita a ser un sistema de transferencia de valor, sino que es una plataforma integral para la ejecución de lógica programable, permitiendo la creación de activos digitales, contratos inteligentes y aplicaciones descentralizadas. Un elemento distintivo es su enfoque en la finalidad inmediata de las transacciones, eliminando la probabilidad de bifurcaciones (forks) y proporcionando certeza absoluta sobre el estado de la red en cuestión de segundos.
+
+\section{Arquitectura y funcionamiento de la red}
+
+El diseño técnico de Algorand se articula en torno a decisiones arquitectónicas orientadas a maximizar la eficiencia y la robustez sin requerir un consumo energético masivo.
+
+\subsection{Consenso: Pure Proof of Stake (PPoS)}
+
+A diferencia de otros sistemas que necesitan enormes instalaciones de ordenadores con alto consumo de energía, Algorand utiliza el mecanismo de consenso Pure Proof of Stake (PPoS) o Prueba de Participación Pura.
+
+Este sistema funciona como un sorteo secreto y extremadamente rápido. Si un usuario posee monedas de la red (ALGO) en su cuenta, el sistema puede elegirlo de forma aleatoria para validar el siguiente bloque de transacciones. Todo este proceso ocurre en milisegundos y de manera confidencial: nadie sabe quién será el encargado de validar hasta que el bloque ya ha sido confirmado y añadido a la cadena. Esta aleatoriedad hace que sea prácticamente imposible para usuarios malintencionados saber a quién atacar o corromper.
+
+\subsection{Estructura técnica y capas}
+
+Algorand introduce una arquitectura en dos niveles que permite desacoplar la complejidad computacional de la seguridad:
+
+\paragraph{Capa 1 (Layer 1):} Procesa transacciones básicas, ejecuta contratos inteligentes simples y gestiona activos digitales (ASA).
+\paragraph{Capa 2 (Layer 2):} Maneja operaciones de mayor complejidad y lógica intensiva fuera de la cadena principal, reintegrando los resultados mediante verificación criptográfica.
+
+Esta separación evita la congestión de la red principal y permite que no haga falta un equipo informático potente para participar; se puede ayudar a asegurar la red desde dispositivos muy básicos.
+
+\subsection{Contratos Inteligentes y Activos (ASA)}
+
+Los smart contracts se ejecutan en la Algorand Virtual Machine (AVM), priorizando la previsibilidad y la seguridad. Asimismo, el estándar ASA (Algorand Standard Asset) permite crear tokens de forma simplificada y segura, definiéndolos mediante configuraciones estructuradas en lugar de implementación manual de código, lo que reduce drásticamente las vulnerabilidades.
+
+\section{Análisis comparativo con otras redes blockchain}
+
+Al comparar Algorand con las redes más conocidas del mercado, las diferencias técnicas son muy notables:
+
+\subsection{Frente a Bitcoin (BTC)}
+
+Bitcoin utiliza el sistema de minería tradicional (Proof of Work), un proceso lento (puede tardar 10 minutos o más por transacción) y con un consumo altísimo de electricidad. Algorand no utiliza minería, confirma las transacciones en menos de 3 segundos y su impacto ambiental es prácticamente nulo.
+
+\subsection{Frente a Ethereum (ETH)}
+
+Ethereum es muy popular por sus contratos inteligentes, pero puede ser una red muy cara debido a las comisiones (gas) en momentos de saturación. En Algorand, el coste de una transacción es de una pequeña fracción de céntimo (0.001 ALGO), independientemente del tráfico de la red. Además, Algorand ofrece finalidad inmediata: una vez que un bloque se confirma, es definitivo al instante, sin riesgo de bifurcaciones de la red.
+
+\section{Escenario de uso: La venta de entradas para eventos}
+
+Para entender la utilidad de Algorand en el mundo real, consideremos un sistema de venta de entradas para conciertos o festivales con alta demanda, un sector que actualmente sufre problemas de saturación de webs, reventa abusiva y falsificaciones.
+
+\subsection{El problema actual}
+
+Cuando salen las entradas a la venta, los sistemas colapsan y los programas automatizados (bots) compran masivamente para revender a precios exorbitantes. El comprador final a menudo se enfrenta a precios injustos o al riesgo de adquirir entradas falsas en mercados secundarios.
+
+\subsection{La solución con Algorand}
+
+\begin{itemize}
+    \item \textbf{Entradas digitales únicas (NFTs):} El organizador emite las entradas como tokens no fungibles directamente en Algorand. Cada entrada es única, rastreable y virtualmente imposible de falsificar.
+    \item \textbf{Compra e inmediatez:} La transacción se confirma en solo 3 segundos y la entrada se guarda en el teléfono del usuario. El coste operativo por transacción es de apenas céntimos.
+    \item \textbf{Contratos Inteligentes para evitar abusos:} Se programan normas estrictas en el código de la entrada. Por ejemplo: ``Esta entrada solo se puede revender por un máximo del 10\% sobre su precio original''.
+    \item \textbf{Control automático de la reventa:} Si un bot intenta revender la entrada por un precio abusivo, el contrato inteligente detecta el incumplimiento de las normas y bloquea la operación automáticamente. La entrada no cambia de manos si no se cumplen las condiciones.
+\end{itemize}
+
+\subsection{Resultado}
+
+El resultado es un sistema mucho más justo: los seguidores adquieren entradas a su precio real, se frena la especulación masiva y, en caso de reventa legítima, los organizadores pueden recibir una compensación automática justa (royalties) por cada transferencia.
+
+\section*{Conclusión}
+
+Algorand representa una de las propuestas más sólidas dentro de las blockchain de tercera generación, destacando por su capacidad para abordar de forma efectiva el trilema de escalabilidad, seguridad y descentralización. Su arquitectura basada en Pure Proof of Stake permite ofrecer un rendimiento elevado sin comprometer la integridad ni el medio ambiente.
+
+En última instancia, su diseño la posiciona como una infraestructura altamente prometedora para casos de uso reales donde la rapidez, el bajo coste y la seguridad son fundamentales para transformar industrias enteras, como hemos visto en el ejemplo de la gestión de eventos.
+
+\end{document}
