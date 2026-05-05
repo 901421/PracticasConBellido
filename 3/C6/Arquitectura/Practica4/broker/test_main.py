@@ -1,9 +1,21 @@
 """
-Suite de Pruebas Automatizadas (Tests de Integración y Regresión).
+Suite de Pruebas de Cobertura Total (Integración y Stress).
 
-Módulo crítico para validar continuamente la salud y correcto cumplimiento 
-de los requisitos no funcionales (Arquitectura) solicitados en la Práctica 3.
-Incluye tests End-to-End que involucran redes reales mediante threads.
+Esta suite es el núcleo de la evaluación académica de la práctica. Valida automáticamente
+que la implementación cumple el 100% de los requisitos del enunciado (MOM, Round-Robin,
+Persistencia, Fair Dispatch) así como mejoras adicionales para producción.
+
+Requisitos probados:
+- Flujo básico y Sockets (Publish/Subscribe).
+- Persistencia en disco (Bootstrap atómico).
+- Recuperación de mensajes Unacked tras un Crash forzado.
+- Distribución Round-Robin (Balanceo de carga).
+- Política Fair Dispatch (Prefetch=1) para evitar sobrecarga.
+- Rescate por ACK Timeout (Starvation prevention).
+- Gestión de colas (Listado, Borrado, Idempotencia).
+- Expiración de mensajes antiguos por TTL (Time-To-Live).
+- Rescate Inmediato por Desconexión (Socket Drop detection).
+- Aislamiento de Colas concurrentes (Multi-tenancy).
 """
 
 import threading
@@ -11,122 +23,355 @@ import time
 import sys
 import os
 import json
+import uuid
+import socket
 
-# Ajuste temporal del PATH para permitir importaciones directas de los módulos
-# aunque el script se ejecute desde otro directorio raíz distinto.
+# Añadimos el directorio actual al PATH para poder importar los módulos sin errores relativos
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from server import main as start_server
+# Importamos las dependencias maestras del servidor y el cliente. 
+# Importar 'main as start_server' nos permite invocar el broker dentro de un hilo secundario del test.
+from server import main as start_server, queues, queues_master_lock, save_broker_state, storage, ACK_TIMEOUT
 from client import MOMClient
 
-def test_workflow_persistencia():
+def run_test_isolated(test_func):
     """
-    Prueba Funcional 1: Valida el flujo normal TCP y el consumo cruzado.
-    Garantiza que:
-    a) Una conexión puede publicar varias veces.
-    b) Un consumidor puede suscribirse y recibir en un hilo separado.
+    Función contenedora (Wrapper) que ejecuta un test asegurando un entorno "Sandbox" (Caja de Arena) completamente limpio.
+    Resuelve el problema de que los tests anteriores interfieran con el estado de los siguientes.
     """
-    print("\n--- TEST 1: FLUJO TCP Y CONSUMO ---")
+    # 1. Purgamos la memoria RAM del broker
+    with queues_master_lock:
+        queues.clear()
+    
+    # 2. Purgamos el archivo persistente del disco duro (Simulamos un borrado completo)
+    if os.path.exists("broker_storage.json"):
+        try:
+            os.remove("broker_storage.json")
+        except Exception: pass
+    
+    # 3. Ejecutamos el test real
+    try:
+        return test_func()
+    except Exception as e:
+        # Si el test hace crash de Python (ej. TypeError), no tiramos toda la suite.
+        # Reportamos y devolvemos False (fallo).
+        print(f"  > EXCEPCIÓN en test {test_func.__name__}: {e}")
+        return False
+
+def test_1_flujo_basico():
+    """Valida el requisito base: Un productor publica, un consumidor recibe."""
+    print("\n[TEST 1] Publicación y Consumo Básico...")
     client = MOMClient()
-    cola = "test_tcp"
+    cola = "test_basico"
     client.declarar_cola(cola)
     
     recibidos = []
-    # Arranca un suscriptor en un hilo daemonizado para no bloquear el test principal
+    # Lanzamos el consumidor en un hilo en segundo plano (daemon) para que no bloquee el hilo de testing
     threading.Thread(target=client.consumir, args=(cola, lambda m: recibidos.append(m)), daemon=True).start()
     
-    # Breve pausa para dar tiempo a que el socket del consumidor asiente en el broker
-    time.sleep(0.5)
-
-    # Inyecta mensajes secuencialmente
-    for i in range(3):
-        client.publicar(cola, f"MSG_{i}")
+    time.sleep(0.5) # Esperamos a que la red se estabilice
+    # El publicador lanza una ráfaga de 5 mensajes
+    for i in range(5):
+        client.publicar(cola, f"M_{i}")
     
-    # Da tiempo de red para que los mensajes sean enrutados y descargados
-    time.sleep(0.5)
+    time.sleep(1) # Esperamos a que el consumidor procese los 5
     client.close()
-    
-    # Verifica que el callback procesó todos los mensajes inyectados
-    return len(recibidos) == 3
+    # Si el array tiene 5 mensajes, el circuito funciona
+    success = len(recibidos) == 5
+    print(f"  > Resultado: {'OK' if success else 'FALLO'}")
+    return success
 
-def test_resiliencia_ack():
-    """
-    Prueba de Resiliencia 2: Valida el mecanismo Fair Dispatch y Recuperación (Rescue).
-    Simula una caída de red severa (Crash Crash-stop) en el cliente antes de que este
-    pueda enviar el reconocimiento (ACK).
-    Asegura que el broker devuelve el mensaje a la cola.
-    """
-    print("\n--- TEST 2: RESILIENCIA, ACK Y RECUPERACIÓN ---")
+def test_2_round_robin():
+    """Valida el requisito de RabbitMQ: Reparto equitativo entre múltiples consumidores en la misma cola."""
+    print("\n[TEST 2] Distribución Round-Robin...")
     client = MOMClient()
-    cola = "test_res"
+    cola = "test_rr"
     client.declarar_cola(cola)
+    
+    res1, res2 = [], []
+    # Conectamos DOS consumidores independientes a la MISMA cola
+    threading.Thread(target=MOMClient().consumir, args=(cola, lambda m: res1.append(m)), daemon=True).start()
+    threading.Thread(target=MOMClient().consumir, args=(cola, lambda m: res2.append(m)), daemon=True).start()
+    
+    time.sleep(0.5)
+    # Inyectamos 4 mensajes
+    for i in range(4):
+        client.publicar(cola, f"RR_{i}")
+    
+    time.sleep(1)
+    # Matemáticamente, el Round-Robin debe garantizar que reciben 2 mensajes cada uno (2+2=4)
+    success = len(res1) == 2 and len(res2) == 2
+    print(f"  > C1: {len(res1)}, C2: {len(res2)} | Resultado: {'OK' if success else 'FALLO'}")
+    return success
 
-    import socket
-    def fail_consumer():
-        """Worker simulado maligno que corta la conexión de golpe TCP."""
+def test_3_fair_dispatch():
+    """
+    Valida el requisito avanzado de Fair Dispatch.
+    Si un consumidor está ocupado/caído y NO ha enviado el ACK, el broker NO debe enviarle 
+    más mensajes, y debe desviar el tráfico al consumidor libre.
+    """
+    print("\n[TEST 3] Fair Dispatch (Prefetch=1)...")
+    client = MOMClient()
+    cola = "test_fair"
+    client.declarar_cola(cola)
+    
+    # Consumidor 1: Simulamos un cliente raw TCP que se queda congelado adrede.
+    # Recibe pero nunca hace ACK de los mensajes.
+    def slow_consumer():
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect(('127.0.0.1', 5555))
-        # Solicita la suscripción raw sin usar nuestra librería client.py segura
         s.sendall(json.dumps({"action": "consume", "queue": cola}).encode() + b"\n")
-        # Lee la primera trama y aborta bruscamente la conexión (Simula proceso muerto)
-        s.recv(1024) 
-        s.close()    
+        s.recv(1024) # Recibe el primero y se queda "bloqueado"
+        time.sleep(10)
 
-    # Lanza el consumidor que va a fallar
-    threading.Thread(target=fail_consumer).start()
+    threading.Thread(target=slow_consumer, daemon=True).start()
     time.sleep(0.5)
     
-    # Publica el mensaje de prueba. Se asignará al consumidor maligno.
-    client.publicar(cola, "RESCUE_ME")
-    # Pausa intencional para permitir que el broker reciba el EOF o TCP FIN y ejecute rescate
-    time.sleep(1) 
+    # Consumidor 2: Normal (rápido, despacha con el cliente MOM que manda ACKs automáticamente)
+    recibidos_c2 = []
+    threading.Thread(target=MOMClient().consumir, args=(cola, lambda m: recibidos_c2.append(m)), daemon=True).start()
+    
+    time.sleep(0.5)
+    # Enviamos 5 mensajes.
+    # El primero irá a C1 y C1 se colgará (quedando como 'unacked' en el servidor).
+    # Como el servidor aplica Fair Dispatch, verá a C1 en la lista de unacked y mandará los otros 4 a C2.
+    for i in range(5):
+        client.publicar(cola, f"F_{i}")
+    
+    time.sleep(1)
+    # Éxito: C2 tiene los 4 mensajes restantes.
+    success = len(recibidos_c2) == 4
+    print(f"  > C1 tiene 1 (bloqueado), C2 tiene {len(recibidos_c2)} | Resultado: {'OK' if success else 'FALLO'}")
+    return success
 
-    # Ahora un consumidor legítimo se conecta a la misma cola esperando el rescate
-    recuperado = []
-    threading.Thread(target=client.consumir, args=(cola, lambda m: recuperado.append(m)), daemon=True).start()
+def test_4_ack_timeout():
+    """Valida la resiliencia contra 'Consumidores Zombie' basándose en tiempo."""
+    print(f"\n[TEST 4] ACK Timeout (Starvation) - Esperando {ACK_TIMEOUT+2}s...")
+    client = MOMClient()
+    cola = "test_timeout"
+    client.declarar_cola(cola)
+    
+    # Consumidor que bloquea un mensaje adrede sin mandarlo a ACK
+    def zombie_consumer():
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect(('127.0.0.1', 5555))
+        s.sendall(json.dumps({"action": "consume", "queue": cola}).encode() + b"\n")
+        s.recv(1024) 
+
+    threading.Thread(target=zombie_consumer, daemon=True).start()
+    time.sleep(0.5)
+    client.publicar(cola, "MENSAJE_ZOMBIE")
+    
+    # Esperamos a que pase el tiempo configurado para expirar ACKs
+    time.sleep(ACK_TIMEOUT + 3)
+    
+    # Si el timeout funciona, el mensaje debería haber sido re-encolado.
+    # Metemos un nuevo consumidor a ver si es capaz de recibir ese mismo mensaje.
+    res = []
+    threading.Thread(target=client.consumir, args=(cola, lambda m: res.append(m)), daemon=True).start()
     time.sleep(1)
     
-    # Si el mensaje rescatado está en su poder, el rescate automático funcionó
-    return "RESCUE_ME" in recuperado
+    success = "MENSAJE_ZOMBIE" in res
+    print(f"  > Recuperado tras timeout: {'OK' if success else 'FALLO'}")
+    return success
 
-def test_persistencia_disco():
+def test_5_crash_recovery_unacked():
     """
-    Prueba de Durabilidad 3: Verifica la serialización JSON del estado en el archivo físico.
+    Simula un apagón catastrófico de corriente en el servidor, validando que 
+    al reiniciar ('Bootstrap'), los mensajes que estaban "en el limbo" (entregados sin ACK) 
+    sean devueltos a la cola gracias al sistema de StorageManager.
     """
-    print("\n--- TEST 3: DURABILIDAD FISICA EN DISCO ---")
-    file_name = "broker_storage.json"
-    
-    # Limpia estado pre-existente para tener un entorno aislado
-    if os.path.exists(file_name): os.remove(file_name)
-    
+    print("\n[TEST 5] Recuperación de Unacked tras Crash (Bootstrap)...")
     client = MOMClient()
-    # Una declaración debería forzar un save_broker_state()
-    client.declarar_cola("disco_cola")
+    cola = "test_crash"
+    client.declarar_cola(cola)
+    
+    # Mandamos mensaje a un consumidor bloqueado
+    def kill_me_consumer():
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect(('127.0.0.1', 5555))
+        s.sendall(json.dumps({"action": "consume", "queue": cola}).encode() + b"\n")
+        s.recv(1024) 
+
+    threading.Thread(target=kill_me_consumer, daemon=True).start()
+    time.sleep(0.5)
+    client.publicar(cola, "VALOR_CRÍTICO")
     time.sleep(0.5)
     
-    # Verifica que el archivo de base de datos se ha creado realmente en disco
-    return os.path.exists(file_name)
+    # 1. Forzamos volcado a disco del estado "congelado"
+    save_broker_state()
+    print("  > Estado guardado en disco. Simulando reinicio...")
+    
+    # 2. Crash simulado: Borramos por completo la memoria RAM del servidor.
+    with queues_master_lock:
+        queues.clear()
+    
+    # 3. Ejecutamos la Lógica pura del proceso Bootstrap del main() del servidor
+    saved = storage.load_state()
+    with queues_master_lock:
+        for q_name, data in saved.items():
+            all_msgs = data.get("messages", []) + data.get("unacked", [])
+            queues[q_name] = {
+                "messages": all_msgs, "consumers": [], "unacked": {}, 
+                "next_idx": 0, "lock": threading.RLock()
+            }
+    
+    # 4. Validamos que el mensaje que estaba en 'unacked' existe ahora en 'messages'
+    q_data = queues.get(cola)
+    success = any(m["data"] == "VALOR_CRÍTICO" for m in q_data["messages"])
+    print(f"  > Mensaje recuperado del disco: {'OK' if success else 'FALLO'}")
+    return success
+
+def test_6_gestion_colas():
+    """Valida los comandos de control: Idempotencia en declaración, listado y eliminación."""
+    print("\n[TEST 6] Gestión de Colas (List/Delete/Idempotencia)...")
+    client = MOMClient()
+    
+    # Declarar múltiples veces no debe tirar error (Idempotencia)
+    client.declarar_cola("repetida")
+    client.declarar_cola("repetida")
+    
+    lista = client.listar_colas()
+    if "repetida" not in lista: return False
+    
+    # Probamos el borrado
+    client.eliminar_cola("repetida")
+    lista_despues = client.listar_colas()
+    
+    # Éxito si la cola ya no existe en el servidor
+    success = "repetida" not in lista_despues
+    print(f"  > Idempotencia y Borrado: {'OK' if success else 'FALLO'}")
+    return success
+
+def test_7_ttl_expiration():
+    """Valida que el hilo Garbage Collector elimina físicamente de la RAM y del Disco los mensajes caducados."""
+    from server import MESSAGE_TTL
+    print(f"\n[TEST 7] Expiración por TTL (Esperando {MESSAGE_TTL + 3}s)...")
+    client = MOMClient()
+    cola = "test_ttl"
+    client.declarar_cola(cola)
+    client.publicar(cola, "MENSAJE_EFIMERO")
+    
+    time.sleep(0.2) # Estabilización de red
+    # Validamos que el mensaje entró efectivamente a la memoria
+    with queues_master_lock:
+        q_data = queues.get(cola)
+        exists_before = q_data is not None and len(q_data["messages"]) == 1
+    
+    if not exists_before: 
+        print("  > Fallo: El mensaje no llegó a la cola.")
+        return False
+    
+    # Esperamos a que pase el límite de TTL más el ciclo del Garbage Collector
+    time.sleep(MESSAGE_TTL + 4)
+    
+    # Validamos que el mensaje se ha esfumado del diccionario de Python
+    with queues_master_lock:
+        q_data = queues.get(cola)
+        exists_after = q_data is None or len(q_data["messages"]) == 0
+        
+    print(f"  > Eliminado tras TTL: {'OK' if exists_after else 'FALLO'}")
+    return exists_after
+
+def test_8_immediate_rescue_on_disconnect():
+    """
+    Valida la captura de excepciones de red y la reconversión (Socket Drop).
+    Si un cliente se desconecta bruscamente perdiendo TCP (cierre de terminal), el Broker
+    no debe esperar al ACK_TIMEOUT, sino rescatar el mensaje ipso facto en el 'finally'.
+    """
+    print("\n[TEST 8] Rescate Inmediato por Desconexión (Socket Drop)...")
+    client = MOMClient()
+    cola = "test_rescue"
+    client.declarar_cola(cola)
+    client.publicar(cola, "RESCATAME")
+    
+    # Conectamos por RAW y recibimos
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect(('127.0.0.1', 5555))
+    s.sendall(json.dumps({"action": "consume", "queue": cola}).encode() + b"\n")
+    s.recv(1024) 
+    
+    print("  > Consumidor recibió mensaje. Cayendo...")
+    s.close() # Cierre de red BRUSCO y violento. Cero ACKs enviados.
+    time.sleep(1) # Un segundo al servidor para procesar el try/finally TCP
+    
+    # Suscribimos de inmediato a otro, sin esperar timeouts largos. 
+    # Debería coger el mensaje rescatado.
+    res = []
+    threading.Thread(target=client.consumir, args=(cola, lambda m: res.append(m)), daemon=True).start()
+    time.sleep(1)
+    
+    success = "RESCATAME" in res
+    print(f"  > Recuperado inmediatamente: {'OK' if success else 'FALLO'}")
+    return success
+
+def test_9_queue_isolation():
+    """Valida que la concurrencia RLock aísa correctamente colas independientes (Multi-tenant)."""
+    print("\n[TEST 9] Aislamiento de Colas (Multi-tenancy)...")
+    client = MOMClient()
+    client.declarar_cola("cola_A")
+    client.declarar_cola("cola_B")
+    
+    # Publicamos en A y B
+    client.publicar("cola_A", "MSG_A")
+    client.publicar("cola_B", "MSG_B")
+    
+    # Consumimos SOLO en B
+    res_b = []
+    threading.Thread(target=client.consumir, args=("cola_B", lambda m: res_b.append(m)), daemon=True).start()
+    time.sleep(1)
+    
+    # Éxito: Solo le llegó lo de B, lo de A sigue retenido en A sin mezclarse en memoria.
+    success = "MSG_B" in res_b and "MSG_A" not in res_b
+    print(f"  > Aislamiento de datos: {'OK' if success else 'FALLO'}")
+    return success
+
+def test_10_publish_non_existent_queue():
+    """Valida el requisito literal: 'Si se publica en cola inexistente, se descarta'."""
+    print("\n[TEST 10] Publicación en Cola Inexistente (Descarte)...")
+    client = MOMClient()
+    # Petición ciego a una cola sin declarar
+    client.publicar("cola_fantasma", "HOLA")
+    time.sleep(0.5)
+    
+    # Verificamos que el broker no autogeneró la cola como mecanismo de defensa
+    lista = client.listar_colas()
+    success = "cola_fantasma" not in lista
+    print(f"  > Mensaje descartado: {'OK' if success else 'FALLO'}")
+    return success
 
 if __name__ == "__main__":
-    # Arranca el servidor Broker en el mismo proceso (background) para probarlo todo
-    threading.Thread(target=start_server, daemon=True).start()
+    """Motor central de la Suite de Pruebas."""
     
-    # Espera inicialización completa del socket server.bind()
-    time.sleep(1)
+    # Arrancamos el servidor broker en el hilo maestro. 
+    # Quedará escuchando puerto 5555 de fondo de forma permanente.
+    threading.Thread(target=start_server, daemon=True).start()
+    time.sleep(1) # Esperamos que el SO vincule el socket TCP (bind)
 
-    # Batería de pruebas (Suite)
-    results = [
-        test_workflow_persistencia(),
-        test_resiliencia_ack(),
-        test_persistencia_disco()
+    # Array con los 10 tests de la auditoría.
+    tests = [
+        test_1_flujo_basico,
+        test_2_round_robin,
+        test_3_fair_dispatch,
+        test_4_ack_timeout,
+        test_5_crash_recovery_unacked,
+        test_6_gestion_colas,
+        test_7_ttl_expiration,
+        test_8_immediate_rescue_on_disconnect,
+        test_9_queue_isolation,
+        test_10_publish_non_existent_queue
     ]
+    
+    passed = 0
+    # Ejecutamos aisladamente cada test.
+    for t in tests:
+        if run_test_isolated(t):
+            passed += 1
 
-    # Evaluación y Reporte Final
-    if all(results):
-        print("\n" + "="*50)
-        print("  TODAS LAS PRUEBAS (3/3) SUPERADAS CON ÉXITO")
-        print("="*50)
-        sys.exit(0) # Código de salida 0: Pipeline de CI/CD Verde
-    else:
-        print("\n[!] Error crítico. Una o más pruebas funcionales fallaron.")
-        sys.exit(1) # Código de salida 1: Detiene el pipeline si esto fuera Integración Continua
+    print("\n" + "="*50)
+    print(f"  RESULTADO FINAL: {passed}/{len(tests)} TESTS PASADOS")
+    print("="*50)
+    
+    # Retorno de código de sistema operativo: 0 si todo perfecto, 1 si algo falló.
+    # Vital para que sistemas de Integración Continua (CI/CD) sepan si el pipeline pasó.
+    sys.exit(0 if passed == len(tests) else 1)

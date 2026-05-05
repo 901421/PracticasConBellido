@@ -33,7 +33,9 @@ services:
       DB_PASS: password
 
   orders-service:
-    build: ./orders-service
+    build: 
+      context: .
+      dockerfile: ./orders-service/Dockerfile
     environment:
       DB_HOST: mariadb-service
       DB_USER: user
@@ -42,7 +44,9 @@ services:
       BROKER_HOST: broker-service
 
   notifications-service:
-    build: ./notifications-service
+    build: 
+      context: .
+      dockerfile: ./notifications-service/Dockerfile
     environment:
       BROKER_HOST: broker-service
 

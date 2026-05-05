@@ -1,58 +1,61 @@
 """
-Aplicación Consumidora de Ejemplo (Script principal).
+Aplicación Consumidora de Ejemplo.
 
-Implementa un nodo trabajador o 'worker' que se suscribe a una cola específica 
-dentro del Broker. Queda en modo de escucha pasiva, siendo despertado únicamente 
-cuando el Broker realiza un 'Push' con un mensaje disponible.
+Implementa un worker (trabajador) que procesa mensajes de manera asíncrona
+mediante un modelo 'Push'.
+Confirma la recepción al servidor automáticamente mediante ACKs.
 """
 
-import sys
-from client import MOMClient
+import sys # Usado para capturar la IP por argumentos y salir
+from client import MOMClient # Importamos la fachada de nuestra librería cliente
 
 def procesar_mensaje(mensaje):
     """
-    Función Callback (manejador) invocada internamente por la librería de cliente.
-    
-    Esta función encapsula la lógica de negocio real de la aplicación.
-    Ejemplos en el mundo real: Inserciones en Base de Datos, envío de emails, 
-    procesamiento de imágenes o cálculos complejos.
-    
-    IMPORTANTE: Si esta función finaliza correctamente, el cliente (MOMClient) 
-    enviará un ACK (reconocimiento) al servidor. Si lanza una excepción, el 
-    ACK se omite, reteniendo el mensaje en el Broker.
+    Función Callback (Manejador de Lógica de Negocio).
+    Esta función es invocada automáticamente por la librería MOMClient cada vez 
+    que un mensaje nuevo llega por la red.
     
     Args:
-        mensaje (dict/string): El contenido del mensaje deserializado.
+        mensaje (dict): El diccionario exacto que envió el productor.
     """
-    print(f"[x] Nodo Consumidor ejecutando tarea -> {mensaje}")
+    # En un entorno real, aquí iría la escritura a base de datos, el envío de email, el renderizado de vídeo, etc.
+    print(f"[x] Tarea recibida y completada -> {mensaje}")
+    
+    # IMPORTANTE: Si esta función llega al final (return implícito) sin lanzar excepciones, 
+    # la librería cliente asume "Éxito" e inyecta un paquete ACK (Reconocimiento) hacia el broker
+    # para que borre el mensaje.
 
 def main():
     """
-    Configura los parámetros de suscripción e invoca el ciclo de vida del consumidor.
+    Punto de entrada principal para el consumidor.
+    Se suscribe a una cola específica y delega el control del hilo principal a la librería.
     """
-    # Soporte para IP dinámica vía argumentos del sistema
+    # Capturamos la IP y Puerto del broker desde la línea de comandos, si existen.
+    # Uso: python consumidor.py <ip> [puerto]
     broker_ip = sys.argv[1] if len(sys.argv) > 1 else "127.0.0.1"
+    broker_port = int(sys.argv[2]) if len(sys.argv) > 2 else 5555
     
-    # Inicialización del cliente con la configuración de red
-    broker = MOMClient(host=broker_ip)
-    
-    # Identificador de la cola a la que estamos vinculando (Binding) el trabajador
+    # Instanciamos el cliente con los parámetros dinámicos
+    broker = MOMClient(host=broker_ip, port=broker_port)
     cola_nombre = "mi_cola_pruebas"
     
-    print(f"[*] Consumidor arrancando... Conectando al nodo Broker en {broker_ip}...")
+    print(f"[*] Conectando al Broker en {broker_ip}:{broker_port}...")
     
-    # Declaración idempotente (Si ya existe no hace nada, si no, la crea en el servidor)
+    # Al igual que el productor, el consumidor intenta declarar la cola para asegurar que existe
+    # antes de intentar suscribirse a ella.
     broker.declarar_cola(cola_nombre)
     
-    print(f"[*] Suscripción exitosa a la cola '{cola_nombre}'.")
-    print(f"[*] El hilo actual entra en bloqueo esperando push de datos (Presiona CTRL+C para forzar salida)")
+    print(f"[*] Esperando mensajes en la cola '{cola_nombre}'... (Pulsa CTRL+C para salir)")
     
     try:
-        # Llamada bloqueante. Toma control del hilo y delega los eventos al 'callback' asignado
+        # --- SUSCRIPCIÓN BLOQUEANTE ---
+        # La llamada broker.consumir() inicia un bucle infinito de red interno.
+        # El hilo se quedará en esta línea para siempre esperando paquetes TCP.
+        # Pasamos por referencia la función 'procesar_mensaje' (Inyección de Dependencias).
         broker.consumir(cola_nombre, callback=procesar_mensaje)
     except KeyboardInterrupt:
-        # Salida controlada desde el terminal
-        print("\n[*] Nodo consumidor apagado y desconectado del broker.")
+        # Salida controlada al pulsar Control+C
+        print("\n[*] Desconectando Consumidor de forma segura.")
         sys.exit(0)
 
 if __name__ == "__main__":
