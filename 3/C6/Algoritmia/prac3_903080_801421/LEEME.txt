@@ -1,0 +1,52 @@
+===============================================================================
+PRÁCTICA 3: BÚSQUEDA CON RETROCESO - Jorge Bellido(903080), Imad Habib(901421)
+===============================================================================
+
+1. DESCRIPCIÓN GENERAL DEL DIRECTORIO
+-------------------------------------------------------------------------------
+Este directorio contiene la solución al problema Minimax de ubicación 
+de k nuevos centros de urgencias en un grafo no dirigido.
+
+Estructura de ficheros:
+- LEEME.txt        : Este fichero de documentación.
+- ubicaCentros.cpp : Código fuente en C++ de la solución implementada.
+- pruebas.txt      : Fichero de entrada con los casos de prueba requeridos 
+                     y casos adicionales de estrés (grafo estrella, línea).
+- generador.py     : Script en Python para generar casos de prueba masivos y aleatorios.
+- pruebas_py.txt    : Fichero de entrada auto-generado por el script Python.
+- ejecutar.sh      : Script Bash para automatizar compilación y ejecución.
+- Mem_p3_ Búsqueda_con _retroceso.pdf      : Memoria del diseño.
+
+2.  AUTOMATIZACIÓN DE PRUEBAS (Recomendado)
+-------------------------------------------------------------------------------
+Se incluye un script 'ejecutar.sh' que compila el código con el nivel 
+de optimización -O3, ejecuta los casos de prueba y muestra los resultados.
+
+Paso 1: Otorgar permisos de ejecución al script (solo la primera vez):
+    chmod +x ejecutar.sh
+
+Paso 2: Lanzar el script:
+    ./ejecutar.sh
+
+3. INSTRUCCIONES DE COMPILACIÓN Y EJECUCIÓN (Manual)
+-------------------------------------------------------------------------------
+Si se prefiere no usar el script, los pasos manuales son:
+
+Compilación:
+    g++ -std=c++11 -O3 ubicaCentros.cpp -o ubicaCentros
+
+Ejecución (requiere pasar fichero de entrada y de salida como argumentos):
+    ./ubicaCentros pruebas.txt resultados.txt
+
+4. GENERACIÓN DE CASOS DE PRUEBA ADICIONALES (Experimentación)
+-------------------------------------------------------------------------------
+Para el análisis de complejidad y tiempos de ejecución expuesto en la memoria, 
+se ha desarrollado un script capaz de generar grafos conexos de gran tamaño.
+
+Paso 1: Ejecutar el script generador.
+    python generador.py
+    (Este comando creará o sobrescribirá automáticamente el fichero 'prueba_py.txt' 
+    con nuevos casos de prueba configurables dentro del propio código Python).
+
+Paso 2: Ejecutar el algoritmo de Backtracking con los nuevos datos masivos.
+    ./ubicaCentros prueba_py.txt resultados_py.txt
