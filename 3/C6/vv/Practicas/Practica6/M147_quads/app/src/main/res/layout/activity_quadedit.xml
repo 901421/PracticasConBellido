@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- =======================
+             SECCIÓN: MATRÍCULA
+             ======================= -->
+        <!-- Título en NEGRO y Negrita -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/matricula"
+            android:textColor="@color/black"
+            android:textStyle="bold"
+            android:textSize="18sp" />
+        
+        <!-- Input con hint (formato) en GRIS -->
+        <EditText
+            android:id="@+id/matricula"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/hint_matricula"
+            android:textColorHint="@android:color/darker_gray"
+            android:inputType="textCapCharacters"
+            android:minHeight="48dp"
+            android:textSize="18sp" />
+
+        <!-- =======================
+             SECCIÓN: PRECIO
+             ======================= -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@string/precio"
+            android:textColor="@color/black"
+            android:textStyle="bold"
+            android:textSize="18sp" />
+
+        <EditText
+            android:id="@+id/precio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/hint_precio"
+            android:textColorHint="@android:color/darker_gray"
+            android:inputType="numberDecimal"
+            android:minHeight="48dp"
+            android:textSize="18sp" />
+
+        <!-- =======================
+             SECCIÓN: DESCRIPCIÓN
+             ======================= -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@string/descripcion"
+            android:textColor="@color/black"
+            android:textStyle="bold"
+            android:textSize="18sp" />
+
+        <EditText
+            android:id="@+id/descripcion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/hint_descripcion"
+            android:textColorHint="@android:color/darker_gray"
+            android:inputType="textMultiLine"
+            android:minHeight="48dp"
+            android:textSize="18sp" />
+
+        <!-- =======================
+             SECCIÓN: TIPO DE QUAD
+             ======================= -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Tipo de Quad"
+            android:textColor="@color/black"
+            android:textStyle="bold"
+            android:textSize="18sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp"
+            android:weightSum="2">
+
+            <!-- Botón MONOPLAZA -->
+            <Button
+                android:id="@+id/btnMonoplaza"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="4dp"
+                android:text="MONOPLAZA"
+                android:textSize="14sp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"/>
+
+            <!-- Botón BIPLAZA -->
+            <Button
+                android:id="@+id/btnBiplaza"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:text="BIPLAZA"
+                android:textSize="14sp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"/>
+        </LinearLayout>
+
+        <!-- Espaciador para empujar los botones al fondo si hay espacio -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:minHeight="30dp"/>
+
+        <!-- =======================
+             BOTONES DE ACCIÓN
+             ======================= -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="16dp">
+
+            <!-- Botón Cancelar -->
+            <Button
+                android:id="@+id/button_cancel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="@string/btn_cancelar"
+                android:backgroundTint="#CCCCCC"
+                android:textColor="@android:color/black"/>
+
+            <!-- Botón Confirmar (Marrón) -->
+            <Button
+                android:id="@+id/button_save"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="@string/btn_confirmar"
+                android:backgroundTint="@color/colorBtnEdit"
+                android:textColor="@android:color/white"/>
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

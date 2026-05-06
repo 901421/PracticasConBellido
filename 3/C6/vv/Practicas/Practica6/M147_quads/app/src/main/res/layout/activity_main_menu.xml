@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="24dp"
+    tools:context=".ui.SistemaReservas">
+
+    <!-- ============================================ -->
+    <!-- AQUÍ ESTÁ TU LOGO (Encima de los botones)    -->
+    <!-- ============================================ -->
+    <ImageView
+        android:id="@+id/logo_app"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:src="@drawable/logo"
+        android:contentDescription="Logo de la aplicación"
+        android:layout_marginBottom="32dp"
+        android:adjustViewBounds="true"
+        android:scaleType="fitCenter"/>
+    <!-- Puedes cambiar '250dp' por otro número si lo quieres más grande o pequeño -->
+
+    <!-- BOTÓN 1: CREAR QUAD -->
+    <Button
+        android:id="@+id/button_crear_quad"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="16dp"
+        android:text="Crear Quad"
+        android:textSize="20sp"
+        android:textColor="@android:color/white"
+        android:backgroundTint="@color/colorBtnEdit"
+        android:textAllCaps="false"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"/>
+
+    <!-- BOTÓN 2: LISTAR QUADS -->
+    <Button
+        android:id="@+id/button_listar_quads"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="32dp"
+        android:text="Listar Quads"
+        android:textSize="20sp"
+        android:textColor="@android:color/white"
+        android:backgroundTint="@color/colorBtnEdit"
+        android:textAllCaps="false"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"/>
+
+    <!-- BOTÓN 3: CREAR RESERVA -->
+    <Button
+        android:id="@+id/button_crear_reserva"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="16dp"
+        android:text="Crear Reserva"
+        android:textSize="20sp"
+        android:textColor="@android:color/white"
+        android:backgroundTint="@color/colorBtnEdit"
+        android:textAllCaps="false"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"/>
+
+    <!-- BOTÓN 4: LISTAR RESERVAS -->
+    <Button
+        android:id="@+id/button_listar_reservas"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginHorizontal="16dp"
+        android:text="Listar Reservas"
+        android:textSize="20sp"
+        android:textColor="@android:color/white"
+        android:backgroundTint="@color/colorBtnEdit"
+        android:textAllCaps="false"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"/>
+    
+    <!-- BOTÓN ACCESO A PRUEBAS (P6) -->
+    <Button
+        android:id="@+id/button_panel_pruebas"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="40dp" 
+        android:text="Panel de Pruebas"
+        android:textSize="20sp"
+        android:textColor="@android:color/white"
+        android:backgroundTint="@color/colorBtnTest"
+        android:textAllCaps="false"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"/>
+
+</LinearLayout>

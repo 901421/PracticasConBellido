@@ -1,0 +1,190 @@
+\documentclass[a4paper,landscape,11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{geometry}
+\geometry{margin=1cm, top=1cm, bottom=1cm}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric, calc, shadows, babel}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{xcolor}
+
+% --- COLORES MODERNOS Y ATRACTIVOS ---
+\definecolor{SteelBlue}{HTML}{4682B4}
+\definecolor{SoftTerracotta}{HTML}{E07A5F}
+\definecolor{SageGreen}{HTML}{81B29A}
+\definecolor{DarkGrey}{HTML}{3D405B}
+
+\pagestyle{empty}
+
+\begin{document}
+
+% --- PÁGINA 1: TÍTULO Y GRAFO ---
+\begin{minipage}[t][\textheight][t]{\textwidth}
+\begin{center}
+    {\Huge \textbf{MAPA DE NAVEGACIÓN}} \\[-0.1cm]
+    {\Large Sistema de Reservas de Quads}
+\end{center}
+
+\vspace{-0.8cm} % Sube el grafo significativamente
+
+\begin{center}
+\resizebox{1.0\textwidth}{!}{
+\begin{tikzpicture}[
+    % Configuración global
+    node distance=2cm and 5cm,
+    % Estilos de nodos
+    base/.style={
+        draw, 
+        rounded corners=10pt, 
+        minimum height=1.3cm, 
+        text width=3.5cm, 
+        align=center, 
+        font=\small\bfseries, 
+        line width=1.4pt,
+        drop shadow={opacity=0.3, shadow xshift=2pt, shadow yshift=-2pt}
+    },
+    root/.style={base, fill=SteelBlue, draw=SteelBlue, text=white},
+    quad/.style={base, fill=SoftTerracotta, draw=SoftTerracotta, text=white},
+    reserva/.style={base, fill=SageGreen, draw=SageGreen, text=white},
+    % Flechas
+    arrow/.style={
+        -{Stealth[scale=1.2]}, 
+        line width=1.2pt, 
+        draw=DarkGrey
+    },
+    % Etiquetas
+    label/.style={
+        fill=white, 
+        draw=DarkGrey,
+        rounded corners=2pt,
+        font=\tiny\bfseries, 
+        inner sep=1.8pt, 
+        text=DarkGrey,
+        midway
+    }
+]
+
+    % --- POSICIONAMIENTO ---
+    
+    \node (N1) [root] at (0,0) { [N1] \\ Menú Principal };
+
+    % Rama Quads (Izquierda)
+    \node (N2) [quad] at (-6.2,-2.2) { [N2] \\ Listado Quads };
+    \node (N3) [quad] at (-6.2,-5.5) { [N3] \\ Formulario Quad };
+
+    % Rama Reservas (Derecha)
+    \node (N4) [reserva] at (6.2,-2.2) { [N4] \\ Listado Reservas };
+    \node (N5) [reserva] at (6.2,-5.5) { [N5] \\ Formulario Reserva };
+    \node (N6) [reserva] at (6.2,-8.8) { [N6] \\ Selección Quads };
+
+    % --- ARISTAS CURVADAS ---
+
+    % Navegación desde Principal
+    \draw [arrow] (N1.190) to [out=180, in=90] node[label, pos=0.5] {1} (N2.70);
+    \draw [arrow] (N1.350) to [out=0, in=90] node[label, pos=0.5] {2} (N4.110);
+    
+    % Creación directa
+    \draw [arrow] (N1.north west) to [out=140, in=180, looseness=2] node[label] {3} (N3.west);
+    \draw [arrow] (N1.north east) to [out=40, in=0, looseness=2] node[label] {4} (N5.east);
+
+    % Ciclo Quads
+    \draw [arrow] (N2.south west) to [bend right=25] node[label] {5} (N3.north west);
+    \draw [arrow] (N3.north east) to [bend right=25] node[label] {6, 6b, 6c} (N2.south east);
+    \draw [arrow] (N3.east) to [out=0, in=270] node[label, pos=0.7] {7, 7b} (N1.south);
+
+    % Ciclo Reservas
+    \draw [arrow] (N4.south east) to [bend left=25] node[label] {8} (N5.north east);
+    \draw [arrow] (N5.north west) to [bend left=25] node[label] {9, 9b, 9c} (N4.south west);
+    \draw [arrow] (N5.west) to [out=180, in=270] node[label, pos=0.7] {10, 10b} (N1.south);
+    
+    % Selección de Quads
+    \draw [arrow] (N5.south west) to [bend right=25] node[label] {11} (N6.north west);
+    \draw [arrow] (N6.north east) to [bend right=25] node[label] {12, 12b, 12c} (N5.south east);
+
+    % --- ARISTAS DE RETROCESO (ANDROID) ---
+    \draw [arrow] (N2.110) to [out=90, in=180] node[label, pos=0.5] {23} (N1.170);
+    \draw [arrow] (N4.70) to [out=90, in=0] node[label, pos=0.5] {24} (N1.10);
+
+    % --- BUCLES UI ---
+    
+    \draw [arrow] (N2.175) .. controls +(-2.5,1.2) and +(-2.5,-1.2) .. node[label] {13, 13b, 13c, 14} (N2.185);
+    \draw [arrow] (N3.250) .. controls +(-1.2,-1.5) and +(1.2,-1.5) .. node[label] {15, 15b} (N3.290);
+    
+    \draw [arrow] (N4.5) .. controls +(2.5,1.2) and +(2.5,-1.2) .. node[label, text width=2.2cm, align=center] {16, 16b, 16c, 16d,\\ 16e, 16f, 16g, 16h,\\ 17, 18, 19, 19b} (N4.355);
+    \draw [arrow] (N5.250) .. controls +(-1.2,-1.5) and +(1.2,-1.5) .. node[label] {20, 20b} (N5.290);
+    \draw [arrow] (N6.250) .. controls +(-1.2,-1.5) and +(1.2,-1.5) .. node[label] {21, 21b, 21c, 22, 22b} (N6.290);
+
+\end{tikzpicture}
+}
+\end{center}
+\vfill
+\end{minipage}
+
+\newpage
+
+% --- PÁGINA 2: LEYENDA DETALLADA ---
+\begin{minipage}[t][\textheight][t]{\textwidth}
+\begin{center}
+    {\Huge \textbf{Leyenda Del Mapa}}
+\end{center}
+
+\vspace{0.1cm}
+
+\begin{center}
+    \textbf{\Large Leyenda de Componentes} \\[0.2cm]
+    \begin{tikzpicture}[scale=1.1, transform shape]
+        \node[fill=SteelBlue, text=white, rounded corners=5pt, minimum width=4cm, minimum height=0.9cm, font=\bfseries] at (0,0) {Menú Principal};
+        \node[fill=SoftTerracotta, text=white, rounded corners=5pt, minimum width=4cm, minimum height=0.9cm, font=\bfseries] at (5.5,0) {Gestión de Quads};
+        \node[fill=SageGreen, text=white, rounded corners=5pt, minimum width=4cm, minimum height=0.9cm, font=\bfseries] at (11,0) {Gestión de Reservas};
+    \end{tikzpicture}
+\end{center}
+
+\vfill
+
+\begin{center}
+    \textbf{\Large Leyenda de Acciones (Aristas)} \\[0.3cm]
+\begin{minipage}{0.99\textwidth}
+\centering
+\small
+\renewcommand{\arraystretch}{1.1}
+\begin{tabularx}{\textwidth}{@{} l l X | l l X @{}}
+\toprule
+\textbf{ID} & \textbf{Acción} & \textbf{Descripción} & \textbf{ID} & \textbf{Acción} & \textbf{Descripción} \\
+\midrule
+\textbf{1} & Listado Quads & Ir al listado de vehículos. & \textbf{16b} & Ord. Teléfono & Ordenar reservas por teléfono. \\
+\textbf{2} & Listado Res. & Ir al listado de reservas. & \textbf{16c} & Ord. Entrada & Ordenar reservas por fecha IN. \\
+\textbf{3} & Alta Quad & Ir a formulario de nuevo quad. & \textbf{16d} & Ord. Salida & Ordenar reservas por fecha OUT. \\
+\textbf{4} & Alta Reserva & Ir a formulario de nueva reserva. & \textbf{16e} & Filtro Prev. & Ver reservas previstas. \\
+\textbf{5} & Editar Quad & Abrir edición de un vehículo. & \textbf{16f} & Filtro Vig. & Ver reservas en curso. \\
+\textbf{6} & Guardar Quad & Guardar cambios y volver a N2. & \textbf{16g} & Filtro Cad. & Ver reservas terminadas. \\
+\textbf{6b} & Cancelar Q. & Salir de edición de quad a N2. & \textbf{16h} & Filtro Todas & Quitar todos los filtros. \\
+\textbf{6c} & Atrás (N3) & Botón atrás: Volver a N2. & \textbf{17} & Eliminar Res. & Borrado físico de reserva. \\
+\textbf{7} & Cerrar Quad & Cancelar y volver al menú N1. & \textbf{18} & Ver Detalles & Abrir ficha completa de reserva. \\
+\textbf{7b} & Atrás (N3) & Botón atrás: Volver a N1. & \textbf{19} & SMS & Notificar reserva vía SMS. \\
+\textbf{8} & Editar Res. & Abrir edición de una reserva. & \textbf{19b} & WhatsApp & Notificar reserva vía WhatsApp. \\
+\textbf{9} & Guardar Res. & Guardar cambios y volver a N4. & \textbf{20} & F. Entrada & Elegir fecha inicio en calendario. \\
+\textbf{9b} & Cancelar R. & Salir de edición de reserva a N4. & \textbf{20b} & F. Salida & Elegir fecha fin en calendario. \\
+\textbf{9c} & Atrás (N5) & Botón atrás: Volver a N4. & \textbf{21} & Ord. Matríc. & Ordenar selección por matrícula. \\
+\textbf{10} & Cerrar Res. & Cancelar y volver al menú N1. & \textbf{21b} & Ord. Tipo & Ordenar selección por plazas. \\
+\textbf{10b} & Atrás (N5) & Botón atrás: Volver a N1. & \textbf{21c} & Ord. Precio & Ordenar selección por tarifa. \\
+\textbf{11} & Abrir Sel. & Abrir selector de quads libres. & \textbf{22} & Marcar & Añadir quad a la reserva actual. \\
+\textbf{12} & Confirmar Q. & Volcar quads elegidos a reserva. & \textbf{22b} & Desmarcar & Quitar quad de la selección. \\
+\textbf{12b} & Cancelar S. & Cancelar selección de quads. & \textbf{23} & Atrás (N2) & Botón atrás: Volver al menú N1. \\
+\textbf{12c} & Atrás (N6) & Botón atrás: Volver a N5. & \textbf{24} & Atrás (N4) & Botón atrás: Volver al menú N1. \\
+\textbf{13} & Ord. Matríc. & Ordenar quads por matrícula. & & & \\
+\textbf{13b} & Ord. Tipo & Ordenar quads por plazas. & & & \\
+\textbf{13c} & Ord. Precio & Ordenar quads por tarifa. & & & \\
+\textbf{14} & Eliminar Q. & Borrado físico de vehículo. & & & \\
+\textbf{15} & Tipo Mono. & Configurar quad como monoplaza. & & & \\
+\textbf{15b} & Tipo Biplaza & Configurar quad como biplaza. & & & \\
+\textbf{16} & Ord. Nombre & Ordenar reservas por cliente. & & & \\
+\bottomrule
+\end{tabularx}
+\end{minipage}
+\end{center}
+\vfill
+\end{minipage}
+
+\end{document}

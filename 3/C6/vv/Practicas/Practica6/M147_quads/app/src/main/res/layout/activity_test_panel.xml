@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center_horizontal">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="PANEL DE PRUEBAS"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="@color/colorBtnTest"
+        android:layout_marginBottom="32dp"/>
+
+    <!-- SECCIÓN EJECUCIÓN -->
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="EJECUTAR TESTS" android:textStyle="bold"/>
+    
+    <Button android:id="@+id/btn_run_unit" android:layout_width="match_parent" android:layout_height="wrap_content" 
+        android:text="Pruebas Unitarias" android:backgroundTint="@color/colorBtnEdit" android:layout_marginBottom="8dp"/>
+    
+    <Button android:id="@+id/btn_run_vol" android:layout_width="match_parent" android:layout_height="wrap_content" 
+        android:text="Prueba de Volumen" android:backgroundTint="@color/colorBtnEdit" android:layout_marginBottom="8dp"/>
+    
+    <Button android:id="@+id/btn_run_stress" android:layout_width="match_parent" android:layout_height="wrap_content" 
+        android:text="Prueba de Sobrecarga" android:backgroundTint="@color/colorBtnEdit" android:layout_marginBottom="32dp"/>
+
+    <!-- SECCIÓN LIMPIEZA -->
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="GESTIÓN DE MEMORIA" android:textStyle="bold" android:textColor="@color/colorBtnDelete"/>
+
+    <Button android:id="@+id/btn_clear_quads" android:layout_width="match_parent" android:layout_height="wrap_content" 
+        android:text="Limpiar solo Quads" android:backgroundTint="@color/colorBtnDelete" android:layout_marginBottom="8dp"/>
+
+    <Button android:id="@+id/btn_clear_res" android:layout_width="match_parent" android:layout_height="wrap_content" 
+        android:text="Limpiar solo Reservas" android:backgroundTint="@color/colorBtnDelete" android:layout_marginBottom="8dp"/>
+
+    <Button android:id="@+id/btn_clear_all" android:layout_width="match_parent" android:layout_height="wrap_content" 
+        android:text="RESET COMPLETO BD" android:textStyle="bold" android:backgroundTint="@color/colorBtnDelete"  android:layout_marginBottom="8dp"/>
+
+</LinearLayout>
