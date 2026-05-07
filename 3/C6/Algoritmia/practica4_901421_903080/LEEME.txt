@@ -1,0 +1,50 @@
+# Práctica 4: Ramificación y Poda, Programación Lineal
+# Algoritmia Básica - Curso 2025/26
+
+## Organización del Proyecto
+- `main.cpp`: Código fuente del algoritmo de Ramificación y Poda (Branch & Bound) en C++.
+- `pli.py`: Código fuente del modelo de Programación Lineal Entera (PLI) usando la librería PuLP de Python.
+- `ejecutar.sh`: Script para compilar y ejecutar el programa C++ (requiere Bash).
+- `casos.txt`: Fichero con casos de prueba de ejemplo.
+- `memoria.pdf`: Informe detallado de la práctica.
+- `AUDITORIA_FINAL.md`: Auditoría técnica de la implementación.
+
+## Instrucciones de Compilación y Ejecución
+
+### Algoritmo de Ramificación y Poda (C++)
+Para compilar manualmente:
+```bash
+g++ -O3 -std=c++17 main.cpp -o formarEquipos
+```
+
+Para ejecutar:
+```bash
+./formarEquipos <archivo_entrada> <archivo_salida>
+```
+
+### Modelo de Programación Lineal (Python)
+Requiere tener instalada la librería `pulp`:
+```bash
+pip install pulp
+```
+
+Para ejecutar:
+```bash
+python pli.py <archivo_entrada>
+```
+
+## Pruebas
+Se pueden repetir las pruebas ejecutando el script `ejecutar.sh` en un entorno Unix/Bash:
+```bash
+./ejecutar.sh casos.txt resultados.txt
+```
+O manualmente en Windows (PowerShell):
+```powershell
+g++ -O3 -std=c++17 main.cpp -o formarEquipos.exe
+./formarEquipos.exe casos.txt resultados.txt
+Get-Content resultados.txt
+```
+
+## Autores
+- Imad (901421)
+- Bellido (903080)

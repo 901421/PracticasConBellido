@@ -10,6 +10,8 @@
 
 using namespace std;
 
+// Función auxiliar para leer datos de la cabecera de forma segura, saltando comentarios
+// Esta función lee un entero del archivo, ignorando cualquier línea de comentario que comience con '#'.
 static void leerDatoSeguro(ifstream& archivo, int& valor) {
     // Saltamos espacios iniciales
     archivo >> ws;

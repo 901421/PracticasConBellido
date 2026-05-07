@@ -58,11 +58,12 @@ Configuracion procesarArgumentos(int argc, char* argv[]) {
 vector<Punto> calcularPosicionClavos(int cantidad, int ancho, int alto) {
     vector<Punto> clavos(cantidad);
     double radio = min(ancho, alto) / 2.0 - 5.0; // Margen de 5px
-    double cx = ancho / 2.0;
-    double cy = alto / 2.0;
+    double cx = ancho / 2.0; // Centro X de la imagen
+    double cy = alto / 2.0; // Centro Y de la imagen
 
+    // Distribución circular uniforme de los clavos
     for (int i = 0; i < cantidad; ++i) {
-        double angulo = 2.0 * M_PI * i / cantidad;
+        double angulo = 2.0 * M_PI * i / cantidad; // Ángulo para el clavo i
         clavos[i] = {
             (int)(cx + radio * cos(angulo)),
             (int)(cy + radio * sin(angulo))
@@ -109,9 +110,10 @@ vector<Candidato> generarCandidatos(const Configuracion& config, const vector<Pu
     vector<Candidato> candidatos;
     candidatos.reserve(config.candidatosPorLote);
 
+    // Generamos P candidatos aleatorios y calculamos su puntuación inicial
     for (int k = 0; k < config.candidatosPorLote; ++k) {
-        int c1 = rand() % config.cantidadClavos;
-        int c2 = rand() % config.cantidadClavos;
+        int c1 = rand() % config.cantidadClavos; // Índice del clavo de origen
+        int c2 = rand() % config.cantidadClavos; // Índice del clavo de destino
 
         // Filtro geométrico: evitar líneas muy cortas o adyacentes
         if (abs(c1 - c2) < (config.cantidadClavos / 12)) continue;
