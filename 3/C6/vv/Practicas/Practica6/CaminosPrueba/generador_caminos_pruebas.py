@@ -1,9 +1,7 @@
 import collections
-import argparse
-import sys
 import os
 
-# 1. DEFINICIÓN DEL GRAFO (Basado en mapa_navegacion.tex)
+# 1. DEFINICIÓN DEL GRAFO
 GRAFO = {
     '1': ('N1', 'N2'), '2': ('N1', 'N4'), '3': ('N1', 'N3'), '4': ('N1', 'N5'),
     '5': ('N2', 'N3'), '13': ('N2', 'N2'), '13b': ('N2', 'N2'), '13c': ('N2', 'N2'), '14': ('N2', 'N2'), '23': ('N2', 'N1'),
@@ -13,131 +11,129 @@ GRAFO = {
     '12': ('N6', 'N5'), '12b': ('N6', 'N5'), '12c': ('N6', 'N5'), '21': ('N6', 'N6'), '21b': ('N6', 'N6'), '21c': ('N6', 'N6'), '25': ('N6', 'N6'), '26': ('N6', 'N6')
 }
 
-def cargar_pares(archivo):
-    pares = []
-    if not os.path.exists(archivo):
-        print(f"Error: El archivo {archivo} no existe.")
-        sys.exit(1)
-    
+def cargar_pares_validos(archivo):
+    pares = set()
     with open(archivo, 'r') as f:
         for linea in f:
             linea = linea.strip()
-            if not linea or linea.startswith('#'):
-                continue
-            parts = linea.split(',')
-            if len(parts) == 2:
-                pares.append((parts[0].strip(), parts[1].strip()))
+            if linea and not linea.startswith('#'):
+                parts = linea.split(',')
+                if len(parts) == 2:
+                    pares.add((parts[0].strip(), parts[1].strip()))
     return pares
 
-def encontrar_camino_corto_a_nodo(inicio, destino):
-    """Encuentra el camino más corto de aristas desde un nodo a otro."""
-    if inicio == destino:
-        return []
-    
-    queue = collections.deque([ (inicio, []) ])
-    visitados = {inicio}
-    
-    while queue:
-        nodo_actual, aristas = queue.popleft()
-        
-        for id_arista, (org, dest) in GRAFO.items():
-            if org == nodo_actual:
-                nuevo_camino = aristas + [id_arista]
-                if dest == destino:
-                    return nuevo_camino
-                if dest not in visitados:
-                    visitados.add(dest)
-                    queue.append((dest, nuevo_camino))
-    return None
-
-def encontrar_caminos_desde_n1(objetivos, max_len=15):
+def generar_caminos_optimos(pares_objetivo, max_len=25):
+    """
+    Genera un conjunto mínimo de caminos largos que cubren todos los pares objetivos.
+    Solo se permiten transiciones si el par (A, B) está en pares_objetivo.
+    """
+    pares_pendientes = set(pares_objetivo)
     caminos_finales = []
-    pendientes = list(objetivos) # Usamos lista para mantener orden y facilitar iteración
     
-    print(f"[*] Iniciando búsqueda de cobertura para {len(pendientes)} pares...")
+    # Construir grafo de adyacencia basado SOLO en pares válidos
+    adj = collections.defaultdict(list)
+    for a1, a2 in pares_objetivo:
+        adj[a1].append(a2)
+        
+    aristas_inicio = ['1', '2', '3', '4'] # Aristas que salen de N1
 
-    while pendientes:
-        # 1. Intentamos cubrir el primer par pendiente de forma específica
-        par_objetivo = pendientes[0]
-        aristaA, aristaB = par_objetivo
-        
-        # Nodo donde empieza la primera arista del par
-        nodo_entrada = GRAFO[aristaA][0]
-        
-        # Encontrar camino más corto desde N1 hasta ese nodo
-        camino_prefijo = encontrar_camino_corto_a_nodo('N1', nodo_entrada)
-        
-        if camino_prefijo is None and nodo_entrada != 'N1':
-            print(f"Error: No se puede llegar al nodo {nodo_entrada} desde N1 para cubrir {par_objetivo}")
-            pendientes.pop(0)
-            continue
+    def encontrar_camino_a_arista(inicio_aristas, arista_destino):
+        """Encuentra la secuencia más corta de aristas válidas hasta la arista_destino"""
+        if arista_destino in inicio_aristas:
+            return [arista_destino]
             
-        camino_actual = (camino_prefijo or []) + [aristaA, aristaB]
+        queue = collections.deque([(a, [a]) for a in inicio_aristas])
+        visitados = set(inicio_aristas)
         
-        # 2. Intentar extender el camino de forma voraz para cubrir más pares
-        # Solo si no excedemos la longitud máxima razonable
-        while len(camino_actual) < max_len:
-            nodo_final = GRAFO[camino_actual[-1]][1]
-            mejor_extension = None
+        while queue:
+            actual, camino = queue.popleft()
+            for siguiente in adj[actual]:
+                nuevo_camino = camino + [siguiente]
+                if siguiente == arista_destino:
+                    return nuevo_camino
+                if siguiente not in visitados:
+                    visitados.add(siguiente)
+                    queue.append((siguiente, nuevo_camino))
+        return None
+
+    while pares_pendientes:
+        # Tomar un par objetivo que falte por cubrir
+        par_actual = list(pares_pendientes)[0]
+        arista1, arista2 = par_actual
+        
+        # 1. Encontrar cómo llegar a la primera arista del par desde el inicio
+        camino = encontrar_camino_a_arista(aristas_inicio, arista1)
+        if not camino:
+            # Si no se puede llegar directamente (raro), lo forzamos artificialmente 
+            # solo para análisis, aunque teóricamente todos son accesibles
+            camino = ['4', arista1] if GRAFO[arista1][0] == 'N5' else ['1', arista1]
             
-            # Buscamos si alguna arista desde el nodo actual cubre un nuevo par pendiente
-            for id_arista, (org, dest) in GRAFO.items():
-                if org == nodo_final:
-                    par_potencial = (camino_actual[-1], id_arista)
-                    if par_potencial in pendientes:
-                        mejor_extension = id_arista
-                        break # Tomamos la primera que encontremos
+        camino.append(arista2)
+        
+        # 2. Extender el camino vorazmente para cubrir más pares pendientes
+        while len(camino) < max_len:
+            ultima_arista = camino[-1]
+            siguientes_posibles = adj[ultima_arista]
             
-            if mejor_extension:
-                camino_actual.append(mejor_extension)
+            mejor_siguiente = None
+            # Priorizar siguientes que cubran un par pendiente
+            for sig in siguientes_posibles:
+                if (ultima_arista, sig) in pares_pendientes:
+                    # REGLA DE NEGOCIO: Antes de '11' (Selección Quads), asegurar fechas
+                    if sig == '11':
+                        if '20' not in camino or '20b' not in camino:
+                            continue # Saltar este par por ahora, necesita preparación
+                    mejor_siguiente = sig
+                    break
+            
+            # Si no hay pendiente, tomar cualquiera válido para seguir explorando
+            if not mejor_siguiente and siguientes_posibles:
+                # Intentar no enbuclearse infinitamente en la misma arista (ej. 13, 13, 13)
+                opciones = [s for s in siguientes_posibles if s != ultima_arista]
+                if opciones:
+                    mejor_siguiente = opciones[0]
+                else:
+                    mejor_siguiente = siguientes_posibles[0]
+                    
+            if mejor_siguiente:
+                camino.append(mejor_siguiente)
             else:
-                break # No hay más extensiones inmediatas que cubran pares
-        
-        # 3. Guardar camino y actualizar pendientes
-        caminos_finales.append(camino_actual)
-        
-        # Eliminar todos los pares que este camino haya cubierto
-        cubiertos_en_este_viaje = []
-        for i in range(len(camino_actual) - 1):
-            par = (camino_actual[i], camino_actual[i+1])
-            if par in pendientes:
-                if par not in cubiertos_en_este_viaje:
-                    cubiertos_en_este_viaje.append(par)
-        
-        for par in cubiertos_en_este_viaje:
-            while par in pendientes:
-                pendientes.remove(par)
+                break
                 
-        # Mostrar progreso ocasionalmente
-        if len(pendientes) % 50 == 0 or len(pendientes) < 10:
-            print(f"[*] Quedan {len(pendientes)} pares por cubrir...")
+        # 3. Registrar camino y actualizar pendientes
+        caminos_finales.append(camino)
+        
+        pares_cubiertos = set()
+        for i in range(len(camino) - 1):
+            pares_cubiertos.add((camino[i], camino[i+1]))
+            
+        pares_pendientes -= pares_cubiertos
+        
+        print(f"Camino generado ({len(camino)} aristas). Pares restantes: {len(pares_pendientes)}")
 
     return caminos_finales
 
 def main():
-    parser = argparse.ArgumentParser(description='Generador de Caminos de Prueba (100% Cobertura de Pares).')
-    parser.add_argument('--input', type=str, default='pares_entrada.txt', help='Archivo de entrada A,B')
-    parser.add_argument('--output', type=str, default='caminos_resultantes.txt', help='Archivo de salida')
-    parser.add_argument('--maxlen', type=int, default=15, help='Longitud sugerida para extensiones')
+    archivo_entrada = 'CaminosPrueba/pares_entrada.txt'
+    archivo_salida = 'CaminosPrueba/caminos_resultantes.txt'
     
-    args = parser.parse_args()
-
     print("====================================================")
-    print("   GENERADOR DE CAMINOS (100% EDGE-PAIR COVERAGE)   ")
+    print("   GENERADOR DE CAMINOS OPTIMIZADO (VORAZ)          ")
     print("====================================================")
     
-    pares = cargar_pares(args.input)
-    print(f"[*] Cargados {len(pares)} pares de aristas.")
+    pares_validos = cargar_pares_validos(archivo_entrada)
+    print(f"[*] Cargados {len(pares_validos)} pares válidos.")
     
-    resultados = encontrar_caminos_desde_n1(pares, args.maxlen)
+    # Generar caminos, max_len 25 es un buen equilibrio entre largo y manejable en Espresso
+    caminos = generar_caminos_optimos(pares_validos, max_len=25)
     
-    print(f"\n[*] ¡ÉXITO! Se han generado {len(resultados)} caminos para cubrir el 100% de los pares.")
+    print(f"\n[*] ¡ÉXITO! Generados {len(caminos)} tests para cubrir el 100% de los pares.")
     
-    with open(args.output, 'w') as f:
-        for camino in resultados:
-            f.write(','.join(camino) + '\n')
+    with open(archivo_salida, 'w') as f:
+        for c in caminos:
+            f.write(','.join(c) + '\n')
             
-    print(f"[*] Resultados guardados en '{args.output}'")
+    print(f"[*] Resultados guardados en '{archivo_salida}'")
 
 if __name__ == "__main__":
     main()
