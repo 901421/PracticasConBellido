@@ -309,87 +309,87 @@ Tras un análisis manual detallado del código fuente de la aplicación, se ha v
 | 294 | (3,7) | N1 -> N3 -> N1 | SistemaReservas.java, QuadEdit.java | Se abre creación (A3) y se guarda el nuevo registro (A7) hacia N1. |
 | 295 | (3,7b) | N1 -> N3 -> N1 | SistemaReservas.java, QuadEdit.java | Se abre creación (A3) y se cancela (A7b) volviendo al menú. |
 | 296 | (3,7c) | N1 -> N3 -> N1 | SistemaReservas.java, QuadEdit.java | Apertura de creación (A3) y salida por botón atrás (A7c). |
-| 297 | (5,15) | N2 -> N3 -> N3 | QuadListActivity.java, QuadEdit.java | Edición de un quad existente (A5). Se cambia a monoplaza (A15). |
-| 298 | (5,15b) | N2 -> N3 -> N3 | QuadListActivity.java, QuadEdit.java | Edición de quad (A5) y cambio a biplaza (A15b). |
-| 299 | (5,6) | N2 -> N3 -> N2 | QuadListActivity.java, QuadEdit.java | Edición (A5) y guardado de los cambios (A6) volviendo al listado N2. |
-| 300 | (5,6b) | N2 -> N3 -> N2 | QuadListActivity.java, QuadEdit.java | Edición (A5) y cancelación (A6b) volviendo al listado. |
-| 301 | (5,6c) | N2 -> N3 -> N2 | QuadListActivity.java, QuadEdit.java | Edición (A5) y salida por botón atrás (A6c) hacia N2. |
-| 302 | (4,20) | N1 -> N5 -> N5 | SistemaReservas.java, ReservaEdit.java | Inicio de reserva (A4). Se pulsa selector de fecha de recogida (A20). |
-| 303 | (4,20b) | N1 -> N5 -> N5 | SistemaReservas.java, ReservaEdit.java | Inicio de reserva (A4). Se pulsa selector de fecha de devolución (A20b). |
-| 304 | (4,10b) | N1 -> N5 -> N1 | SistemaReservas.java, ReservaEdit.java | Inicio de reserva (A4) y cancelación inmediata (A10b) volviendo al menú. |
-| 305 | (4,10c) | N1 -> N5 -> N1 | SistemaReservas.java, ReservaEdit.java | Inicio de reserva (A4) y salida por atrás físico (A10c). |
-| 306 | (5,15) | N2 -> N3 -> N3 | QuadListActivity.java, QuadEdit.java | Verificado en fila 297. |
-| 307 | (5,15b) | N2 -> N3 -> N3 | QuadListActivity.java, QuadEdit.java | Verificado en fila 298. |
-| 308 | (6,13) | N3 -> N2 -> N2 | QuadEdit.java, QuadListActivity.java | Guardado en edición (A6) y posterior ordenación de la lista actualizada (A13). |
-| 309 | (6,13b) | N3 -> N2 -> N2 | QuadEdit.java, QuadListActivity.java | Guardado (A6) y ordenación por tipo (A13b). |
-| 310 | (6,13c) | N3 -> N2 -> N2 | QuadEdit.java, QuadListActivity.java | Guardado (A6) y ordenación por precio (A13c). |
-| 311 | (6,14) | N3 -> N2 -> N2 | QuadEdit.java, QuadListActivity.java | Guardado (A6) y eliminación de otro quad (A14). |
-| 312 | (6,23) | N3 -> N2 -> N1 | QuadEdit.java, QuadListActivity.java | Guardado de cambios (A6) y retorno al menú principal (A23). |
-| 313 | (6,5) | N3 -> N2 -> N3 | QuadEdit.java, QuadListActivity.java | Guardado (A6) y edición inmediata de otro vehículo (A5). |
-| 314 | (6b,13) | N3 -> N2 -> N2 | QuadEdit.java, QuadListActivity.java | Cancelación (A6b) y ordenación de la lista por matrícula (A13). |
-| 315 | (6b,13b) | N3 -> N2 -> N2 | QuadEdit.java, QuadListActivity.java | Cancelación (A6b) y ordenación por tipo (A13b). |
-| 316 | (6b,13c) | N3 -> N2 -> N2 | QuadEdit.java, QuadListActivity.java | Cancelación (A6b) y ordenación por precio (A13c). |
-| 317 | (6b,14) | N3 -> N2 -> N2 | QuadEdit.java, QuadListActivity.java | Cancelación (A6b) y eliminación de un quad (A14). |
-| 318 | (6b,23) | N3 -> N2 -> N1 | QuadEdit.java, QuadListActivity.java | Cancelación de edición (A6b) y retorno al menú principal (A23). |
-| 319 | (6b,5) | N3 -> N2 -> N3 | QuadEdit.java, QuadListActivity.java | Cancelación (A6b) e inicio de edición de otro quad (A5). |
-| 320 | (6c,13) | N3 -> N2 -> N2 | QuadEdit.java, QuadListActivity.java | Salida por atrás (A6c) y ordenación por matrícula (A13). |
-| 321 | (6c,13b) | N3 -> N2 -> N2 | QuadEdit.java, QuadListActivity.java | Salida por atrás (A6c) y ordenación por tipo (A13b). |
-| 322 | (6c,13c) | N3 -> N2 -> N2 | QuadEdit.java, QuadListActivity.java | Salida por atrás (A6c) y ordenación por precio (A13c). |
-| 323 | (6c,14) | N3 -> N2 -> N2 | QuadEdit.java, QuadListActivity.java | Salida por atrás (A6c) y borrado de quad (A14). |
-| 324 | (6c,23) | N3 -> N2 -> N1 | QuadEdit.java, QuadListActivity.java | Salida por atrás (A6c) y retorno al menú (A23). |
-| 325 | (6c,5) | N3 -> N2 -> N3 | QuadEdit.java, QuadListActivity.java | Salida por atrás (A6c) y edición de quad (A5). |
-| 326 | (7,1) | N3 -> N1 -> N2 | QuadEdit.java, SistemaReservas.java | Guardado de nuevo quad (A7) y apertura del listado para verlo (A1). |
-| 327 | (7,2) | N3 -> N1 -> N4 | QuadEdit.java, SistemaReservas.java | Guardado de quad (A7) y apertura de listado de reservas (A2). |
-| 328 | (7,3) | N3 -> N1 -> N3 | QuadEdit.java, SistemaReservas.java | Guardado de quad (A7) e inicio de creación de otro quad (A3). |
-| 329 | (7,4) | N3 -> N1 -> N5 | QuadEdit.java, SistemaReservas.java | Guardado de quad (A7) e inicio de creación de reserva (A4). |
-| 330 | (7b,1) | N3 -> N1 -> N2 | QuadEdit.java, SistemaReservas.java | Cancelación de creación (A7b) y apertura de listado (A1). |
-| 331 | (7b,2) | N3 -> N1 -> N4 | QuadEdit.java, SistemaReservas.java | Cancelación (A7b) y apertura de reservas (A2). |
-| 332 | (7b,3) | N3 -> N1 -> N3 | QuadEdit.java, SistemaReservas.java | Cancelación (A7b) e intento de creación de nuevo (A3). |
-| 333 | (7b,4) | N3 -> N1 -> N5 | QuadEdit.java, SistemaReservas.java | Cancelación (A7b) e inicio de reserva (A4). |
-| 334 | (7c,1) | N3 -> N1 -> N2 | QuadEdit.java, SistemaReservas.java | Salida por atrás (A7c) y apertura de listado (A1). |
-| 335 | (7c,2) | N3 -> N1 -> N4 | QuadEdit.java, SistemaReservas.java | Salida por atrás (A7c) y apertura de reservas (A2). |
-| 336 | (7c,3) | N3 -> N1 -> N3 | QuadEdit.java, SistemaReservas.java | Salida por atrás (A7c) e inicio de creación (A3). |
-| 337 | (7c,4) | N3 -> N1 -> N5 | QuadEdit.java, SistemaReservas.java | Salida por atrás (A7c) e inicio de reserva (A4). |
-| 338 | (8,11) | N4 -> N5 -> N6 | ReservaListActivity.java, ReservaEdit.java, QuadSelectionActivity.java | Se edita una reserva (A8) y se entra en la selección de quads (A11) para modificar los vehículos asignados. |
-| 339 | (8,20) | N4 -> N5 -> N5 | ReservaListActivity.java, ReservaEdit.java | Edición de reserva (A8) y ajuste de fecha de recogida (A20). |
-| 340 | (8,20b) | N4 -> N5 -> N5 | ReservaListActivity.java, ReservaEdit.java | Edición de reserva (A8) y ajuste de fecha de devolución (A20b). |
-| 341 | (8,9) | N4 -> N5 -> N4 | ReservaListActivity.java, ReservaEdit.java | Edición de reserva (A8) y guardado de cambios (A9) volviendo al listado N4. |
-| 342 | (8,9b) | N4 -> N5 -> N4 | ReservaListActivity.java, ReservaEdit.java | Edición de reserva (A8) y cancelación de la misma (A9b). |
-| 343 | (8,9c) | N4 -> N5 -> N4 | ReservaListActivity.java, ReservaEdit.java | Edición de reserva (A8) y salida por botón atrás (A9c). |
-| 344 | (9,16) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Guardado de cambios (A9) y ordenación de la lista por cliente (A16). |
-| 345 | (9,16b) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Guardado (A9) y ordenación por teléfono (A16b). |
-| 346 | (9,16c) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Guardado (A9) y ordenación por recogida (A16c). |
-| 347 | (9,16d) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Guardado (A9) y ordenación por devolución (A16d). |
-| 348 | (9,16e) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Guardado (A9) y filtrado por Previstas (A16e). |
-| 349 | (9,16f) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Guardado (A9) y filtrado por Vigentes (A16f). |
-| 350 | (9,16g) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Guardado (A9) y filtrado por Caducadas (A16g). |
-| 351 | (9,16h) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Guardado (A9) y ver todas las reservas (A16h). |
-| 352 | (9,17) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Guardado (A9) y consulta de detalles de la reserva actualizada (A17). |
-| 353 | (9,18) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Guardado (A9) y envío de mensaje de confirmación (A18). |
-| 354 | (9,24) | N5 -> N4 -> N1 | ReservaEdit.java, ReservaListActivity.java | Guardado de edición (A9) y retorno al menú principal (A24). |
-| 355 | (9,8) | N5 -> N4 -> N5 | ReservaEdit.java, ReservaListActivity.java | Guardado (A9) e inicio de edición de otra reserva diferente (A8). |
-| 356 | (9b,16) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Cancelación de edición (A9b) y ordenación por cliente (A16). |
-| 357 | (9b,16b) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Cancelación (A9b) y ordenación por teléfono (A16b). |
-| 358 | (9b,16c) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Cancelación (A9b) y ordenación por recogida (A16c). |
-| 359 | (9b,16d) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Cancelación (A9b) y ordenación por devolución (A16d). |
-| 360 | (9b,16e) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Cancelación (A9b) y filtrado por Previstas (A16e). |
-| 361 | (9b,16f) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Cancelación (A9b) y filtrado por Vigentes (A16f). |
-| 362 | (9b,16g) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Cancelación (A9b) y filtrado por Caducadas (A16g). |
-| 363 | (9b,16h) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Cancelación (A9b) y ver todas (A16h). |
-| 364 | (9b,17) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Cancelación (A9b) y ver detalles (A17). |
-| 365 | (9b,18) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Cancelación (A9b) y enviar mensaje (A18). |
-| 366 | (9b,24) | N5 -> N4 -> N1 | ReservaEdit.java, ReservaListActivity.java | Cancelación (A9b) y volver al menú (A24). |
-| 367 | (9b,8) | N5 -> N4 -> N5 | ReservaEdit.java, ReservaListActivity.java | Cancelación (A9b) y editar otra reserva (A8). |
-| 368 | (9c,16) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Salida por atrás (A9c) y ordenación por cliente (A16). |
-| 369 | (9c,16b) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Salida por atrás (A9c) y ordenación por teléfono (A16b). |
-| 370 | (9c,16c) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Salida por atrás (A9c) y ordenación por recogida (A16c). |
-| 371 | (9c,16d) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Salida por atrás (A9c) y ordenación por devolución (A16d). |
-| 372 | (9c,16e) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Salida por atrás (A9c) y filtrado por Previstas (A16e). |
-| 373 | (9c,16f) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Salida por atrás (A9c) y filtrado por Vigentes (A16f). |
-| 374 | (9c,16g) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Salida por atrás (A9c) y filtrado por Caducadas (A16g). |
-| 375 | (9c,16h) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Salida por atrás (A9c) y ver todas (A16h). |
-| 376 | (9c,17) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Salida por atrás (A9c) y ver detalles (A17). |
-| 377 | (9c,18) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Salida por atrás (A9c) y enviar mensaje (A18). |
+| 297 | (4,10b) | N1 -> N5 -> N1 | SistemaReservas.java, ReservaEdit.java | Inicio de reserva (A4) y cancelación inmediata (A10b) volviendo al menú. |
+| 298 | (4,10c) | N1 -> N5 -> N1 | SistemaReservas.java, ReservaEdit.java | Inicio de reserva (A4) y salida por atrás físico (A10c). |
+| 299 | (4,20) | N1 -> N5 -> N5 | SistemaReservas.java, ReservaEdit.java | Inicio de reserva (A4). Se pulsa selector de fecha de recogida (A20). |
+| 300 | (4,20b) | N1 -> N5 -> N5 | SistemaReservas.java, ReservaEdit.java | Inicio de reserva (A4). Se pulsa selector de fecha de devolución (A20b). |
+| 301 | (5,15) | N2 -> N3 -> N3 | QuadListActivity.java, QuadEdit.java | Edición de un quad existente (A5). Se cambia a monoplaza (A15). |
+| 302 | (5,15b) | N2 -> N3 -> N3 | QuadListActivity.java, QuadEdit.java | Edición de quad (A5) y cambio a biplaza (A15b). |
+| 303 | (5,6) | N2 -> N3 -> N2 | QuadListActivity.java, QuadEdit.java | Edición (A5) y guardado de los cambios (A6) volviendo al listado N2. |
+| 304 | (5,6b) | N2 -> N3 -> N2 | QuadListActivity.java, QuadEdit.java | Edición (A5) y cancelación (A6b) volviendo al listado. |
+| 305 | (5,6c) | N2 -> N3 -> N2 | QuadListActivity.java, QuadEdit.java | Edición (A5) y salida por botón atrás (A6c) hacia N2. |
+| 306 | (6,13) | N3 -> N2 -> N2 | QuadEdit.java, QuadListActivity.java | Guardado en edición (A6) y posterior ordenación de la lista actualizada (A13). |
+| 307 | (6,13b) | N3 -> N2 -> N2 | QuadEdit.java, QuadListActivity.java | Guardado (A6) y ordenación por tipo (A13b). |
+| 308 | (6,13c) | N3 -> N2 -> N2 | QuadEdit.java, QuadListActivity.java | Guardado (A6) y ordenación por precio (A13c). |
+| 309 | (6,14) | N3 -> N2 -> N2 | QuadEdit.java, QuadListActivity.java | Guardado (A6) y eliminación de otro quad (A14). |
+| 310 | (6,23) | N3 -> N2 -> N1 | QuadEdit.java, QuadListActivity.java | Guardado de cambios (A6) y retorno al menú principal (A23). |
+| 311 | (6,5) | N3 -> N2 -> N3 | QuadEdit.java, QuadListActivity.java | Guardado (A6) y edición inmediata de otro vehículo (A5). |
+| 312 | (6b,13) | N3 -> N2 -> N2 | QuadEdit.java, QuadListActivity.java | Cancelación (A6b) y ordenación de la lista por matrícula (A13). |
+| 313 | (6b,13b) | N3 -> N2 -> N2 | QuadEdit.java, QuadListActivity.java | Cancelación (A6b) y ordenación por tipo (A13b). |
+| 314 | (6b,13c) | N3 -> N2 -> N2 | QuadEdit.java, QuadListActivity.java | Cancelación (A6b) y ordenación por precio (A13c). |
+| 315 | (6b,14) | N3 -> N2 -> N2 | QuadEdit.java, QuadListActivity.java | Cancelación (A6b) y eliminación de un quad (A14). |
+| 316 | (6b,23) | N3 -> N2 -> N1 | QuadEdit.java, QuadListActivity.java | Cancelación de edición (A6b) y retorno al menú principal (A23). |
+| 317 | (6b,5) | N3 -> N2 -> N3 | QuadEdit.java, QuadListActivity.java | Cancelación (A6b) e inicio de edición de otro quad (A5). |
+| 318 | (6c,13) | N3 -> N2 -> N2 | QuadEdit.java, QuadListActivity.java | Salida por atrás (A6c) y ordenación por matrícula (A13). |
+| 319 | (6c,13b) | N3 -> N2 -> N2 | QuadEdit.java, QuadListActivity.java | Salida por atrás (A6c) y ordenación por tipo (A13b). |
+| 320 | (6c,13c) | N3 -> N2 -> N2 | QuadEdit.java, QuadListActivity.java | Salida por atrás (A6c) y ordenación por precio (A13c). |
+| 321 | (6c,14) | N3 -> N2 -> N2 | QuadEdit.java, QuadListActivity.java | Salida por atrás (A6c) y borrado de quad (A14). |
+| 322 | (6c,23) | N3 -> N2 -> N1 | QuadEdit.java, QuadListActivity.java | Salida por atrás (A6c) y retorno al menú (A23). |
+| 323 | (6c,5) | N3 -> N2 -> N3 | QuadEdit.java, QuadListActivity.java | Salida por atrás (A6c) y edición de quad (A5). |
+| 324 | (7,1) | N3 -> N1 -> N2 | QuadEdit.java, SistemaReservas.java | Guardado de nuevo quad (A7) y apertura del listado para verlo (A1). |
+| 325 | (7,2) | N3 -> N1 -> N4 | QuadEdit.java, SistemaReservas.java | Guardado de quad (A7) y apertura de listado de reservas (A2). |
+| 326 | (7,3) | N3 -> N1 -> N3 | QuadEdit.java, SistemaReservas.java | Guardado de quad (A7) e inicio de creación de otro quad (A3). |
+| 327 | (7,4) | N3 -> N1 -> N5 | QuadEdit.java, SistemaReservas.java | Guardado de quad (A7) e inicio de creación de reserva (A4). |
+| 328 | (7b,1) | N3 -> N1 -> N2 | QuadEdit.java, SistemaReservas.java | Cancelación de creación (A7b) y apertura de listado (A1). |
+| 329 | (7b,2) | N3 -> N1 -> N4 | QuadEdit.java, SistemaReservas.java | Cancelación (A7b) y apertura de reservas (A2). |
+| 330 | (7b,3) | N3 -> N1 -> N3 | QuadEdit.java, SistemaReservas.java | Cancelación (A7b) e intento de creación de nuevo (A3). |
+| 331 | (7b,4) | N3 -> N1 -> N5 | QuadEdit.java, SistemaReservas.java | Cancelación (A7b) e inicio de reserva (A4). |
+| 332 | (7c,1) | N3 -> N1 -> N2 | QuadEdit.java, SistemaReservas.java | Salida por atrás (A7c) y apertura de listado (A1). |
+| 333 | (7c,2) | N3 -> N1 -> N4 | QuadEdit.java, SistemaReservas.java | Salida por atrás (A7c) y apertura de reservas (A2). |
+| 334 | (7c,3) | N3 -> N1 -> N3 | QuadEdit.java, SistemaReservas.java | Salida por atrás (A7c) e inicio de creación (A3). |
+| 335 | (7c,4) | N3 -> N1 -> N5 | QuadEdit.java, SistemaReservas.java | Salida por atrás (A7c) e inicio de reserva (A4). |
+| 336 | (8,11) | N4 -> N5 -> N6 | ReservaListActivity.java, ReservaEdit.java, QuadSelectionActivity.java | Se edita una reserva (A8) y se entra en la selección de quads (A11) para modificar los vehículos asignados. |
+| 337 | (8,20) | N4 -> N5 -> N5 | ReservaListActivity.java, ReservaEdit.java | Edición de reserva (A8) y ajuste de fecha de recogida (A20). |
+| 338 | (8,20b) | N4 -> N5 -> N5 | ReservaListActivity.java, ReservaEdit.java | Edición de reserva (A8) y ajuste de fecha de devolución (A20b). |
+| 339 | (8,9) | N4 -> N5 -> N4 | ReservaListActivity.java, ReservaEdit.java | Edición de reserva (A8) y guardado de cambios (A9) volviendo al listado N4. |
+| 340 | (8,9b) | N4 -> N5 -> N4 | ReservaListActivity.java, ReservaEdit.java | Edición de reserva (A8) y cancelación de la misma (A9b). |
+| 341 | (8,9c) | N4 -> N5 -> N4 | ReservaListActivity.java, ReservaEdit.java | Edición de reserva (A8) y salida por botón atrás (A9c). |
+| 342 | (9,16) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Guardado de cambios (A9) y ordenación de la lista por cliente (A16). |
+| 343 | (9,16b) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Guardado (A9) y ordenación por teléfono (A16b). |
+| 344 | (9,16c) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Guardado (A9) y ordenación por recogida (A16c). |
+| 345 | (9,16d) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Guardado (A9) y ordenación por devolución (A16d). |
+| 346 | (9,16e) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Guardado (A9) y filtrado por Previstas (A16e). |
+| 347 | (9,16f) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Guardado (A9) y filtrado por Vigentes (A16f). |
+| 348 | (9,16g) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Guardado (A9) y filtrado por Caducadas (A16g). |
+| 349 | (9,16h) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Guardado (A9) y ver todas las reservas (A16h). |
+| 350 | (9,17) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Guardado (A9) y consulta de detalles de la reserva actualizada (A17). |
+| 351 | (9,18) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Guardado (A9) y envío de mensaje de confirmación (A18). |
+| 352 | (9,24) | N5 -> N4 -> N1 | ReservaEdit.java, ReservaListActivity.java | Guardado de edición (A9) y retorno al menú principal (A24). |
+| 353 | (9,8) | N5 -> N4 -> N5 | ReservaEdit.java, ReservaListActivity.java | Guardado (A9) e inicio de edición de otra reserva diferente (A8). |
+| 354 | (9b,16) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Cancelación de edición (A9b) y ordenación por cliente (A16). |
+| 355 | (9b,16b) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Cancelación (A9b) y ordenación por teléfono (A16b). |
+| 356 | (9b,16c) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Cancelación (A9b) y ordenación por recogida (A16c). |
+| 357 | (9b,16d) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Cancelación (A9b) y ordenación por devolución (A16d). |
+| 358 | (9b,16e) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Cancelación (A9b) y filtrado por Previstas (A16e). |
+| 359 | (9b,16f) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Cancelación (A9b) y filtrado por Vigentes (A16f). |
+| 360 | (9b,16g) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Cancelación (A9b) y filtrado por Caducadas (A16g). |
+| 361 | (9b,16h) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Cancelación (A9b) y ver todas (A16h). |
+| 362 | (9b,17) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Cancelación (A9b) y ver detalles (A17). |
+| 363 | (9b,18) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Cancelación (A9b) y enviar mensaje (A18). |
+| 364 | (9b,24) | N5 -> N4 -> N1 | ReservaEdit.java, ReservaListActivity.java | Cancelación (A9b) y volver al menú (A24). |
+| 365 | (9b,8) | N5 -> N4 -> N5 | ReservaEdit.java, ReservaListActivity.java | Cancelación (A9b) y editar otra reserva (A8). |
+| 366 | (9c,16) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Salida por atrás (A9c) y ordenación por cliente (A16). |
+| 367 | (9c,16b) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Salida por atrás (A9c) y ordenación por teléfono (A16b). |
+| 368 | (9c,16c) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Salida por atrás (A9c) y ordenación por recogida (A16c). |
+| 369 | (9c,16d) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Salida por atrás (A9c) y ordenación por devolución (A16d). |
+| 370 | (9c,16e) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Salida por atrás (A9c) y filtrado por Previstas (A16e). |
+| 371 | (9c,16f) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Salida por atrás (A9c) y filtrado por Vigentes (A16f). |
+| 372 | (9c,16g) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Salida por atrás (A9c) y filtrado por Caducadas (A16g). |
+| 373 | (9c,16h) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Salida por atrás (A9c) y ver todas (A16h). |
+| 374 | (9c,17) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Salida por atrás (A9c) y ver detalles (A17). |
+| 375 | (9c,18) | N5 -> N4 -> N4 | ReservaEdit.java, ReservaListActivity.java | Salida por atrás (A9c) y enviar mensaje (A18). |
+| 376 | (9c,24) | N5 -> N4 -> N1 | ReservaEdit.java, ReservaListActivity.java | Salida de N5 por botón atrás físico (A9c) y retorno al menú principal (A24) desde el listado. |
+| 377 | (9c,8) | N5 -> N4 -> N5 | ReservaEdit.java, ReservaListActivity.java | Salida de N5 por atrás (A9c) y entrada inmediata a la edición de otra reserva (A8) desde el listado. |
 
 ---
 
@@ -400,14 +400,14 @@ Tras un análisis manual detallado del código fuente de la aplicación, se ha v
 | 1 | (3,6) | N1 -> N3 -> N2 | QuadEdit.java | **Imposible por Stack:** Si se entra desde N1 (Crear), QuadEdit debe volver a N1 mediante setResult(RESULT_OK/CANCELED), no puede alcanzar N2 (Listado) directamente. |
 | 2 | (3,6b) | N1 -> N3 -> N2 | QuadEdit.java | **Imposible por Stack:** Cancelar en un formulario iniciado desde el menú principal (N1) retorna obligatoriamente a N1. |
 | 3 | (3,6c) | N1 -> N3 -> N2 | QuadEdit.java | **Imposible por Stack:** El botón atrás físico en una actividad lanzada desde N1 siempre retorna a N1. |
-| 4 | (5,7) | N2 -> N3 -> N1 | QuadEdit.java | **Imposible por Stack:** Si se entra desde N2 (Editar), al finalizar la actividad se vuelve a N2, nunca directamente a N1. |
-| 5 | (5,7b) | N2 -> N3 -> N1 | QuadEdit.java | **Imposible por Stack:** Cancelar una edición iniciada desde el listado (N2) retorna a dicho listado. |
-| 6 | (5,7c) | N2 -> N3 -> N1 | QuadEdit.java | **Imposible por Stack:** El botón atrás físico desde una edición vuelve al listado N2. |
-| 7 | (4,9) | N1 -> N5 -> N4 | ReservaEdit.java | **Imposible por Stack:** Una reserva creada desde el menú principal (N1) vuelve al menú al finalizar, no al listado de reservas (N4). |
-| 8 | (4,9b) | N1 -> N5 -> N4 | ReservaEdit.java | **Imposible por Stack:** Cancelar creación desde N1 vuelve a N1. |
-| 9 | (4,9c) | N1 -> N5 -> N4 | ReservaEdit.java | **Imposible por Stack:** Botón atrás desde N5 iniciado por N1 vuelve a N1. |
-| 10 | (8,10) | N4 -> N5 -> N1 | ReservaEdit.java | **Imposible por Stack:** Una edición iniciada desde el listado (N4) retorna al listado, no al menú principal (N1). |
-| 11 | (8,10b) | N4 -> N5 -> N1 | ReservaEdit.java | **Imposible por Stack:** Cancelar edición desde N4 vuelve a N4. |
-| 12 | (8,10c) | N4 -> N5 -> N1 | ReservaEdit.java | **Imposible por Stack:** Botón atrás desde N5 iniciado por N4 vuelve a N4. |
-| 13 | (4,10) | N1 -> N5 -> N1 | ReservaEdit.java | **Imposible por Validación:** No se puede guardar una reserva nueva (A10) sin haber pasado por la selección de quads (A11), el código bloquea el flujo si la lista está vacía. |
-| 14 | (4,11) | N1 -> N5 -> N6 | ReservaEdit.java | **Imposible por Validación:** El botón de selección de quads (A11) está condicionado a que las fechas (A20, A20b) no estén vacías. |
+| 4 | (4,10) | N1 -> N5 -> N1 | ReservaEdit.java | **Imposible por Validación:** No se puede guardar una reserva nueva (A10) sin haber pasado por la selección de quads (A11), el código bloquea el flujo si la lista está vacía. |
+| 5 | (4,11) | N1 -> N5 -> N6 | ReservaEdit.java | **Imposible por Validación:** El botón de selección de quads (A11) está condicionado a que las fechas (A20, A20b) no estén vacías. |
+| 6 | (4,9) | N1 -> N5 -> N4 | ReservaEdit.java | **Imposible por Stack:** Una reserva creada desde el menú principal (N1) vuelve al menú al finalizar, no al listado de reservas (N4). |
+| 7 | (4,9b) | N1 -> N5 -> N4 | ReservaEdit.java | **Imposible por Stack:** Cancelar creación desde N1 vuelve a N1. |
+| 8 | (4,9c) | N1 -> N5 -> N4 | ReservaEdit.java | **Imposible por Stack:** Botón atrás desde N5 iniciado por N1 vuelve a N1. |
+| 9 | (5,7) | N2 -> N3 -> N1 | QuadEdit.java | **Imposible por Stack:** Si se entra desde N2 (Editar), al finalizar la actividad se vuelve a N2, nunca directamente a N1. |
+| 10 | (5,7b) | N2 -> N3 -> N1 | QuadEdit.java | **Imposible por Stack:** Cancelar una edición iniciada desde el listado (N2) retorna a dicho listado. |
+| 11 | (5,7c) | N2 -> N3 -> N1 | QuadEdit.java | **Imposible por Stack:** El botón atrás físico desde una edición vuelve al listado N2. |
+| 12 | (8,10) | N4 -> N5 -> N1 | ReservaEdit.java | **Imposible por Stack:** Una edición iniciada desde el listado (N4) retorna al listado, no al menú principal (N1). |
+| 13 | (8,10b) | N4 -> N5 -> N1 | ReservaEdit.java | **Imposible por Stack:** Cancelar edición desde N4 vuelve a N4. |
+| 14 | (8,10c) | N4 -> N5 -> N1 | ReservaEdit.java | **Imposible por Stack:** Botón atrás desde N5 iniciado por N4 vuelve a N4. |
