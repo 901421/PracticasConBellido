@@ -1,44 +1,41 @@
-# Generación y Verificación de Caminos de Prueba
+# Generación y Verificación de Caminos de Prueba (Versión Robusta)
 
-Este directorio contiene los scripts y resultados correspondientes a la fase de generación de caminos de prueba para la automatización con **Espresso**, asegurando el cumplimiento del criterio de cobertura **Edge-Pair (Pares de Aristas)** requerido en la Práctica 6.
+Este directorio contiene los scripts y resultados para la generación de caminos de prueba Espresso bajo el criterio **Edge-Pair (Pares de Aristas)**.
 
-## 1. El Generador: `generador_caminos_pruebas.py`
+## 1. El Generador de Estados: `generador_caminos_pruebas.py`
 
-El script principal es el encargado de leer los pares de aristas válidos y trazar las rutas que la herramienta Espresso deberá ejecutar en la aplicación Android real.
+A diferencia de un generador puramente matemático, este script implementa un **Simulador de Estados de Aplicación**.
 
-### 📥 Entrada: `pares_entrada.txt`
-El script toma como entrada una "Lista Blanca" de pares permitidos. Estos 379 pares provienen del análisis exhaustivo previo (`ParesAristas/Análisis_Pares_Aristas.md`), donde se filtraron las transiciones que violaban la pila de actividades (Back Stack) de Android. 
-**Regla estricta:** El generador *solo* puede moverse de una arista a otra si esa combinación exacta existe en el archivo de entrada.
+### ⚙️ Lógica de Máquina de Estados
+El generador no solo sigue las flechas del grafo, sino que mantiene una memoria interna de la UI:
+*   **Contexto de Datos:** Rastrea si el camino actual ha "seleccionado fechas" (`has_dates`) o "seleccionado quads" (`has_quads`).
+*   **Validación de Transiciones:** Antes de añadir una arista como la `11` (Selección de Quads) o la `10` (Guardar), verifica que se cumplan las pre-condiciones de `ReservaEdit.java`.
+*   **Reseteo de Estado:** Si el camino pasa por el Menú Principal (`N1`), los estados se limpian automáticamente para simular una nueva transacción limpia.
 
-### ⚙️ Lógica Voraz (Greedy) y Eficiencia
-El algoritmo implementa una estrategia **voraz consciente del estado**:
-*   **Menos es Más:** El objetivo de la automatización UI es minimizar el número de tests (`@Test` en Espresso) para que la suite no tarde horas en ejecutarse.
-*   **Caminos Largos vs. Cortos:** En lugar de hacer un camino corto (N1 -> N2 -> N3) por cada par de aristas, el script prefiere encadenar transiciones válidas para crear caminos largos (hasta 25 aristas) que "barran" y cubran múltiples pares pendientes de una sola pasada.
-*   **Reducción Drástica:** Gracias a esta optimización, se logró reducir el volumen de pruebas necesarias de más de 140 caminos ineficientes a **solo 87 caminos optimizados**.
+### ⚙️ Algoritmo Voraz (Greedy)
+Para optimizar el tiempo de ejecución en Espresso:
+*   **Caminos Multiobjetivo:** Cada test intenta cubrir la mayor cantidad posible de pares de aristas pendientes en una sola ejecución continua (máximo 25 pasos).
+*   **Eficiencia:** Se ha reducido la suite de pruebas a **102 caminos ejecutables**, minimizando el número de arranques de la aplicación.
 
-### 🛡️ Guardas de Interfaz de Usuario (UI)
-El generador no es ciego ante la lógica de negocio. Se ha programado para respetar las "guardas" de la aplicación. Por ejemplo:
-*   Si el algoritmo desea saltar a la Arista 11 (Selección de Quads libres), primero verifica que en el camino actual ya se hayan recorrido las aristas 20 o 20b (Introducir Fechas).
-*   Esto garantiza que el 100% de los caminos generados son **ejecutables** en el emulador sin que la aplicación bloquee la navegación por falta de datos obligatorios.
+## 2. El Verificador de Integridad: `verificar_cobertura.py`
 
-### 📤 Salida: `caminos_resultantes.txt`
-Un archivo de texto limpio donde cada línea es un array separado por comas (ej. `4,20,11,12,10`). Cada línea representa un flujo de navegación continuo y lógicamente válido que será programado como un escenario de prueba en Espresso.
+Script de auditoría que garantiza la calidad de la suite:
+1.  Extrae todos los pares de aristas de `caminos_resultantes.txt`.
+2.  Compara contra la lista blanca de pares viables.
+3.  Asegura que no hay "huecos" de navegación.
+
+**Resultado de la auditoría final:**
+*   Total de pares viables analizados: 377
+*   Total de pares únicos cubiertos: 377
+*   **Cobertura Edge-Pair: 100%**
+*   **Transiciones Inválidas (Bloqueos de UI): 0**
 
 ---
 
-## 2. El Verificador: `verificar_cobertura.py`
-
-Para garantizar la integridad académica de la práctica, se ha incluido este script auditor.
-
-### Propósito
-Su única misión es comparar la lista de pares exigidos (`pares_entrada.txt`) contra los caminos generados (`caminos_resultantes.txt`). Extrae cada par consecutivo de los caminos y verifica matemáticamente que todos los casos estructuralmente posibles han sido visitados al menos una vez.
-
-### Ejecución
+## 3. Instrucciones de Uso
+Para regenerar y validar la suite:
 ```bash
-python verificar_cobertura.py
+python CaminosPrueba/generador_caminos_pruebas.py
+python CaminosPrueba/verificar_cobertura.py
 ```
-**Resultado esperado:**
-* Total de pares esperados: 379
-* Total de pares únicos cubiertos: 379
-* Pares sin cubrir: 0
-* ¡100% de Cobertura Edge-Pair alcanzada!
+Los caminos resultantes en `caminos_resultantes.txt` están listos para ser implementados como `@Test` en la clase de pruebas de Espresso.

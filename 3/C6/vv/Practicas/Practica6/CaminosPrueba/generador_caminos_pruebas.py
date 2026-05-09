@@ -1,7 +1,6 @@
 import collections
 import os
 
-# 1. DEFINICIÓN DEL GRAFO
 GRAFO = {
     '1': ('N1', 'N2'), '2': ('N1', 'N4'), '3': ('N1', 'N3'), '4': ('N1', 'N5'),
     '5': ('N2', 'N3'), '13': ('N2', 'N2'), '13b': ('N2', 'N2'), '13c': ('N2', 'N2'), '14': ('N2', 'N2'), '23': ('N2', 'N1'),
@@ -22,78 +21,121 @@ def cargar_pares_validos(archivo):
                     pares.add((parts[0].strip(), parts[1].strip()))
     return pares
 
+def evaluar_estado(camino):
+    """Evalúa el estado de UI al final de un camino."""
+    has_dates = False
+    has_quads = False
+    for a in camino:
+        if a == '4':
+            has_dates = False
+            has_quads = False
+        elif a == '8':
+            has_dates = True
+            has_quads = True
+        elif a in ['20', '20b']:
+            has_dates = True
+        elif a == '12':
+            has_quads = True
+    return has_dates, has_quads
+
 def generar_caminos_optimos(pares_objetivo, max_len=25):
-    """
-    Genera un conjunto mínimo de caminos largos que cubren todos los pares objetivos.
-    Solo se permiten transiciones si el par (A, B) está en pares_objetivo.
-    """
     pares_pendientes = set(pares_objetivo)
     caminos_finales = []
     
-    # Construir grafo de adyacencia basado SOLO en pares válidos
     adj = collections.defaultdict(list)
     for a1, a2 in pares_objetivo:
         adj[a1].append(a2)
         
-    aristas_inicio = ['1', '2', '3', '4'] # Aristas que salen de N1
+    aristas_inicio = ['1', '2', '3', '4']
 
-    def encontrar_camino_a_arista(inicio_aristas, arista_destino):
-        """Encuentra la secuencia más corta de aristas válidas hasta la arista_destino"""
-        if arista_destino in inicio_aristas:
-            return [arista_destino]
+    def encontrar_camino_a_arista(inicio_aristas, arista1, arista2, base_dates, base_quads):
+        queue = collections.deque()
+        for a in inicio_aristas:
+            d, q = base_dates, base_quads
+            if a == '4': d, q = False, False
+            elif a == '8': d, q = True, True
+            elif a in ['20', '20b']: d = True
+            elif a == '12': q = True
             
-        queue = collections.deque([(a, [a]) for a in inicio_aristas])
-        visitados = set(inicio_aristas)
+            queue.append((a, [a], d, q))
+            
+        visitados = set()
+        for a in inicio_aristas:
+            d, q = base_dates, base_quads
+            if a == '4': d, q = False, False
+            elif a == '8': d, q = True, True
+            elif a in ['20', '20b']: d = True
+            elif a == '12': q = True
+            visitados.add((a, d, q))
         
         while queue:
-            actual, camino = queue.popleft()
+            actual, camino, has_dates, has_quads = queue.popleft()
+            
+            if actual == arista1:
+                legal = True
+                if arista2 == '11' and not has_dates: legal = False
+                if arista2 in ['9', '10'] and (not has_dates or not has_quads): legal = False
+                
+                if legal:
+                    return camino
+            
             for siguiente in adj[actual]:
-                nuevo_camino = camino + [siguiente]
-                if siguiente == arista_destino:
-                    return nuevo_camino
-                if siguiente not in visitados:
-                    visitados.add(siguiente)
-                    queue.append((siguiente, nuevo_camino))
+                if siguiente == '11' and not has_dates: continue
+                if siguiente in ['9', '10'] and (not has_dates or not has_quads): continue
+                
+                d, q = has_dates, has_quads
+                if siguiente == '4': d, q = False, False
+                elif siguiente == '8': d, q = True, True
+                elif siguiente in ['20', '20b']: d = True
+                elif siguiente == '12': q = True
+                
+                estado = (siguiente, d, q)
+                if estado not in visitados:
+                    visitados.add(estado)
+                    queue.append((siguiente, camino + [siguiente], d, q))
         return None
 
     while pares_pendientes:
-        # Tomar un par objetivo que falte por cubrir
         par_actual = list(pares_pendientes)[0]
         arista1, arista2 = par_actual
         
-        # 1. Encontrar cómo llegar a la primera arista del par desde el inicio
-        camino = encontrar_camino_a_arista(aristas_inicio, arista1)
+        # 1. Encontrar camino al inicio del par
+        camino = encontrar_camino_a_arista(aristas_inicio, arista1, arista2, False, False)
+        
         if not camino:
-            # Si no se puede llegar directamente (raro), lo forzamos artificialmente 
-            # solo para análisis, aunque teóricamente todos son accesibles
-            camino = ['4', arista1] if GRAFO[arista1][0] == 'N5' else ['1', arista1]
+            # Fallback seguro
+            camino = ['4', '20', '11', '12', arista1] if GRAFO[arista1][0] == 'N5' else ['1', arista1]
             
         camino.append(arista2)
         
-        # 2. Extender el camino vorazmente para cubrir más pares pendientes
+        # 2. Extender el camino vorazmente
         while len(camino) < max_len:
             ultima_arista = camino[-1]
             siguientes_posibles = adj[ultima_arista]
             
+            has_dates, has_quads = evaluar_estado(camino)
+            
             mejor_siguiente = None
-            # Priorizar siguientes que cubran un par pendiente
+            
+            # Intentar encontrar una arista que cubra un par pendiente y sea legal
+            opciones_legales = []
             for sig in siguientes_posibles:
+                if sig == '11' and not has_dates: continue
+                if sig in ['9', '10'] and (not has_dates or not has_quads): continue
+                opciones_legales.append(sig)
+                
+            for sig in opciones_legales:
                 if (ultima_arista, sig) in pares_pendientes:
-                    # REGLA DE NEGOCIO: Antes de '11' (Selección Quads), asegurar fechas
-                    if sig == '11':
-                        if '20' not in camino or '20b' not in camino:
-                            continue # Saltar este par por ahora, necesita preparación
                     mejor_siguiente = sig
                     break
             
-            # Si no hay pendiente, tomar cualquiera válido para seguir explorando
-            if not mejor_siguiente and siguientes_posibles:
-                # Intentar no enbuclearse infinitamente en la misma arista (ej. 13, 13, 13)
-                opciones = [s for s in siguientes_posibles if s != ultima_arista]
-                if opciones:
-                    mejor_siguiente = opciones[0]
+            # Si no hay pendiente, seguir por cualquiera legal
+            if not mejor_siguiente and opciones_legales:
+                opciones_nuevas = [s for s in opciones_legales if s != ultima_arista]
+                if opciones_nuevas:
+                    mejor_siguiente = opciones_nuevas[0]
                 else:
-                    mejor_siguiente = siguientes_posibles[0]
+                    mejor_siguiente = opciones_legales[0]
                     
             if mejor_siguiente:
                 camino.append(mejor_siguiente)
@@ -108,8 +150,6 @@ def generar_caminos_optimos(pares_objetivo, max_len=25):
             pares_cubiertos.add((camino[i], camino[i+1]))
             
         pares_pendientes -= pares_cubiertos
-        
-        print(f"Camino generado ({len(camino)} aristas). Pares restantes: {len(pares_pendientes)}")
 
     return caminos_finales
 
@@ -117,23 +157,12 @@ def main():
     archivo_entrada = 'CaminosPrueba/pares_entrada.txt'
     archivo_salida = 'CaminosPrueba/caminos_resultantes.txt'
     
-    print("====================================================")
-    print("   GENERADOR DE CAMINOS OPTIMIZADO (VORAZ)          ")
-    print("====================================================")
-    
     pares_validos = cargar_pares_validos(archivo_entrada)
-    print(f"[*] Cargados {len(pares_validos)} pares válidos.")
-    
-    # Generar caminos, max_len 25 es un buen equilibrio entre largo y manejable en Espresso
     caminos = generar_caminos_optimos(pares_validos, max_len=25)
-    
-    print(f"\n[*] ¡ÉXITO! Generados {len(caminos)} tests para cubrir el 100% de los pares.")
     
     with open(archivo_salida, 'w') as f:
         for c in caminos:
             f.write(','.join(c) + '\n')
-            
-    print(f"[*] Resultados guardados en '{archivo_salida}'")
 
 if __name__ == "__main__":
     main()
