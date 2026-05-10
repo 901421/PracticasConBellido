@@ -16,7 +16,7 @@ GRAFO = {
     '13b':{'org': 'N2', 'dest': 'N2'},
     '13c':{'org': 'N2', 'dest': 'N2'},
     '14': {'org': 'N2', 'dest': 'N2'},
-    '23': {'org': 'N2', 'dest': 'N1'},
+    '21': {'org': 'N2', 'dest': 'N1'},
     
     # N3: Formulario Quad
     '6':  {'org': 'N3', 'dest': 'N2'},
@@ -40,7 +40,7 @@ GRAFO = {
     '16h':{'org': 'N4', 'dest': 'N4'},
     '17': {'org': 'N4', 'dest': 'N4'},
     '18': {'org': 'N4', 'dest': 'N4'},
-    '24': {'org': 'N4', 'dest': 'N1'},
+    '22': {'org': 'N4', 'dest': 'N1'},
     
     # N5: Formulario Reserva
     '9':  {'org': 'N5', 'dest': 'N4'},
@@ -50,18 +50,18 @@ GRAFO = {
     '10b':{'org': 'N5', 'dest': 'N1'},
     '10c':{'org': 'N5', 'dest': 'N1'},
     '11': {'org': 'N5', 'dest': 'N6'},
-    '20': {'org': 'N5', 'dest': 'N5'},
-    '20b':{'org': 'N5', 'dest': 'N5'},
+    '19': {'org': 'N5', 'dest': 'N5'},
+    '19b':{'org': 'N5', 'dest': 'N5'},
     
     # N6: Selección Quads
     '12': {'org': 'N6', 'dest': 'N5'},
     '12b':{'org': 'N6', 'dest': 'N5'},
     '12c':{'org': 'N6', 'dest': 'N5'},
-    '21': {'org': 'N6', 'dest': 'N6'},
-    '21b':{'org': 'N6', 'dest': 'N6'},
-    '21c':{'org': 'N6', 'dest': 'N6'},
-    '25': {'org': 'N6', 'dest': 'N6'},
-    '26': {'org': 'N6', 'dest': 'N6'},
+    '20': {'org': 'N6', 'dest': 'N6'},
+    '20b':{'org': 'N6', 'dest': 'N6'},
+    '20c':{'org': 'N6', 'dest': 'N6'},
+    '23': {'org': 'N6', 'dest': 'N6'},
+    '24': {'org': 'N6', 'dest': 'N6'},
 }
 
 def generar_pares_grafo():

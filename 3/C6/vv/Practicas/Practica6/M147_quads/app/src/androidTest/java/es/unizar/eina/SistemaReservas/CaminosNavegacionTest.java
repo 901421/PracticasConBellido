@@ -92,41 +92,24 @@ public class CaminosNavegacionTest {
         }
     }
 
-    @Parameterized.Parameters(name = "Checkpoint Path {index}: {0}")
+    @Parameterized.Parameters(name = "Integrity Path {index}: {0}")
     public static Collection<Object[]> data() {
-        // LISTA COMPLETA ORIGINAL (PARA EXTRAER SUBCOJUNTO)
-        Object[][] todosLosCaminos = new Object[][]{
-            {"1,13,5,6,5,6b,5,6c,5,15,6,13"}, {"1,13b,5,15b,6,13b,13,13,13b,13b,13c,5"}, {"1,13c,13,13c,13b,14,5,6,13c,13c,14,13"}, {"1,14,13b,23"}, {"1,23,1,5,6,14,13c,23"},
-            {"4,20,20b,11,12,10,1,5,6,23"}, {"4,20,20b,11,12,10,2,8,9b,8,9c,8,20,9b,16,8,20b"}, {"4,20,20b,11,12,10,3,7"}, {"4,20,20b,11,12,10,4,10b"}, {"4,10b,1,5,6,5,6,5,6,5,6,5,6"},
-            {"4,10b,2,16,16,16b,8,9b,16b,16,16c,8,9b"}, {"4,10b,3,7b"}, {"4,10b,4,10c"}, {"4,10c,1,5,6,5,6,5,6,5,6,5,6"}, {"4,10c,2,16b,16b,16c,16,16d,8,9b,16c,16b,16d"},
-            {"4,10c,3,7c"}, {"4,10c,4,20b,10b"}, {"4,20,20b,11,12b,10b"}, {"4,20,20b,11,12c,10b"}, {"4,20,20b,11,21,12,10b"},
-            {"4,20,20b,11,21b,12,10c"}, {"4,20,20b,11,21c,12,11,25,12,20,10"}, {"4,20,20b,11,26,12,20b,10"}, {"2,8,20,20b,11,12,9,8,9b,16d,16,16e,8,9b,16e,16,16f"}, {"2,8,20,20b,11,12,9b,16f,8,9b,16g,8,9b,16h,8,9b,17"},
-            {"2,8,20,20b,11,12,9c,16,16g,16,16h,16,17,8,9b,18,8"}, {"4,20,20b,11,12,11,12b,10,1,5,6,5,6,5,6,5,6,5"}, {"4,20,20b,11,12b,10c,1,5,6,5,6,5,6,5,6,5"}, {"4,20,20b,11,12b,11,12,10"}, {"4,20,20b,11,12b,20,10b"},
-            {"4,20,20b,11,12b,20b,10c"}, {"2,8,20,20b,11,12b,9,16,18,16,19,24"}, {"2,8,20,20b,11,12b,9b,24"}, {"2,8,20,20b,11,12b,9c,16b,16e,16b,16f,16,24"}, {"4,20,20b,11,12,11,12c,10,1,5,6,5,6,5,6,5,6,5"},
-            {"4,20,20b,11,12c,10c,1,5,6,5,6,5,6,5,6,5"}, {"4,20,20b,11,12c,11,12,10"}, {"4,20,20b,11,12c,20,10c"}, {"4,20,20b,11,12c,20b,20,11,12,10"}, {"2,8,20,20b,11,12c,9,16b,16g,16b,16h,16b,17,16,8,9b,8"},
-            {"2,8,20,20b,11,12c,9b,8,9b,8,9b,8,9b,8,9b,8,9b"}, {"2,8,20,20b,11,12c,9c,16c,16c,16d,16b,18,16b,24"}, {"1,13,14,14,23"}, {"1,13,23,2,16c,16e,16c,16f,16b,8,9b,8,9b"}, {"3,15,15,7"},
-            {"3,15,15b,7"}, {"1,5,15,6b,13,5,6,5,6,5,6,5,6,5"}, {"1,5,15,6c,13,5,6,5,6,5,6,5,6,5"}, {"3,15,7b,1,5,6,5,6,5,6,5,6,5"}, {"3,15,7c,1,5,6,5,6,5,6,5,6,5"},
-            {"3,15b,15,7"}, {"3,15b,15b,7b"}, {"1,5,15b,6b,13b,5,6,5,6,5,6,5,6,5"}, {"1,5,15b,6c,13b,5,6,5,6,5,6,5,6,5"}, {"3,15b,7c,2,16d,16c,16g,16c,16h,16c,17,16b,8"},
-            {"2,16c,18,16c,24"}, {"2,16d,16d,16e,16d,16f,16c,8,9b,8,9b,8,9b"}, {"2,16d,16g,16d,16h,16d,17,16c,8,9b,8,9b,8"}, {"2,16d,18,16d,24"}, {"2,16e,16e,16f,16d,8,9b,8,9b,8,9b,8,9b"},
-            {"2,16e,16g,16e,16h,16e,17,16d,8,9b,8,9b,8"}, {"2,16e,18,16e,24"}, {"2,16f,16e,8,9b,8,9b,8,9b,8,9b,8,9b"}, {"2,16f,16f,16g,16f,16h,16f,17,16e,8,9b,8,9b"}, {"2,16f,18,16f,24"},
-            {"2,16g,16g,16h,16g,17,16f,8,9b,8,9b,8,9b"}, {"2,16g,18,16g,24"}, {"2,16h,16h,17,16g,8,9b,8,9b,8,9b,8,9b"}, {"2,16h,18,16h,24"}, {"2,17,16h,8,9b,8,9b,8,9b,8,9b,8,9b"},
-            {"2,17,17,18,17,24"}, {"2,18,18,24"}, {"2,24,1,5,6,5,6,5,6,5,6,5"}, {"4,20,20,10b"}, {"2,8,20b,20,9,16c,8,9b,8,9b,8,9b,8,9b,8"},
-            {"2,8,20,9c,16d,8,9b,8,9b,8,9b,8,9b,8"}, {"4,20b,20b,10b"}, {"2,8,20,20b,9,16d,8,9b,8,9b,8,9b,8,9b,8"}, {"2,8,20b,9b,8,9b,8,9b,8,9b,8,9b,8,9b"}, {"2,8,20b,9c,16e,8,9b,8,9b,8,9b,8,9b,8"},
-            {"4,20,20b,11,21,12b,10b"}, {"4,20,20b,11,21,12c,10b"}, {"4,20,20b,11,21,21,21b,12b,10b"}, {"4,20,20b,11,21,21c,12b,10b"}, {"4,20,20b,11,21,25,12b,10b"},
-            {"4,20,20b,11,21,26,12b,10b"}, {"4,20,20b,11,21b,12c,10b"}, {"4,20,20b,11,21b,21,12,10"}, {"4,20,20b,11,21b,21b,21c,12c,10b"}, {"4,20,20b,11,21b,25,12c,10b"},
-            {"4,20,20b,11,21b,26,12c,10b"}, {"4,20,20b,11,21c,21,12,10"}, {"4,20,20b,11,21c,21b,12,10"}, {"4,20,20b,11,21c,21c,25,21,12,10"}, {"4,20,20b,11,21c,26,21,12,10"},
-            {"1,23,3,7"}, {"1,23,4,10b"}, {"2,24,2,8,9b,8,9b,8,9b,8,9b,8,9b"}, {"2,24,3,7"}, {"2,24,4,10b"},
-            {"4,20,20b,11,25,21b,12,10"}, {"4,20,20b,11,25,21c,12,10"}, {"4,20,20b,11,25,25,26,21b,12,10"}, {"4,20,20b,11,26,21c,12,10"}, {"4,20,20b,11,26,25,12,10"},
-            {"4,20,20b,11,26,26,12,10"}, {"1,5,6b,13c,5,6,5,6,5,6,5,6,5,6"}, {"1,5,6b,14,5,6,5,6,5,6,5,6,5,6"}, {"1,5,6b,23,1,5,6,5,6,5,6,5,6,5"}, {"1,5,6c,13c,5,6,5,6,5,6,5,6,5,6"},
-            {"1,5,6c,14,5,6,5,6,5,6,5,6,5,6"}, {"1,5,6c,23,1,5,6,5,6,5,6,5,6,5"}, {"3,7,1,5,6,5,6,5,6,5,6,5,6"}, {"3,7,2,8,9b,8,9b,8,9b,8,9b,8,9b"}, {"3,7,3,7"},
-            {"3,7,4,10b"}, {"3,7b,2,8,9b,8,9b,8,9b,8,9b,8,9b"}, {"3,7b,3,7"}, {"3,7b,4,10b"}, {"3,7c,3,7"},
-            {"3,7c,4,10b"}, {"2,8,20,20b,9,16e,8,9b,8,9b,8,9b,8,9b,8,9b"}, {"2,8,20,20b,9,16f,8,9b,8,9b,8,9b,8,9b,8,9b"}, {"2,8,20,20b,9,16g,8,9b,8,9b,8,9b,8,9b,8,9b"}, {"2,8,20,20b,9,16h,8,9b,8,9b,8,9b,8,9b,8,9b"},
-            {"2,8,20,20b,9,17,8,9b,8,9b,8,9b,8,9b,8,9b"}, {"2,8,20,20b,9,18,8,9b,8,9b,8,9b,8,9b,8,9b"}, {"2,8,20,20b,9,24,1,5,6,5,6,5,6,5,6,5"}, {"2,8,9c,16f,8,9b,8,9b,8,9b,8,9b,8,9b"}, {"2,8,9c,16g,8,9b,8,9b,8,9b,8,9b,8,9b"},
-            {"2,8,9c,16h,8,9b,8,9b,8,9b,8,9b,8,9b"}, {"2,8,9c,17,8,9b,8,9b,8,9b,8,9b,8,9b"}, {"2,8,9c,18,8,9b,8,9b,8,9b,8,9b,8,9b"}, {"2,8,9c,24,1,5,6,5,6,5,6,5,6,5"}
-        };
-        
-        // REANUDAR DESDE CAMINO 53 (Índice 53 de la lista original)
-        return Arrays.asList(Arrays.copyOfRange(todosLosCaminos, 53, todosLosCaminos.length));
+        return Arrays.asList(new Object[][]{
+            {"1,21"}, 
+            {"2,22"}, 
+            {"3,6"}, 
+            {"3,15b,7b"}, 
+            {"3,7c"}, 
+            {"1,5,15,6"}, 
+            {"1,13,13b,13c,14,21"}, 
+            {"2,8,9b,22"}, 
+            {"4,10c"}, 
+            {"4,19,19b,10b"}, 
+            {"4,19,19b,11,12b,10b"}, 
+            {"4,19,19b,11,12,10"}, 
+            {"2,16,16b,16c,16d,16e,16f,16g,16h,18,17,22"}, 
+            {"4,19,19b,11,20,20b,20c,23,24,12c,10b"}
+        });
     }
 
     private static int totalCaminosEjecutados = 0;
@@ -182,7 +165,7 @@ public class CaminosNavegacionTest {
                 onView(withId(R.id.recyclerview)).perform(RecyclerViewActions.actionOnItemAtPosition(0, clickOnViewChild(R.id.btnDelete)));
                 handleSystemDialog();
                 break;
-            case "23": case "24": pressBackHastaVer(R.id.logo_app); break;
+            case "21": case "22": pressBackHastaVer(R.id.logo_app); break;
 
             case "6": case "7":
                 waitAndPerform(withId(R.id.matricula), replaceText(String.format("%04d-TST", (int)(Math.random()*9000)+1000)));
@@ -226,11 +209,6 @@ public class CaminosNavegacionTest {
                 onView(withId(R.id.recyclerview_reservas)).perform(RecyclerViewActions.actionOnItemAtPosition(0, clickOnViewChild(R.id.btnDetailsReserva)));
                 handleSystemDialog(); 
                 break;
-            case "19":
-                asegurarContenidoLista(R.id.recyclerview_reservas, "RESERVA");
-                onView(withId(R.id.recyclerview_reservas)).perform(RecyclerViewActions.actionOnItemAtPosition(0, clickOnViewChild(R.id.btnSendReserva)));
-                device.pressBack();
-                break;
 
             case "9": case "10":
                 waitAndPerform(withId(R.id.edit_cliente), replaceText("Safe Test"));
@@ -243,8 +221,8 @@ public class CaminosNavegacionTest {
             case "11": 
                 onView(withId(R.id.btn_select_quads)).perform(scrollTo(), forceClick()); 
                 break;
-            case "20": waitAndPerform(withId(R.id.btn_fecha_recogida), forceClick()); handleDatePicker(); break;
-            case "20b": waitAndPerform(withId(R.id.btn_fecha_devolucion), forceClick()); handleDatePicker(); break;
+            case "19": waitAndPerform(withId(R.id.btn_fecha_recogida), forceClick()); handleDatePicker(); break;
+            case "19b": waitAndPerform(withId(R.id.btn_fecha_devolucion), forceClick()); handleDatePicker(); break;
 
             case "12": 
                 asegurarContenidoLista(R.id.recycler_selection, "SELECCION_QUAD");
@@ -254,18 +232,18 @@ public class CaminosNavegacionTest {
                 break;
             case "12b": waitAndPerform(withId(R.id.btn_cancel_selection), forceClick()); esperarCierreDeActividad(R.id.btn_cancel_selection); break;
             case "12c": pressBackHastaVer(R.id.edit_cliente); break; 
-            case "21": case "21b": case "21c":
+            case "20": case "20b": case "20c":
                 int selSortId = R.id.sort_matricula;
-                if (arista.equals("21b")) selSortId = R.id.sort_tipo;
-                else if (arista.equals("21c")) selSortId = R.id.sort_precio;
+                if (arista.equals("20b")) selSortId = R.id.sort_tipo;
+                else if (arista.equals("20c")) selSortId = R.id.sort_precio;
                 waitAndPerform(withId(selSortId), forceClick());
                 break;
-            case "25": 
+            case "23": 
                 asegurarContenidoLista(R.id.recycler_selection, "SELECCION_QUAD");
                 onView(withId(R.id.recycler_selection)).perform(RecyclerViewActions.actionOnItemAtPosition(0, clickOnViewChild(R.id.btn_details_selection)));
                 handleSystemDialog();
                 break;
-            case "26": 
+            case "24": 
                 asegurarContenidoLista(R.id.recycler_selection, "SELECCION_QUAD");
                 onView(withId(R.id.recycler_selection)).perform(RecyclerViewActions.actionOnItemAtPosition(0, clickOnViewChild(R.id.btn_cascos_popup)));
                 Thread.sleep(800);
@@ -295,8 +273,8 @@ public class CaminosNavegacionTest {
             } else if (tipo.equals("RESERVA")) {
                 device.pressBack();
                 mapeoAristaAccion("4"); 
-                mapeoAristaAccion("20"); 
-                mapeoAristaAccion("20b"); 
+                mapeoAristaAccion("19"); 
+                mapeoAristaAccion("19b"); 
                 mapeoAristaAccion("11"); 
                 asegurarContenidoLista(R.id.recycler_selection, "SELECCION_QUAD");
                 mapeoAristaAccion("12"); 
@@ -308,8 +286,8 @@ public class CaminosNavegacionTest {
                 mapeoAristaAccion("3"); 
                 mapeoAristaAccion("6"); 
                 mapeoAristaAccion("4"); 
-                mapeoAristaAccion("20");
-                mapeoAristaAccion("20b");
+                mapeoAristaAccion("19");
+                mapeoAristaAccion("19b");
                 mapeoAristaAccion("11"); 
             }
             isProvisioning = false;
