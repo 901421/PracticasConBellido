@@ -42,6 +42,11 @@ Abre `M147_quads/gradle.properties` y añade al final:
 android.injected.androidTest.leaveApksInstalledAfterRun=true
 ```
 
+### Paso 1.4: Desactivar Animaciones (¡CRÍTICO!)
+Para evitar fallos falsos en Espresso, desactiva las animaciones en el emulador o dispositivo:
+1.  Ajustes -> Opciones de desarrollador.
+2.  Desactiva: **Escala de animación de ventana**, **Escala de transición-animación** y **Escala de duración de animador**.
+
 ---
 
 ## Fase 2: Automatización de Navegación con Espresso (2-3h)
@@ -55,6 +60,9 @@ Basado en los nodos de tu grafo, escribe el test. Ejemplo de estructura:
 2.  **Transición 1 (Nudo A -> B):** `onView(withId(R.id.add_reserva_button)).perform(click());`.
 3.  **Validación:** `onView(withId(R.id.reserva_edit_layout)).check(matches(isDisplayed()));`.
 4.  **Repetir:** Seguir cada flecha de tu grafo hasta completar el camino más largo.
+
+### Paso 2.3: Validación de Intents Externos (Mock Intents)
+Si tu app permite enviar confirmaciones (SMS/WhatsApp), añade un test usando `Intents.intended(...)` para verificar que se lanza el intent correcto al pulsar "Enviar".
 
 ---
 
@@ -108,6 +116,19 @@ Dentro de esta clase deberás:
 2.  **And:** Ir a la lista de Reservas, seleccionar ese Quad y guardar.
 3.  **When:** Volver a la lista de Quads, editar el "Raptor", poner 75 y guardar.
 4.  **Then:** Ir a la lista de Reservas, abrir la reserva realizada y verificar con un `check(matches(withText(containsString("50.0"))))` que el precio no ha subido a 75.
+
+### Paso 4.3: Escenario de Aceptación (Scenario Testing)
+Crea un archivo `M147_quads/app/src/androidTest/assets/features/reserva_flujo.feature` para cubrir un requisito de usuario representativo:
+```gherkin
+Feature: Gestión de reservas por el usuario
+  
+  Scenario: Crear una reserva nueva correctamente
+    Given que estoy en la pantalla principal de reservas
+    When pulso el botón de añadir reserva
+    And relleno los datos de la reserva y guardo
+    Then debo ver la nueva reserva en el listado principal
+```
+Implementa los steps correspondientes en una nueva clase `ReservaSteps.java`.
 
 ---
 
