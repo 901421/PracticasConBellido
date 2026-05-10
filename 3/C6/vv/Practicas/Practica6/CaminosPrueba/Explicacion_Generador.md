@@ -32,9 +32,12 @@ Para maximizar la cobertura y simplificar los tests, el generador opera bajo el 
 ### C. Lógica de Formularios y Estados Internos (STRICTO)
 El generador simula el estado de los campos obligatorios con una precisión elevada:
 - **Fechas de Reserva:** Para que la arista 11 (Seleccionar Quads) sea legal, el algoritmo exige que antes se hayan pulsado las aristas **19 y 19b** (Selección de fechas).
-- **Selección de Quads (hq):** A diferencia de modelos simplistas, pulsar "Confirmar" (12) no garantiza que haya quads. El generador exige haber pasado por la **Arista 24 (Selección de Cascos)** para marcar el estado `hq` como positivo. Esto asegura que el usuario realmente ha interactuado con la lista de vehículos.
-- **Modo Edición de Reserva:** Al detectar la arista 8 (Editar), el algoritmo marca automáticamente las fechas y quads como "ya rellenos", permitiendo una navegación fluida hacia la selección de vehículos o el guardado directo.
-- **Validación de Guardado:** Las aristas de éxito (10 y 9) solo se generan si todos los prerrequisitos (fechas, selección real de quads) se cumplen en ese camino específico.
+- **Selección de Quads (hq) con Memoria de Confirmación:** El algoritmo implementa un sistema de "commit" para modelar la persistencia del estado en Android:
+    - Al entrar en el selector (**Arista 11**), se crea un estado temporal que hereda la selección actual.
+    - La interacción con cascos (**Arista 24**) marca el vehículo en este estado temporal.
+    - Solo al pulsar **Confirmar (Arista 12)**, el estado temporal se vuelca al estado real de la reserva (`hq = True`).
+    - Si el usuario **Cancela o vuelve Atrás (12b, 12c)**, la aplicación mantiene intacta la última selección confirmada. Esto permite cubrir pares complejos como entrar, cancelar y guardar, siempre que haya existido una confirmación válida previa.
+- **Validación de Guardado:** Las aristas de éxito (10 y 9) solo se generan si el estado persistente de la reserva tiene quads confirmados y fechas válidas.
 
 ---
 

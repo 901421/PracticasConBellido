@@ -35,6 +35,7 @@ def cargar_pares_objetivo(archivo):
 
 def evaluar_estado_completo(camino):
     hr, hd, hq = False, False, False
+    temp_hq = False # Estado volátil dentro de N6
     ctx_res = None
     ctx_quad = None
     
@@ -57,7 +58,13 @@ def evaluar_estado_completo(camino):
             hr, hd, hq = True, True, True 
         elif a == '19': hr = True
         elif a == '19b': hd = True
-        elif a == '24': hq = True # REFINADO: Ahora hq requiere pasar por Cascos (24)
+        elif a == '11':
+            temp_hq = hq # Al entrar en N6, heredamos el estado actual confirmado
+        elif a == '24': 
+            temp_hq = True # Interacción que marca el quad
+        elif a == '12':
+            hq = temp_hq # COMMIT: Solo al confirmar se actualiza el estado real
+        # 12b y 12c (Cancelar/Atrás) no tocan hq, preservando la última confirmación
         elif a in ['10', '9', '10b', '10c', '9b', '9c']: 
             ctx_res = None; hr, hd, hq = False, False, False
             
