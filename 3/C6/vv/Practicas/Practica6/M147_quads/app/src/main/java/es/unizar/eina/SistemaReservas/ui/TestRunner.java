@@ -125,22 +125,38 @@ public class TestRunner {
             }
             Log.d(TAG, "SUCCESS: 100 Quads insertados cumpliendo formato Regex.");
 
-            // 2. Insertar 20.000 Reservas
-            // Si por algún motivo no hay vehículos, el repositorio rechazará las reservas (Integridad)
+            // 2. Insertar 20.000 Reservas distribuidas por estados con fechas fijas según especificación
             if (quadsParaVinculo.isEmpty()) {
                 Log.e(TAG, "ERROR: Abortando volumen. No hay quads válidos para vincular.");
                 return;
             }
 
             for (int i = 1; i <= 20000; i++) {
-                Reserva r = new Reserva("Cliente Vol " + i, 600000000, "2026-01-01", "2026-01-02");
-                
-                // Usamos insertSync para asegurar que la inserción termina antes de la siguiente iteración
-                // Pasamos la lista con el vehículo vinculado para cumplir la regla de "reserva no vacía"
+                String fechaIn, fechaOut;
+                String tipo;
+
+                if (i % 3 == 1) {
+                    // CADUCADAS: 2024-01-01 a 2024-01-05
+                    fechaIn = "2024-01-01";
+                    fechaOut = "2024-01-05";
+                    tipo = "CAD";
+                } else if (i % 3 == 2) {
+                    // VIGENTES: 2026-05-01 a 2026-06-30
+                    fechaIn = "2026-05-01";
+                    fechaOut = "2026-06-30";
+                    tipo = "VIG";
+                } else {
+                    // FUTURAS: 2026-08-01 a 2026-10-15
+                    fechaIn = "2026-08-01";
+                    fechaOut = "2026-10-15";
+                    tipo = "FUT";
+                }
+
+                Reserva r = new Reserva("[" + tipo + "] Cliente Vol " + i, 600000000, fechaIn, fechaOut);
                 mResRepo.insertSync(r, quadsParaVinculo); 
                 
                 if (i % 1000 == 0) {
-                    Log.d(TAG, "Progreso: " + i + "/20000 reservas insertadas...");
+                    Log.d(TAG, "Progreso: " + i + "/20000 reservas insertadas (" + tipo + ")...");
                 }
             }
 

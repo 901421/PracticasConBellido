@@ -82,8 +82,47 @@ public class CaminosNavegacionTest {
     @Parameterized.Parameters(name = "Path {index}: {0}")
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][]{
+            {"1,13,5,6,5,6b,5,6c,5,15,6,13"},
+            {"1,13b,5,15b,6,13b,13,13,13b,13b,13c,5"},
+            {"1,13c,13,13c,13b,14,5,6,13c,13c,14,13"},
+            {"1,14,13b,21"},
+            {"1,21,1,5,6,14,13c,21"},
+            {"4,19,19b,11,24,12,10,1,5,6,21"},
+            {"4,19,19b,11,24,12,10,2,8,9,8,9b,8,9c,8,11,12,9"},
+            {"4,19,19b,11,24,12,10,3,7"},
+            {"4,19,19b,11,24,12,10,4,10b"},
+            {"4,10b,1,5,6,5,6,5,6,5,6,5,6"},
+            {"4,10b,2,16,8,19,9,16,16,16b,8,19b,9"},
+            {"4,10b,3,7b"},
+            {"4,10b,4,10c"},
+            {"4,10c,1,5,6,5,6,5,6,5,6,5,6"},
+            {"4,10c,2,16b,16,16c,8,9,16b,16b,16c,16,16d"},
+            {"4,10c,3,7c"},
+            {"4,10c,4,19b,10b"},
+            {"2,8,11,12b,9,16c,16b,16d,8,9,16d,16,16e,8"},
+            {"2,8,11,12c,9,16e,16,16f,8,9,16f,16,16g,8"},
+            {"2,8,11,20,12,9b,16,16h,8,9,16g,16,17,8"},
+            {"2,8,11,20b,12,9c,16,18,8,9,16h,16,22"},
+            {"2,8,11,20c,12,11,23,12,19,9b,16b,16e,16b,16f"},
+            {"4,19,19b,11,12,10b,1,5,6,5,6,5,6,5,6,5"},
+            {"4,19,19b,11,12,10c,1,5,6,5,6,5,6,5,6,5"},
+            {"2,8,11,12,19b,9b,16c,16c,16d,16b,16g,16b,16h,16b,17"},
+            {"4,19,19b,11,24,12,11,12b,10,1,5,6,5,6,5,6,5,6,5"},
+            {"4,19,19b,11,12b,10b,1,5,6,5,6,5,6,5,6,5"},
+            {"4,19,19b,11,12b,10c,1,5,6,5,6,5,6,5,6,5"},
+            {"2,8,11,12b,11,12,9,17,16,8,9,18,16,8,9"},
+            {"2,8,11,12b,19,9c,16b,18,16b,22"},
+            {"2,8,11,12b,19b,9c,16c,16e,16c,16f,16b,8,9,22"},
+            {"2,8,11,12b,9b,16d,16c,16g,16c,16h,16c,17,16b,8,9"},
+            {"2,8,11,12b,9c,16d,16d,16e,16d,16f,16c,18,16c,22"},
+            {"4,19,19b,11,24,12,11,12c,10,1,5,6,5,6,5,6,5,6,5"},
+            {"4,19,19b,11,12c,10b,1,5,6,5,6,5,6,5,6,5"},
+            {"4,19,19b,11,12c,10c,1,5,6,5,6,5,6,5,6,5"},
             {"2,8,11,12c,11,12,9,8,9,8,9,8,9,8,9"},
+            {"2,8,11,12c,19,11,12,9,8,9,8,9,8,9,8"},
+            {"2,8,11,12c,19b,19,19,9,8,9,8,9,8,9,8"},
             {"2,8,11,12c,9b,16e,16e,16f,16d,16g,16d,16h,16d,17,16c"},
+            {"2,8,11,12c,9c,16e,16g,16e,16h,16e,17,16d,18,16d,22"},
             {"1,13,14,14,21"},
             {"1,13,21,2,16c,8,9,8,9,8,9,8,9"},
             {"3,15,15,7"},
@@ -202,17 +241,17 @@ public class CaminosNavegacionTest {
         switch (arista) {
             // --- NAVEGACIÓN INICIAL ---
             case "1": // Arista 1: Menú Principal -> Listado Quads (N2)
-                if (device.hasObject(By.res("es.unizar.eina.SistemaReservas:id/recyclerview"))) return;
+                if (device.hasObject(By.res("es.unizar.eina.SistemaReservas:id/toggleGroupQuads"))) return;
                 onView(withId(R.id.button_listar_quads)).perform(scrollTo(), click()); 
-                if (!device.wait(Until.hasObject(By.res("es.unizar.eina.SistemaReservas:id/recyclerview")), UI_TIMEOUT)) {
-                    throw new RuntimeException("Fallo al abrir N2");
+                if (!device.wait(Until.hasObject(By.res("es.unizar.eina.SistemaReservas:id/toggleGroupQuads")), UI_TIMEOUT)) {
+                    throw new RuntimeException("Fallo al abrir N2 (Listado Quads)");
                 }
                 break;
             case "2": // Arista 2: Menú Principal -> Listado Reservas (N4)
-                if (device.hasObject(By.res("es.unizar.eina.SistemaReservas:id/recyclerview_reservas"))) return;
+                if (device.hasObject(By.res("es.unizar.eina.SistemaReservas:id/btn_open_sort"))) return;
                 onView(withId(R.id.button_listar_reservas)).perform(scrollTo(), click()); 
-                if (!device.wait(Until.hasObject(By.res("es.unizar.eina.SistemaReservas:id/recyclerview_reservas")), UI_TIMEOUT)) {
-                    throw new RuntimeException("Fallo al abrir N4");
+                if (!device.wait(Until.hasObject(By.res("es.unizar.eina.SistemaReservas:id/btn_open_sort")), UI_TIMEOUT)) {
+                    throw new RuntimeException("Fallo al abrir N4 (Listado Reservas)");
                 }
                 break;
             case "3": // Arista 3: Menú Principal -> Formulario Quad (N3) - Modo CREAR
@@ -226,7 +265,7 @@ public class CaminosNavegacionTest {
 
             // --- GESTIÓN DE QUADS (N2) ---
             case "5": // Arista 5: Listado Quads -> Formulario Quad (N3) - Modo EDITAR
-                asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/recyclerview"), "1");
+                asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/toggleGroupQuads"), "1");
                 // Click en el botón de editar (btnEdit) del primer elemento de la lista
                 onView(withId(R.id.recyclerview)).perform(RecyclerViewActions.actionOnItemAtPosition(0, clickOnViewChild(R.id.btnEdit))); 
                 device.wait(Until.hasObject(By.res("es.unizar.eina.SistemaReservas:id/button_save")), UI_TIMEOUT);
@@ -238,7 +277,7 @@ public class CaminosNavegacionTest {
             case "13c": // Arista 13c: Listado Quads -> Ordenar por PRECIO
                 waitAndPerform(withId(R.id.sort_precio), forceClick()); break;
             case "14": // Arista 14: Listado Quads -> ELIMINAR Quad
-                asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/recyclerview"), "1");
+                asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/toggleGroupQuads"), "1");
                 // Click en el botón de borrar (btnDelete) del primer elemento
                 onView(withId(R.id.recyclerview)).perform(RecyclerViewActions.actionOnItemAtPosition(0, clickOnViewChild(R.id.btnDelete)));
                 handleSystemDialog(); // Acepta el diálogo de confirmación de borrado
@@ -269,12 +308,12 @@ public class CaminosNavegacionTest {
 
             // --- GESTIÓN DE RESERVAS (N4) ---
             case "8": // Arista 8: Listado Reservas -> Formulario Reserva (N5) - Modo EDITAR
-                asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/recyclerview_reservas"), "2");
+                asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/btn_open_sort"), "2");
                 onView(withId(R.id.recyclerview_reservas)).perform(RecyclerViewActions.actionOnItemAtPosition(0, clickOnViewChild(R.id.btnEditReserva))); 
                 device.wait(Until.hasObject(By.res("es.unizar.eina.SistemaReservas:id/button_confirm")), UI_TIMEOUT);
                 break;
             case "16": case "16b": case "16c": case "16d": // Aristas 16: Ordenación de Reservas
-                asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/recyclerview_reservas"), "2");
+                asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/btn_open_sort"), "2");
                 waitAndPerform(withId(R.id.btn_open_sort), forceClick()); // Abre panel de ordenación
                 int sid = R.id.option_sort_name;
                 if (arista.equals("16b")) sid = R.id.option_sort_phone;
@@ -283,7 +322,7 @@ public class CaminosNavegacionTest {
                 handleBottomSheet(sid); // Selecciona la opción en el BottomSheet
                 break;
             case "16e": case "16f": case "16g": case "16h": // Aristas 16: Filtrado de Reservas
-                asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/recyclerview_reservas"), "2");
+                asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/btn_open_sort"), "2");
                 waitAndPerform(withId(R.id.btn_open_filter), forceClick()); // Abre panel de filtrado
                 int fid = R.id.option_filter_todas;
                 if (arista.equals("16e")) fid = R.id.option_filter_previstas;
@@ -292,13 +331,13 @@ public class CaminosNavegacionTest {
                 handleBottomSheet(fid); // Selecciona el filtro
                 break;
             case "17": // Arista 17: Listado Reservas -> ELIMINAR Reserva
-                asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/recyclerview_reservas"), "2");
+                asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/btn_open_sort"), "2");
                 onView(withId(R.id.recyclerview_reservas)).perform(RecyclerViewActions.actionOnItemAtPosition(0, clickOnViewChild(R.id.btnDeleteReserva)));
                 handleSystemDialog(); // Confirma eliminación
                 Thread.sleep(3000);
                 break;
             case "18": // Arista 18: Listado Reservas -> VER DETALLES de Reserva
-                asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/recyclerview_reservas"), "2");
+                asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/btn_open_sort"), "2");
                 onView(withId(R.id.recyclerview_reservas)).perform(RecyclerViewActions.actionOnItemAtPosition(0, clickOnViewChild(R.id.btnDetailsReserva)));
                 handleSystemDialog(); // Cierra el diálogo de detalles tras inspeccionarlo
                 break;
@@ -318,7 +357,7 @@ public class CaminosNavegacionTest {
             case "11": // Arista 11: Abrir SELECCIÓN de Quads (N5->N6)
                 onView(withId(R.id.btn_select_quads)).perform(scrollTo(), forceClick()); 
                 if (!device.wait(Until.hasObject(By.res("es.unizar.eina.SistemaReservas:id/recycler_selection")), UI_TIMEOUT)) {
-                    throw new RuntimeException("Fallo al abrir N6");
+                    throw new RuntimeException("Fallo al abrir N6 (Selección Quads)");
                 }
                 break;
             case "19": // Arista 19: Seleccionar FECHA RECOGIDA
