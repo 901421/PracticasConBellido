@@ -385,10 +385,10 @@ public class CaminosNavegacionTest {
                 handleSystemDialog();
                 break;
             case "24": // Arista 24: SELECCIONAR Quad y ajustar CASCOS (Trigger de selección)
-                // 1. IMPORTANTE: Marcamos el CheckBox explícitamente. 
-                // Esto pone isSelected=true en el adaptador y hace visible el botón de cascos.
+                // 1. IMPORTANTE: Aseguramos que el CheckBox esté marcado.
+                // Usamos setChecked para evitar el efecto 'toggle' si ya estaba marcado.
                 onView(withId(R.id.recycler_selection)).perform(
-                        RecyclerViewActions.actionOnItemAtPosition(0, clickOnViewChild(R.id.cb_select)));
+                        RecyclerViewActions.actionOnItemAtPosition(0, setChecked(R.id.cb_select, true)));
                 Thread.sleep(1000);
                 // 2. Abrimos el popup de cascos (confirma que el quad está activo)
                 onView(withId(R.id.recycler_selection)).perform(
@@ -456,6 +456,26 @@ public class CaminosNavegacionTest {
             @Override public void perform(UiController uiController, View view) {
                 View v = view.findViewById(id);
                 if (v != null) v.performClick();
+            }
+        };
+    }
+
+    /** 
+     * ViewAction para establecer el estado de un CheckBox (hijo de la vista actual) 
+     * de forma idempotente. Solo realiza el clic si el estado actual difiere del deseado.
+     */
+    public static ViewAction setChecked(final int id, final boolean checked) {
+        return new ViewAction() {
+            @Override public Matcher<View> getConstraints() { return null; }
+            @Override public String getDescription() { return "Set checked state idempotently"; }
+            @Override public void perform(UiController uiController, View view) {
+                View v = view.findViewById(id);
+                if (v instanceof android.widget.CompoundButton) {
+                    android.widget.CompoundButton cb = (android.widget.CompoundButton) v;
+                    if (cb.isChecked() != checked) {
+                        cb.performClick();
+                    }
+                }
             }
         };
     }
