@@ -35,6 +35,7 @@ import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.replaceText;
 import static androidx.test.espresso.action.ViewActions.scrollTo;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
+import static androidx.test.espresso.matcher.ViewMatchers.isEnabled;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 
@@ -64,8 +65,46 @@ public class CaminosNavegacionTest {
     @Before
     public void setUp() throws Exception {
         device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
-        // Registramos el IdlingResource para que Espresso espere a Room
         IdlingRegistry.getInstance().register(EspressoIdlingResource.getIdlingResource());
+
+        Context ctx = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        es.unizar.eina.SistemaReservas.database.QuadRoomDatabase db = 
+                es.unizar.eina.SistemaReservas.database.QuadRoomDatabase.getDatabase(ctx);
+
+        java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
+        es.unizar.eina.SistemaReservas.database.QuadRoomDatabase.databaseWriteExecutor.execute(() -> {
+            db.clearAllTables();
+            
+            // --- 5 QUADS ---
+            db.QuadDao().insert(new es.unizar.eina.SistemaReservas.database.Quad("0001-TST", true, 40.0, "Quad 1"));
+            db.QuadDao().insert(new es.unizar.eina.SistemaReservas.database.Quad("0002-TST", false, 80.0, "Quad 2"));
+            db.QuadDao().insert(new es.unizar.eina.SistemaReservas.database.Quad("0003-TST", true, 45.0, "Quad 3"));
+            db.QuadDao().insert(new es.unizar.eina.SistemaReservas.database.Quad("0004-TST", false, 85.0, "Quad 4"));
+            db.QuadDao().insert(new es.unizar.eina.SistemaReservas.database.Quad("0005-TST", true, 50.0, "Quad 5"));
+
+            // --- 9 RESERVAS (3 por tipo) ---
+            // Caducadas (2025)
+            db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Caducada 1", 600000001, "2025-01-01", "2025-01-05"));
+            db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Caducada 2", 600000002, "2025-02-01", "2025-02-05"));
+            db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Caducada 3", 600000003, "2025-03-01", "2025-03-05"));
+            
+            // Vigentes (2026)
+            db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Vigente 1", 600000011, "2026-05-01", "2026-05-10"));
+            db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Vigente 2", 600000012, "2026-06-01", "2026-06-10"));
+            db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Vigente 3", 600000013, "2026-07-01", "2026-07-10"));
+            
+            // Previstas (2030)
+            db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Prevista 1", 600000021, "2030-01-01", "2030-01-10"));
+            db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Prevista 2", 600000022, "2030-02-01", "2030-02-10"));
+            db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Prevista 3", 600000023, "2030-03-01", "2030-03-10"));
+
+            latch.countDown();
+        });
+        try {
+            latch.await(10, java.util.concurrent.TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     @org.junit.After
@@ -216,7 +255,7 @@ public class CaminosNavegacionTest {
         }
     }
 
-    /** Wrapper para ejecutar la acción de la arista con lógica de reintentos. */
+    /** Wrapper para ejecutar la acción de la arista con lógica de reintentos selectiva. */
     private void ejecutarAccionConSincronizacion(String arista) throws Exception {
         int attempts = 0;
         while (attempts < MAX_RETRIES) {
@@ -224,11 +263,12 @@ public class CaminosNavegacionTest {
                 mapeoAristaAccion(arista);
                 device.waitForIdle(); 
                 return;
-            } catch (Exception e) {
+            } catch (androidx.test.espresso.NoMatchingViewException | androidx.test.espresso.PerformException e) {
                 attempts++;
                 if (attempts == MAX_RETRIES) throw e;
-                handleSystemDialog(); 
-                Thread.sleep(1500); // Reducido de 2500ms
+                Thread.sleep(1000); 
+            } catch (Exception e) {
+                throw e; // Errores lógicos o asserts fallan al instante
             }
         }
     }
@@ -255,19 +295,21 @@ public class CaminosNavegacionTest {
             // --- GESTIÓN DE QUADS (N2) ---
             case "5": 
                 asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/toggleGroupQuads"), "1");
-                onView(withId(R.id.recyclerview)).perform(RecyclerViewActions.actionOnItemAtPosition(0, clickOnViewChild(R.id.btnEdit))); 
+                safeRecyclerViewInteraction(R.id.recyclerview, clickOnViewChild(R.id.btnEdit)); 
                 break;
             case "13": 
-                waitAndPerform(withId(R.id.sort_matricula), forceClick()); break;
+                asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/toggleGroupQuads"), "1");
+                espressoPerform(withId(R.id.sort_matricula), forceClick()); break;
             case "13b": 
-                waitAndPerform(withId(R.id.sort_tipo), forceClick()); break;
+                asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/toggleGroupQuads"), "1");
+                espressoPerform(withId(R.id.sort_tipo), forceClick()); break;
             case "13c": 
-                waitAndPerform(withId(R.id.sort_precio), forceClick()); break;
+                asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/toggleGroupQuads"), "1");
+                espressoPerform(withId(R.id.sort_precio), forceClick()); break;
             case "14": 
                 asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/toggleGroupQuads"), "1");
-                onView(withId(R.id.recyclerview)).perform(RecyclerViewActions.actionOnItemAtPosition(0, clickOnViewChild(R.id.btnDelete)));
-                handleSystemDialog(); 
-                // Ya no requiere sleep(3000) porque Room IdlingResource espera el borrado
+                safeRecyclerViewInteraction(R.id.recyclerview, clickOnViewChild(R.id.btnDelete));
+                handleDestructiveDialog(); 
                 break;
             case "21": case "22": 
                 device.pressBack(); 
@@ -275,29 +317,30 @@ public class CaminosNavegacionTest {
 
             // --- FORMULARIO QUAD (N3) ---
             case "6": case "7": // Aristas 6/7: GUARDAR cambios en Quad
-                waitAndPerform(withId(R.id.matricula), replaceText(String.format("%04d-TST", (int)(Math.random()*9000)+1000)));
-                waitAndPerform(withId(R.id.precio), replaceText("55.0"));
-                waitAndPerform(withId(R.id.button_save), forceClick());
-                // Eliminado sleep(2000)
+                // Matrícula determinista basada en el hash del camino para reproducibilidad
+                String matriculaDeter = String.format("T%03d-TST", Math.abs(Arrays.toString(camino).hashCode() % 1000));
+                espressoPerform(withId(R.id.matricula), replaceText(matriculaDeter));
+                espressoPerform(withId(R.id.precio), replaceText("55.0"));
+                espressoPerform(withId(R.id.button_save), forceClick());
                 break;
             case "6b": case "7b": 
-                waitAndPerform(withId(R.id.button_cancel), forceClick()); break;
+                espressoPerform(withId(R.id.button_cancel), forceClick()); break;
             case "6c": case "7c": 
                 device.pressBack(); break;
 
             case "15": 
-                waitAndPerform(withId(R.id.btnMonoplaza), forceClick()); break;
+                espressoPerform(withId(R.id.btnMonoplaza), forceClick()); break;
             case "15b": 
-                waitAndPerform(withId(R.id.btnBiplaza), forceClick()); break;
+                espressoPerform(withId(R.id.btnBiplaza), forceClick()); break;
 
             // --- GESTIÓN DE RESERVAS (N4) ---
             case "8": 
                 asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/btn_open_sort"), "2");
-                onView(withId(R.id.recyclerview_reservas)).perform(RecyclerViewActions.actionOnItemAtPosition(0, clickOnViewChild(R.id.btnEditReserva))); 
+                safeRecyclerViewInteraction(R.id.recyclerview_reservas, clickOnViewChild(R.id.btnEditReserva)); 
                 break;
             case "16": case "16b": case "16c": case "16d": 
                 asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/btn_open_sort"), "2");
-                waitAndPerform(withId(R.id.btn_open_sort), forceClick()); 
+                espressoPerform(withId(R.id.btn_open_sort), forceClick()); 
                 int sid = R.id.option_sort_name;
                 if (arista.equals("16b")) sid = R.id.option_sort_phone;
                 else if (arista.equals("16c")) sid = R.id.option_sort_date_in;
@@ -306,94 +349,162 @@ public class CaminosNavegacionTest {
                 break;
             case "16e": case "16f": case "16g": case "16h": 
                 asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/btn_open_sort"), "2");
-                waitAndPerform(withId(R.id.btn_open_filter), forceClick()); 
+                espressoPerform(withId(R.id.btn_open_filter), forceClick()); 
                 int fid = R.id.option_filter_todas;
                 if (arista.equals("16e")) fid = R.id.option_filter_previstas;
                 else if (arista.equals("16f")) fid = R.id.option_filter_vigentes;
                 else if (arista.equals("16g")) fid = R.id.option_filter_caducadas;
                 handleBottomSheet(fid); 
+                // Seguridad: Validamos que el filtro no ha dejado la lista vacía
+                if (!arista.equals("16h")) {
+                    verificarRecyclerViewNoVacio(R.id.recyclerview_reservas);
+                }
                 break;
             case "17": 
                 asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/btn_open_sort"), "2");
-                onView(withId(R.id.recyclerview_reservas)).perform(RecyclerViewActions.actionOnItemAtPosition(0, clickOnViewChild(R.id.btnDeleteReserva)));
-                handleSystemDialog(); 
+                safeRecyclerViewInteraction(R.id.recyclerview_reservas, clickOnViewChild(R.id.btnDeleteReserva));
+                handleDestructiveDialog(); 
                 break;
             case "18": 
                 asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/btn_open_sort"), "2");
-                onView(withId(R.id.recyclerview_reservas)).perform(RecyclerViewActions.actionOnItemAtPosition(0, clickOnViewChild(R.id.btnDetailsReserva)));
-                handleSystemDialog(); 
+                safeRecyclerViewInteraction(R.id.recyclerview_reservas, clickOnViewChild(R.id.btnDetailsReserva));
+                
+                // Detección dinámica: ¿es diálogo o activity?
+                UiObject btnCierre = device.findObject(new UiSelector().textMatches("(?i)CERRAR|CLOSE|OK|ACEPTAR"));
+                if (btnCierre.waitForExists(2000)) {
+                    btnCierre.click();
+                } else {
+                    device.pressBack(); // Asumimos Activity si no hay diálogo
+                }
+                device.waitForIdle();
                 break;
 
             // --- FORMULARIO RESERVA (N5) ---
             case "9": case "10": 
-                waitAndPerform(withId(R.id.edit_cliente), replaceText("Audit Test"));
-                waitAndPerform(withId(R.id.edit_telefono), replaceText("600111222"));
-                waitAndPerform(withId(R.id.button_confirm), forceClick());
+                espressoPerform(withId(R.id.edit_cliente), replaceText("Audit Test"));
+                espressoPerform(withId(R.id.edit_telefono), replaceText("600111222"));
+                // Validación de integridad: el botón solo habilita si hay quads seleccionados
+                onView(withId(R.id.button_confirm)).check(matches(isEnabled()));
+                espressoPerform(withId(R.id.button_confirm), forceClick());
                 break;
             case "9b": case "10b": 
-                waitAndPerform(withId(R.id.button_cancel), forceClick()); break;
+                espressoPerform(withId(R.id.button_cancel), forceClick()); break;
             case "9c": case "10c": 
                 device.pressBack(); break;
             case "11": 
                 onView(withId(R.id.btn_select_quads)).perform(scrollTo(), forceClick()); 
+                verificarTransicionASeleccion();
                 break;
             case "19": 
-                waitAndPerform(withId(R.id.btn_fecha_recogida), forceClick()); handleDatePicker(); break;
+                espressoPerform(withId(R.id.btn_fecha_recogida), forceClick()); handleDatePicker(); break;
             case "19b": 
-                waitAndPerform(withId(R.id.btn_fecha_devolucion), forceClick()); handleDatePicker(); break;
+                espressoPerform(withId(R.id.btn_fecha_devolucion), forceClick()); handleDatePicker(); break;
 
             // --- SELECCIÓN DE QUADS (N6) ---
             case "12": 
-                waitAndPerform(withId(R.id.btn_confirm_selection), forceClick());
+                // Validación: no confirmar si el botón está deshabilitado (ningún quad marcado)
+                onView(withId(R.id.btn_confirm_selection)).check(matches(isEnabled()));
+                espressoPerform(withId(R.id.btn_confirm_selection), forceClick());
                 break;
             case "12b": 
-                waitAndPerform(withId(R.id.btn_cancel_selection), forceClick()); break;
+                espressoPerform(withId(R.id.btn_cancel_selection), forceClick()); break;
             case "12c": 
                 device.pressBack(); break; 
             case "20": case "20b": case "20c": 
                 int selSortId = R.id.sort_matricula;
                 if (arista.equals("20b")) selSortId = R.id.sort_tipo;
                 else if (arista.equals("20c")) selSortId = R.id.sort_precio;
-                waitAndPerform(withId(selSortId), forceClick());
+                espressoPerform(withId(selSortId), forceClick());
                 break;
             case "23": 
                 onView(withId(R.id.recycler_selection)).perform(RecyclerViewActions.actionOnItemAtPosition(0, clickOnViewChild(R.id.btn_details_selection)));
-                handleSystemDialog();
+                handleInfoDialog();
                 break;
             case "24": 
                 onView(withId(R.id.recycler_selection)).perform(
                         RecyclerViewActions.actionOnItemAtPosition(0, setChecked(R.id.cb_select, true)));
-                Thread.sleep(800);
+                
+                // Espera activa a que el botón se habilite tras el marcado (asincronía UI)
+                if (!device.wait(Until.hasObject(By.res("es.unizar.eina.SistemaReservas:id/btn_cascos_popup").enabled(true)), 3000)) {
+                    throw new RuntimeException("ERROR ARISTA 24: El botón de cascos no se habilitó tras seleccionar el Quad.");
+                }
+
                 onView(withId(R.id.recycler_selection)).perform(
                         RecyclerViewActions.actionOnItemAtPosition(0, clickOnViewChild(R.id.btn_cascos_popup)));
-                // Sincronización determinista con UiAutomator
-                UiObject op = device.findObject(new UiSelector().textMatches("(?i)1 Casco|0 Cascos|2 Cascos"));
-                if (op.waitForExists(2000)) op.click();
-                else device.pressBack();
+
+                // Regex robusto para cualquier variante de "Casco"
+                UiObject op = device.findObject(new UiSelector().textMatches("(?i).*Casco.*"));
+                if (op.waitForExists(2000)) {
+                    op.click();
+                } else {
+                    throw new RuntimeException("ERROR ARISTA 24: No se encontraron opciones en el diálogo de cascos.");
+                }
                 break;
 
             default: throw new IllegalArgumentException("Arista Desconocida en Switch: " + arista);
         }
     }
 
+    /** Verifica que la navegación a selección fue exitosa y tiene datos. */
+    private void verificarTransicionASeleccion() {
+        if (!device.wait(Until.hasObject(By.res("es.unizar.eina.SistemaReservas:id/recycler_selection")), 3500)) {
+            throw new RuntimeException("BLOQUEO NAVEGACIÓN (Arista 11): Revisa fechas (19/19b).");
+        }
+        verificarRecyclerViewNoVacio(R.id.recycler_selection);
+    }
+
+    /** Verifica que un RecyclerView tiene al menos un elemento. */
+    private void verificarRecyclerViewNoVacio(int resId) {
+        onView(withId(resId)).perform(new ViewAction() {
+            @Override public Matcher<View> getConstraints() { return isDisplayed(); }
+            @Override public String getDescription() { return "assert list not empty"; }
+            @Override public void perform(UiController uiController, View view) {
+                androidx.recyclerview.widget.RecyclerView rv = (androidx.recyclerview.widget.RecyclerView) view;
+                if (rv.getAdapter() == null || rv.getAdapter().getItemCount() == 0) {
+                    throw new RuntimeException("LISTA VACÍA en " + view.getResources().getResourceEntryName(resId));
+                }
+            }
+        });
+    }
+
     /** Helper: Asegura que la App está en la pantalla correcta antes de interaccionar. */
     private void asegurarPantalla(BySelector selector, String aristaNav) throws Exception {
         if (!device.hasObject(selector)) {
-            mapeoAristaAccion(aristaNav); // Navega si no encuentra el elemento
+            // Intentamos navegar
+            mapeoAristaAccion(aristaNav); 
+            
+            // Verificamos si hemos llegado con éxito (espera activa)
+            if (!device.wait(Until.hasObject(selector), UI_TIMEOUT)) {
+                throw new RuntimeException("ERROR DE NAVEGACIÓN: Se intentó ir a la pantalla '" + aristaNav + 
+                        "' pero no se detectó el objeto esperado: " + selector.toString());
+            }
         }
     }
 
     /** Helper: Maneja el diálogo nativo DatePickerDialog de Android. */
     private void handleDatePicker() throws UiObjectNotFoundException, InterruptedException {
         UiObject ok = device.findObject(new UiSelector().textMatches("(?i)OK|ACEPTAR|ESTABLECER|LISTO|DONE|CONFIRMAR"));
-        if (ok.waitForExists(4000)) { ok.click(); Thread.sleep(1500); }
+        if (ok.waitForExists(4000)) { 
+            ok.click(); 
+            device.waitForIdle(); 
+        }
     }
 
-    /** Helper: Maneja diálogos genéricos de confirmación o alerta mediante UiAutomator. */
-    private void handleSystemDialog() throws InterruptedException {
-        UiObject btn = device.findObject(new UiSelector().textMatches("(?i)ELIMINAR|ACEPTAR|OK|CONFIRMAR|SI|SÍ|CERRAR|CLOSE|CANCELAR"));
+    /** Maneja diálogos donde se requiere confirmar una acción destructiva (Borrar). */
+    private void handleDestructiveDialog() throws InterruptedException {
+        UiObject btn = device.findObject(new UiSelector().textMatches("(?i)ELIMINAR|BORRAR|ACEPTAR|OK|CONFIRMAR|SI|SÍ|DELETE"));
         if (btn.waitForExists(3000)) {
-            try { btn.click(); Thread.sleep(1500); } catch (Exception ignored) {}
+            btn.click();
+            device.waitForIdle();
+        }
+    }
+
+    /** Maneja diálogos informativos o de cierre. */
+    private void handleInfoDialog() throws InterruptedException {
+        UiObject btn = device.findObject(new UiSelector().textMatches("(?i)CERRAR|CLOSE|OK|ACEPTAR|ENTENDIDO"));
+        if (btn.waitForExists(3000)) {
+            btn.click();
+            device.waitForIdle();
         }
     }
 
@@ -406,7 +517,7 @@ public class CaminosNavegacionTest {
     }
 
     /** Helper: Sincroniza Espresso con la UI. */
-    private void waitAndPerform(Matcher<View> matcher, ViewAction action) {
+    private void espressoPerform(Matcher<View> matcher, ViewAction action) {
         onView(matcher).perform(action);
     }
 
@@ -422,7 +533,7 @@ public class CaminosNavegacionTest {
     /** ViewAction para interaccionar con un componente hijo específico dentro de un elemento de lista. */
     public static ViewAction clickOnViewChild(final int id) {
         return new ViewAction() {
-            @Override public Matcher<View> getConstraints() { return null; }
+            @Override public Matcher<View> getConstraints() { return isDisplayed(); }
             @Override public String getDescription() { return "Click child"; }
             @Override public void perform(UiController uiController, View view) {
                 View v = view.findViewById(id);
@@ -437,7 +548,7 @@ public class CaminosNavegacionTest {
      */
     public static ViewAction setChecked(final int id, final boolean checked) {
         return new ViewAction() {
-            @Override public Matcher<View> getConstraints() { return null; }
+            @Override public Matcher<View> getConstraints() { return isDisplayed(); }
             @Override public String getDescription() { return "Set checked state idempotently"; }
             @Override public void perform(UiController uiController, View view) {
                 View v = view.findViewById(id);
@@ -449,5 +560,23 @@ public class CaminosNavegacionTest {
                 }
             }
         };
+    }
+
+    /** Helper para interaccionar con RecyclerView de forma segura, verificando que no esté vacío. */
+    private void safeRecyclerViewInteraction(int recyclerViewId, ViewAction action) {
+        onView(withId(recyclerViewId)).check(matches(isDisplayed()));
+        onView(withId(recyclerViewId)).perform(new ViewAction() {
+            @Override public Matcher<View> getConstraints() { return isDisplayed(); }
+            @Override public String getDescription() { return "check if recycler has items"; }
+            @Override public void perform(UiController uiController, View view) {
+                if (view instanceof androidx.recyclerview.widget.RecyclerView) {
+                    androidx.recyclerview.widget.RecyclerView rv = (androidx.recyclerview.widget.RecyclerView) view;
+                    if (rv.getAdapter() == null || rv.getAdapter().getItemCount() == 0) {
+                        throw new RuntimeException("RecyclerView con ID " + recyclerViewId + " está vacío. Abortando acción.");
+                    }
+                }
+            }
+        });
+        onView(withId(recyclerViewId)).perform(RecyclerViewActions.actionOnItemAtPosition(0, action));
     }
 }
