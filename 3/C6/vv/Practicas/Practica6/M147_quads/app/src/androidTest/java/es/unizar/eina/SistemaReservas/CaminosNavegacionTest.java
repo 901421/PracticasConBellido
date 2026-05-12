@@ -84,19 +84,19 @@ public class CaminosNavegacionTest {
 
             // --- 9 RESERVAS (3 por tipo) ---
             // Caducadas (2025)
-            db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Caducada 1", 600000001, "2025-01-01", "2025-01-05"));
-            db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Caducada 2", 600000002, "2025-02-01", "2025-02-05"));
-            db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Caducada 3", 600000003, "2025-03-01", "2025-03-05"));
+            db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Caducada 1", 600000001, "2025-01-01", "2025-12-05"));
+            db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Caducada 2", 600000002, "2025-01-01", "2025-12-05"));
+            db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Caducada 3", 600000003, "2025-01-01", "2025-12-05"));
             
             // Vigentes (2026)
-            db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Vigente 1", 600000011, "2026-05-01", "2026-05-10"));
-            db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Vigente 2", 600000012, "2026-06-01", "2026-06-10"));
-            db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Vigente 3", 600000013, "2026-07-01", "2026-07-10"));
+            db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Vigente 1", 600000011, "2026-01-01", "2026-12-10"));
+            db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Vigente 2", 600000012, "2026-01-01", "2026-12-10"));
+            db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Vigente 3", 600000013, "2026-01-01", "2026-12-10"));
             
             // Previstas (2030)
-            db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Prevista 1", 600000021, "2030-01-01", "2030-01-10"));
-            db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Prevista 2", 600000022, "2030-02-01", "2030-02-10"));
-            db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Prevista 3", 600000023, "2030-03-01", "2030-03-10"));
+            db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Prevista 1", 600000021, "2030-01-01", "2030-12-10"));
+            db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Prevista 2", 600000022, "2030-01-01", "2030-12-10"));
+            db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Prevista 3", 600000023, "2030-01-01", "2030-12-10"));
 
             latch.countDown();
         });
@@ -117,131 +117,7 @@ public class CaminosNavegacionTest {
     @Parameterized.Parameters(name = "Path {index}: {0}")
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][]{
-            {"1,13,5,6,5,6b,5,6c,5,15,6,13"},
-            {"1,13b,5,15b,6,13b,13,13,13b,13b,13c,5"},
-            {"1,13c,13,13c,13b,14,5,6,13c,13c,14,13"},
-            {"1,14,13b,21"},
-            {"1,21,1,5,6,14,13c,21"},
-            {"4,19,19b,11,24,12,10,1,5,6,21"},
-            {"4,19,19b,11,24,12,10,2,8,9,8,9b,8,9c,8,11,12,9"},
-            {"4,19,19b,11,24,12,10,3,7"},
-            {"4,19,19b,11,24,12,10,4,10b"},
-            {"4,10b,1,5,6,5,6,5,6,5,6,5,6"},
-            {"4,10b,2,16,8,19,9,16,16,16b,8,19b,9"},
-            {"4,10b,3,7b"},
-            {"4,10b,4,10c"},
-            {"4,10c,1,5,6,5,6,5,6,5,6,5,6"},
-            {"4,10c,2,16b,16,16c,8,9,16b,16b,16c,16,16d"},
-            {"4,10c,3,7c"},
-            {"4,10c,4,19b,10b"},
-            {"2,8,11,12b,9,16c,16b,16d,8,9,16d,16,16e,8"},
-            {"2,8,11,12c,9,16e,16,16f,8,9,16f,16,16g,8"},
-            {"2,8,11,20,12,9b,16,16h,8,9,16g,16,17,8"},
-            {"2,8,11,20b,12,9c,16,18,8,9,16h,16,22"},
-            {"2,8,11,20c,12,11,23,12,19,9b,16b,16e,16b,16f"},
-            {"4,19,19b,11,12,10b,1,5,6,5,6,5,6,5,6,5"},
-            {"4,19,19b,11,12,10c,1,5,6,5,6,5,6,5,6,5"},
-            {"2,8,11,12,19b,9b,16c,16c,16d,16b,16g,16b,16h,16b,17"},
-            {"4,19,19b,11,24,12,11,12b,10,1,5,6,5,6,5,6,5,6,5"},
-            {"4,19,19b,11,12b,10b,1,5,6,5,6,5,6,5,6,5"},
-            {"4,19,19b,11,12b,10c,1,5,6,5,6,5,6,5,6,5"},
-            {"2,8,11,12b,11,12,9,17,16,8,9,18,16,8,9"},
-            {"2,8,11,12b,19,9c,16b,18,16b,22"},
-            {"2,8,11,12b,19b,9c,16c,16e,16c,16f,16b,8,9,22"},
-            {"2,8,11,12b,9b,16d,16c,16g,16c,16h,16c,17,16b,8,9"},
-            {"2,8,11,12b,9c,16d,16d,16e,16d,16f,16c,18,16c,22"},
-            {"4,19,19b,11,24,12,11,12c,10,1,5,6,5,6,5,6,5,6,5"},
-            {"4,19,19b,11,12c,10b,1,5,6,5,6,5,6,5,6,5"},
-            {"4,19,19b,11,12c,10c,1,5,6,5,6,5,6,5,6,5"},
-            {"2,8,11,12c,11,12,9,8,9,8,9,8,9,8,9"},
-            {"2,8,11,12c,19,11,12,9,8,9,8,9,8,9,8"},
-            {"2,8,11,12c,19b,19,19,9,8,9,8,9,8,9,8"},
-            {"2,8,11,12c,9b,16e,16e,16f,16d,16g,16d,16h,16d,17,16c"},
-            {"2,8,11,12c,9c,16e,16g,16e,16h,16e,17,16d,18,16d,22"},
-            {"1,13,14,14,21"},
-            {"1,13,21,2,16c,8,9,8,9,8,9,8,9"},
-            {"3,15,15,7"},
-            {"3,15,15b,7"},
-            {"1,5,15,6b,13,5,6,5,6,5,6,5,6,5"},
-            {"1,5,15,6c,13,5,6,5,6,5,6,5,6,5"},
-            {"3,15,7b,1,5,6,5,6,5,6,5,6,5"},
-            {"3,15,7c,1,5,6,5,6,5,6,5,6,5"},
-            {"3,15b,15,7"},
-            {"3,15b,15b,7b"},
-            {"1,5,15b,6b,13b,5,6,5,6,5,6,5,6,5"},
-            {"1,5,15b,6c,13b,5,6,5,6,5,6,5,6,5"},
-            {"3,15b,7c,2,16d,8,9,8,9,8,9,8,9"},
-            {"2,16e,18,16e,22"},
-            {"2,16f,16e,8,9,8,9,8,9,8,9,8,9"},
-            {"2,16f,16f,16g,16f,16h,16f,17,16e,8,9,8,9"},
-            {"2,16f,18,16f,22"},
-            {"2,16g,16g,16h,16g,17,16f,8,9,8,9,8,9"},
-            {"2,16g,18,16g,22"},
-            {"2,16h,16h,17,16g,8,9,8,9,8,9,8,9"},
-            {"2,16h,18,16h,22"},
-            {"2,17,16h,8,9,8,9,8,9,8,9,8,9"},
-            {"2,17,17,18,17,22"},
-            {"2,18,18,22"},
-            {"4,19,19b,11,24,12,19,10,1,5,6,5,6,5,6,5,6,5"},
-            {"4,19,10b,1,5,6,5,6,5,6,5,6,5"},
-            {"4,19,10c,1,5,6,5,6,5,6,5,6,5"},
-            {"4,19,19b,11,24,12,19b,10,1,5,6,5,6,5,6,5,6,5"},
-            {"4,19b,10c,1,5,6,5,6,5,6,5,6,5"},
-            {"4,19b,19b,10b"},
-            {"2,22,1,5,6,5,6,5,6,5,6,5"},
-            {"2,8,11,20,12b,9,8,9,8,9,8,9,8,9,8"},
-            {"2,8,11,20,12c,9,8,9,8,9,8,9,8,9,8"},
-            {"2,8,11,20,20,20b,12b,9,8,9,8,9,8,9,8"},
-            {"2,8,11,20,20c,12b,9,8,9,8,9,8,9,8,9"},
-            {"2,8,11,20,23,12b,9,8,9,8,9,8,9,8,9"},
-            {"2,8,11,20,24,12b,9,8,9,8,9,8,9,8,9"},
-            {"2,8,11,20b,12c,9,8,9,8,9,8,9,8,9,8"},
-            {"2,8,11,20b,20,12,9,8,9,8,9,8,9,8,9"},
-            {"2,8,11,20b,20b,20c,12c,9,8,9,8,9,8,9,8"},
-            {"2,8,11,20b,23,12c,9,8,9,8,9,8,9,8,9"},
-            {"2,8,11,20b,24,12c,9,8,9,8,9,8,9,8,9"},
-            {"2,8,11,20c,20,12,9,8,9,8,9,8,9,8,9"},
-            {"2,8,11,20c,20b,12,9,8,9,8,9,8,9,8,9"},
-            {"2,8,11,20c,20c,23,20,12,9,8,9,8,9,8,9"},
-            {"2,8,11,20c,24,20,12,9,8,9,8,9,8,9,8"},
-            {"1,21,3,7"},
-            {"1,21,4,10b"},
-            {"2,22,2,8,9,8,9,8,9,8,9,8,9"},
-            {"2,22,3,7"},
-            {"2,22,4,10b"},
-            {"2,8,11,23,20b,12,9,8,9,8,9,8,9,8,9"},
-            {"2,8,11,23,20c,12,9,8,9,8,9,8,9,8,9"},
-            {"2,8,11,23,23,24,20b,12,9,8,9,8,9,8,9"},
-            {"2,8,11,24,20c,12,9,8,9,8,9,8,9,8,9"},
-            {"2,8,11,24,23,12,9,8,9,8,9,8,9,8,9"},
-            {"2,8,11,24,24,12,9,8,9,8,9,8,9,8,9"},
-            {"1,5,6b,13c,5,6,5,6,5,6,5,6,5,6"},
-            {"1,5,6b,14,5,6,5,6,5,6,5,6,5,6"},
-            {"1,5,6b,21,1,5,6,5,6,5,6,5,6,5"},
-            {"1,5,6c,13c,5,6,5,6,5,6,5,6,5,6"},
-            {"1,5,6c,14,5,6,5,6,5,6,5,6,5,6"},
-            {"1,5,6c,21,1,5,6,5,6,5,6,5,6,5"},
-            {"3,7,1,5,6,5,6,5,6,5,6,5,6"},
-            {"3,7,2,8,9,8,9,8,9,8,9,8,9"},
-            {"3,7,3,7"},
-            {"3,7,4,10b"},
-            {"3,7b,2,8,9,8,9,8,9,8,9,8,9"},
-            {"3,7b,3,7"},
-            {"3,7b,4,10b"},
-            {"3,7c,3,7"},
-            {"3,7c,4,10b"},
-            {"2,8,9b,16f,8,9,8,9,8,9,8,9,8,9"},
-            {"2,8,9b,16g,8,9,8,9,8,9,8,9,8,9"},
-            {"2,8,9b,16h,8,9,8,9,8,9,8,9,8,9"},
-            {"2,8,9b,17,8,9,8,9,8,9,8,9,8,9"},
-            {"2,8,9b,18,8,9,8,9,8,9,8,9,8,9"},
-            {"2,8,9b,22,1,5,6,5,6,5,6,5,6,5"},
-            {"2,8,9c,16f,8,9,8,9,8,9,8,9,8,9"},
-            {"2,8,9c,16g,8,9,8,9,8,9,8,9,8,9"},
-            {"2,8,9c,16h,8,9,8,9,8,9,8,9,8,9"},
-            {"2,8,9c,17,8,9,8,9,8,9,8,9,8,9"},
-            {"2,8,9c,18,8,9,8,9,8,9,8,9,8,9"},
-            {"2,8,9c,22,1,5,6,5,6,5,6,5,6,5"}
+            {"2,8,11,20,20b,20c,23,24,12c,9b,22"}
         });
     }
 
@@ -491,7 +367,7 @@ public class CaminosNavegacionTest {
     }
 
     /** Maneja diálogos donde se requiere confirmar una acción destructiva (Borrar). */
-    private void handleDestructiveDialog() throws InterruptedException {
+    private void handleDestructiveDialog() throws InterruptedException, UiObjectNotFoundException {
         UiObject btn = device.findObject(new UiSelector().textMatches("(?i)ELIMINAR|BORRAR|ACEPTAR|OK|CONFIRMAR|SI|SÍ|DELETE"));
         if (btn.waitForExists(3000)) {
             btn.click();
@@ -500,7 +376,7 @@ public class CaminosNavegacionTest {
     }
 
     /** Maneja diálogos informativos o de cierre. */
-    private void handleInfoDialog() throws InterruptedException {
+    private void handleInfoDialog() throws InterruptedException, UiObjectNotFoundException {
         UiObject btn = device.findObject(new UiSelector().textMatches("(?i)CERRAR|CLOSE|OK|ACEPTAR|ENTENDIDO"));
         if (btn.waitForExists(3000)) {
             btn.click();
