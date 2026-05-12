@@ -7,6 +7,7 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
+import es.unizar.eina.SistemaReservas.util.IdlingExecutorService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -46,9 +47,10 @@ public abstract class QuadRoomDatabase extends RoomDatabase {
     /** 
      * ExecutorService para ejecutar operaciones de base de datos en hilos de fondo. 
      * Centraliza las tareas de escritura para evitar colisiones.
+     * Envuelto en un decorador para sincronización con Espresso.
      */
     public static final ExecutorService databaseWriteExecutor =
-            Executors.newFixedThreadPool(NUMBER_OF_THREADS);
+            new IdlingExecutorService(Executors.newFixedThreadPool(NUMBER_OF_THREADS));
 
     /**
      * Devuelve la instancia singleton de la base de datos. 

@@ -46,6 +46,7 @@ dependencies {
     // --- UI ---
     implementation "androidx.constraintlayout:constraintlayout:$rootProject.constraintLayoutVersion"
     implementation "com.google.android.material:material:$rootProject.materialVersion"
+    implementation "androidx.test.espresso:espresso-idling-resource:3.5.1"
 
     // JUnit básico
     testImplementation "junit:junit:4.13.2"

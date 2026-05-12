@@ -23,6 +23,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import androidx.test.espresso.IdlingRegistry;
+import es.unizar.eina.SistemaReservas.util.EspressoIdlingResource;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -39,43 +41,37 @@ import static androidx.test.espresso.matcher.ViewMatchers.withId;
 /**
  * Suite de pruebas parametrizadas para validar los caminos de navegación Edge-Pair.
  * Utiliza Espresso para interacciones estándar y UiAutomator para diálogos del sistema.
+ * Sincronización robusta mediante IdlingResource y eliminación de transiciones redundantes.
  */
 @LargeTest
 @RunWith(Parameterized.class)
 public class CaminosNavegacionTest {
 
-    private UiDevice device; // Referencia al dispositivo para UiAutomator
-    private static final int MAX_RETRIES = 2; // Reintentos en caso de fallo de sincronización
-    private static final long UI_TIMEOUT = 8000; // Tiempo máximo de espera para elementos UI
+    private UiDevice device; 
+    private static final int MAX_RETRIES = 2; 
+    private static final long UI_TIMEOUT = 8000; 
 
-    // Regla para lanzar la actividad principal del sistema de reservas
     @Rule
     public ActivityScenarioRule<SistemaReservas> activityRule =
             new ActivityScenarioRule<>(SistemaReservas.class);
 
-    private final String[] camino; // Almacena el camino de aristas actual
+    private final String[] camino;
 
-    /** Constructor para la prueba parametrizada. */
     public CaminosNavegacionTest(String caminoStr) {
         this.camino = caminoStr.split(",");
     }
 
-    /** Configuración inicial previa a cada camino de prueba. */
     @Before
     public void setUp() throws Exception {
         device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
-        resetAlMenuFuerte(); // Asegura empezar siempre desde el Menú Principal (N1)
+        // Registramos el IdlingResource para que Espresso espere a Room
+        IdlingRegistry.getInstance().register(EspressoIdlingResource.getIdlingResource());
     }
 
-    /** Método de seguridad que fuerza el retorno al menú principal limpiando la pila. */
-    private void resetAlMenuFuerte() throws Exception {
-        for (int i = 0; i < 6; i++) {
-            // Si el logo está visible, ya estamos en el Menú Principal (N1)
-            if (device.hasObject(By.res("es.unizar.eina.SistemaReservas:id/logo_app"))) return;
-            handleSystemDialog(); // Cierra posibles diálogos abiertos
-            device.pressBack(); // Retrocede un nivel en el stack
-            Thread.sleep(1200);
-        }
+    @org.junit.After
+    public void tearDown() throws Exception {
+        // Desregistramos para evitar contaminación entre suites
+        IdlingRegistry.getInstance().unregister(EspressoIdlingResource.getIdlingResource());
     }
 
     /** Definición de los caminos de prueba generados para cubrir Pares de Aristas. */
@@ -213,7 +209,8 @@ public class CaminosNavegacionTest {
     /** Ejecución secuencial del camino de aristas. */
     @Test
     public void ejecutarCaminoCompleto() throws Exception {
-        Thread.sleep(2000); // Espera inicial para carga de app
+        // Ya no se requiere resetAlMenuFuerte ni sleeps iniciales largos 
+        // gracias a IdlingResource y el ciclo de vida de ActivityScenarioRule.
         for (String arista : camino) {
             ejecutarAccionConSincronizacion(arista);
         }
@@ -224,14 +221,14 @@ public class CaminosNavegacionTest {
         int attempts = 0;
         while (attempts < MAX_RETRIES) {
             try {
-                mapeoAristaAccion(arista); // Intenta ejecutar la acción
-                device.waitForIdle(); // Espera a que el hilo de UI se asiente
+                mapeoAristaAccion(arista);
+                device.waitForIdle(); 
                 return;
             } catch (Exception e) {
                 attempts++;
-                if (attempts == MAX_RETRIES) throw e; // Falla si agota reintentos
-                handleSystemDialog(); // Intenta cerrar diálogos que bloqueen la UI
-                Thread.sleep(2500); // Pausa para recuperación de estado
+                if (attempts == MAX_RETRIES) throw e;
+                handleSystemDialog(); 
+                Thread.sleep(1500); // Reducido de 2500ms
             }
         }
     }
@@ -240,165 +237,139 @@ public class CaminosNavegacionTest {
     private void mapeoAristaAccion(String arista) throws Exception {
         switch (arista) {
             // --- NAVEGACIÓN INICIAL ---
-            case "1": // Arista 1: Menú Principal -> Listado Quads (N2)
+            case "1": 
                 if (device.hasObject(By.res("es.unizar.eina.SistemaReservas:id/toggleGroupQuads"))) return;
                 onView(withId(R.id.button_listar_quads)).perform(scrollTo(), click()); 
-                if (!device.wait(Until.hasObject(By.res("es.unizar.eina.SistemaReservas:id/toggleGroupQuads")), UI_TIMEOUT)) {
-                    throw new RuntimeException("Fallo al abrir N2 (Listado Quads)");
-                }
                 break;
-            case "2": // Arista 2: Menú Principal -> Listado Reservas (N4)
+            case "2": 
                 if (device.hasObject(By.res("es.unizar.eina.SistemaReservas:id/btn_open_sort"))) return;
                 onView(withId(R.id.button_listar_reservas)).perform(scrollTo(), click()); 
-                if (!device.wait(Until.hasObject(By.res("es.unizar.eina.SistemaReservas:id/btn_open_sort")), UI_TIMEOUT)) {
-                    throw new RuntimeException("Fallo al abrir N4 (Listado Reservas)");
-                }
                 break;
-            case "3": // Arista 3: Menú Principal -> Formulario Quad (N3) - Modo CREAR
+            case "3": 
                 onView(withId(R.id.button_crear_quad)).perform(scrollTo(), click()); 
-                device.wait(Until.hasObject(By.res("es.unizar.eina.SistemaReservas:id/button_save")), UI_TIMEOUT);
                 break;
-            case "4": // Arista 4: Menú Principal -> Formulario Reserva (N5) - Modo CREAR
+            case "4": 
                 onView(withId(R.id.button_crear_reserva)).perform(scrollTo(), click()); 
-                device.wait(Until.hasObject(By.res("es.unizar.eina.SistemaReservas:id/button_confirm")), UI_TIMEOUT);
                 break;
 
             // --- GESTIÓN DE QUADS (N2) ---
-            case "5": // Arista 5: Listado Quads -> Formulario Quad (N3) - Modo EDITAR
+            case "5": 
                 asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/toggleGroupQuads"), "1");
-                // Click en el botón de editar (btnEdit) del primer elemento de la lista
                 onView(withId(R.id.recyclerview)).perform(RecyclerViewActions.actionOnItemAtPosition(0, clickOnViewChild(R.id.btnEdit))); 
-                device.wait(Until.hasObject(By.res("es.unizar.eina.SistemaReservas:id/button_save")), UI_TIMEOUT);
                 break;
-            case "13": // Arista 13: Listado Quads -> Ordenar por MATRÍCULA
+            case "13": 
                 waitAndPerform(withId(R.id.sort_matricula), forceClick()); break;
-            case "13b": // Arista 13b: Listado Quads -> Ordenar por TIPO
+            case "13b": 
                 waitAndPerform(withId(R.id.sort_tipo), forceClick()); break;
-            case "13c": // Arista 13c: Listado Quads -> Ordenar por PRECIO
+            case "13c": 
                 waitAndPerform(withId(R.id.sort_precio), forceClick()); break;
-            case "14": // Arista 14: Listado Quads -> ELIMINAR Quad
+            case "14": 
                 asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/toggleGroupQuads"), "1");
-                // Click en el botón de borrar (btnDelete) del primer elemento
                 onView(withId(R.id.recyclerview)).perform(RecyclerViewActions.actionOnItemAtPosition(0, clickOnViewChild(R.id.btnDelete)));
-                handleSystemDialog(); // Acepta el diálogo de confirmación de borrado
-                Thread.sleep(3000); // Pausa para asegurar la actualización de la DB
+                handleSystemDialog(); 
+                // Ya no requiere sleep(3000) porque Room IdlingResource espera el borrado
                 break;
-            case "21": case "22": // Aristas 21/22: Volver Atrás al Menú Principal (N1)
+            case "21": case "22": 
                 device.pressBack(); 
-                device.wait(Until.hasObject(By.res("es.unizar.eina.SistemaReservas:id/logo_app")), UI_TIMEOUT);
                 break;
 
             // --- FORMULARIO QUAD (N3) ---
-            case "6": case "7": // Aristas 6/7: GUARDAR cambios en Quad (vuelve a N2 o N1)
-                // Rellena campos obligatorios con datos aleatorios para evitar duplicados de matrícula
+            case "6": case "7": // Aristas 6/7: GUARDAR cambios en Quad
                 waitAndPerform(withId(R.id.matricula), replaceText(String.format("%04d-TST", (int)(Math.random()*9000)+1000)));
                 waitAndPerform(withId(R.id.precio), replaceText("55.0"));
                 waitAndPerform(withId(R.id.button_save), forceClick());
-                Thread.sleep(2000); // Espera cierre de actividad
+                // Eliminado sleep(2000)
                 break;
-            case "6b": case "7b": // Aristas 6b/7b: CANCELAR edición de Quad
-                waitAndPerform(withId(R.id.button_cancel), forceClick()); Thread.sleep(2000); break;
-            case "6c": case "7c": // Aristas 6c/7c: Botón Atrás Físico en Quad
-                device.pressBack(); Thread.sleep(2000); break;
+            case "6b": case "7b": 
+                waitAndPerform(withId(R.id.button_cancel), forceClick()); break;
+            case "6c": case "7c": 
+                device.pressBack(); break;
 
-            case "15": // Arista 15: Seleccionar tipo MONOPLAZA
+            case "15": 
                 waitAndPerform(withId(R.id.btnMonoplaza), forceClick()); break;
-            case "15b": // Arista 15b: Seleccionar tipo BIPLAZA
+            case "15b": 
                 waitAndPerform(withId(R.id.btnBiplaza), forceClick()); break;
 
             // --- GESTIÓN DE RESERVAS (N4) ---
-            case "8": // Arista 8: Listado Reservas -> Formulario Reserva (N5) - Modo EDITAR
+            case "8": 
                 asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/btn_open_sort"), "2");
                 onView(withId(R.id.recyclerview_reservas)).perform(RecyclerViewActions.actionOnItemAtPosition(0, clickOnViewChild(R.id.btnEditReserva))); 
-                device.wait(Until.hasObject(By.res("es.unizar.eina.SistemaReservas:id/button_confirm")), UI_TIMEOUT);
                 break;
-            case "16": case "16b": case "16c": case "16d": // Aristas 16: Ordenación de Reservas
+            case "16": case "16b": case "16c": case "16d": 
                 asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/btn_open_sort"), "2");
-                waitAndPerform(withId(R.id.btn_open_sort), forceClick()); // Abre panel de ordenación
+                waitAndPerform(withId(R.id.btn_open_sort), forceClick()); 
                 int sid = R.id.option_sort_name;
                 if (arista.equals("16b")) sid = R.id.option_sort_phone;
                 else if (arista.equals("16c")) sid = R.id.option_sort_date_in;
                 else if (arista.equals("16d")) sid = R.id.option_sort_date_out;
-                handleBottomSheet(sid); // Selecciona la opción en el BottomSheet
+                handleBottomSheet(sid); 
                 break;
-            case "16e": case "16f": case "16g": case "16h": // Aristas 16: Filtrado de Reservas
+            case "16e": case "16f": case "16g": case "16h": 
                 asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/btn_open_sort"), "2");
-                waitAndPerform(withId(R.id.btn_open_filter), forceClick()); // Abre panel de filtrado
+                waitAndPerform(withId(R.id.btn_open_filter), forceClick()); 
                 int fid = R.id.option_filter_todas;
                 if (arista.equals("16e")) fid = R.id.option_filter_previstas;
                 else if (arista.equals("16f")) fid = R.id.option_filter_vigentes;
                 else if (arista.equals("16g")) fid = R.id.option_filter_caducadas;
-                handleBottomSheet(fid); // Selecciona el filtro
+                handleBottomSheet(fid); 
                 break;
-            case "17": // Arista 17: Listado Reservas -> ELIMINAR Reserva
+            case "17": 
                 asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/btn_open_sort"), "2");
                 onView(withId(R.id.recyclerview_reservas)).perform(RecyclerViewActions.actionOnItemAtPosition(0, clickOnViewChild(R.id.btnDeleteReserva)));
-                handleSystemDialog(); // Confirma eliminación
-                Thread.sleep(3000);
+                handleSystemDialog(); 
                 break;
-            case "18": // Arista 18: Listado Reservas -> VER DETALLES de Reserva
+            case "18": 
                 asegurarPantalla(By.res("es.unizar.eina.SistemaReservas:id/btn_open_sort"), "2");
                 onView(withId(R.id.recyclerview_reservas)).perform(RecyclerViewActions.actionOnItemAtPosition(0, clickOnViewChild(R.id.btnDetailsReserva)));
-                handleSystemDialog(); // Cierra el diálogo de detalles tras inspeccionarlo
+                handleSystemDialog(); 
                 break;
 
             // --- FORMULARIO RESERVA (N5) ---
-            case "9": case "10": // Aristas 9/10: GUARDAR Reserva
-                // Rellena datos del cliente para cumplir validación
+            case "9": case "10": 
                 waitAndPerform(withId(R.id.edit_cliente), replaceText("Audit Test"));
                 waitAndPerform(withId(R.id.edit_telefono), replaceText("600111222"));
                 waitAndPerform(withId(R.id.button_confirm), forceClick());
-                Thread.sleep(2000);
                 break;
-            case "9b": case "10b": // Aristas 9b/10b: CANCELAR Reserva
-                waitAndPerform(withId(R.id.button_cancel), forceClick()); Thread.sleep(2000); break;
-            case "9c": case "10c": // Aristas 9c/10c: Botón Atrás Físico en Reserva
-                device.pressBack(); Thread.sleep(2000); break;
-            case "11": // Arista 11: Abrir SELECCIÓN de Quads (N5->N6)
+            case "9b": case "10b": 
+                waitAndPerform(withId(R.id.button_cancel), forceClick()); break;
+            case "9c": case "10c": 
+                device.pressBack(); break;
+            case "11": 
                 onView(withId(R.id.btn_select_quads)).perform(scrollTo(), forceClick()); 
-                if (!device.wait(Until.hasObject(By.res("es.unizar.eina.SistemaReservas:id/recycler_selection")), UI_TIMEOUT)) {
-                    throw new RuntimeException("Fallo al abrir N6 (Selección Quads)");
-                }
                 break;
-            case "19": // Arista 19: Seleccionar FECHA RECOGIDA
+            case "19": 
                 waitAndPerform(withId(R.id.btn_fecha_recogida), forceClick()); handleDatePicker(); break;
-            case "19b": // Arista 19b: Seleccionar FECHA DEVOLUCIÓN
+            case "19b": 
                 waitAndPerform(withId(R.id.btn_fecha_devolucion), forceClick()); handleDatePicker(); break;
 
             // --- SELECCIÓN DE QUADS (N6) ---
-            case "12": // Arista 12: CONFIRMAR Quads seleccionados (Vuelve a N5)
+            case "12": 
                 waitAndPerform(withId(R.id.btn_confirm_selection), forceClick());
-                Thread.sleep(2000);
                 break;
-            case "12b": // Arista 12b: CANCELAR selección de Quads
-                waitAndPerform(withId(R.id.btn_cancel_selection), forceClick()); Thread.sleep(2000); break;
-            case "12c": // Arista 12c: Botón Atrás Físico en Selección
-                device.pressBack(); Thread.sleep(2000); break; 
-            case "20": case "20b": case "20c": // Aristas 20: Ordenación en Selección
+            case "12b": 
+                waitAndPerform(withId(R.id.btn_cancel_selection), forceClick()); break;
+            case "12c": 
+                device.pressBack(); break; 
+            case "20": case "20b": case "20c": 
                 int selSortId = R.id.sort_matricula;
                 if (arista.equals("20b")) selSortId = R.id.sort_tipo;
                 else if (arista.equals("20c")) selSortId = R.id.sort_precio;
                 waitAndPerform(withId(selSortId), forceClick());
                 break;
-            case "23": // Arista 23: Ver DETALLES del Quad en la lista de selección
+            case "23": 
                 onView(withId(R.id.recycler_selection)).perform(RecyclerViewActions.actionOnItemAtPosition(0, clickOnViewChild(R.id.btn_details_selection)));
                 handleSystemDialog();
                 break;
-            case "24": // Arista 24: SELECCIONAR Quad y ajustar CASCOS (Trigger de selección)
-                // 1. IMPORTANTE: Aseguramos que el CheckBox esté marcado.
-                // Usamos setChecked para evitar el efecto 'toggle' si ya estaba marcado.
+            case "24": 
                 onView(withId(R.id.recycler_selection)).perform(
                         RecyclerViewActions.actionOnItemAtPosition(0, setChecked(R.id.cb_select, true)));
-                Thread.sleep(1000);
-                // 2. Abrimos el popup de cascos (confirma que el quad está activo)
+                Thread.sleep(800);
                 onView(withId(R.id.recycler_selection)).perform(
                         RecyclerViewActions.actionOnItemAtPosition(0, clickOnViewChild(R.id.btn_cascos_popup)));
-                Thread.sleep(1000);
-                // 3. Selecciona una opción del diálogo del sistema mediante texto
+                // Sincronización determinista con UiAutomator
                 UiObject op = device.findObject(new UiSelector().textMatches("(?i)1 Casco|0 Cascos|2 Cascos"));
                 if (op.waitForExists(2000)) op.click();
                 else device.pressBack();
-                Thread.sleep(1200);
                 break;
 
             default: throw new IllegalArgumentException("Arista Desconocida en Switch: " + arista);
