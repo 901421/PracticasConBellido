@@ -17,10 +17,10 @@ android {
 
         // --- CONFIGURACIÓN DE TESTS ---
         // JUnit/Espresso 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        // testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         //tests de Cucumber
-        // testInstrumentationRunner "io.cucumber.android.runner.CucumberAndroidJUnitRunner"
+        testInstrumentationRunner "io.cucumber.android.runner.CucumberAndroidJUnitRunner"
     }
 
     buildTypes {
