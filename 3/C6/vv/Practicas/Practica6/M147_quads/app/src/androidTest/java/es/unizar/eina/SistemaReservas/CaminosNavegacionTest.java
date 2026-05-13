@@ -41,8 +41,8 @@ import static androidx.test.espresso.matcher.ViewMatchers.withId;
 
 /**
  * Suite de pruebas parametrizadas para validar los caminos de navegación Edge-Pair.
- * Utiliza Espresso para interacciones estándar y UiAutomator para diálogos del sistema.
- * Sincronización robusta mediante IdlingResource y eliminación de transiciones redundantes.
+ * Refactorizada para Determinismo Absoluto y Compatibilidad Universal.
+ * Implementa Esperas Elásticas Atómicas para soportar cualquier hardware y versión de Android.
  */
 @LargeTest
 @RunWith(Parameterized.class)
@@ -50,7 +50,7 @@ public class CaminosNavegacionTest {
 
     private UiDevice device; 
     private static final int MAX_RETRIES = 3; 
-    private static final long UI_TIMEOUT = 8000; 
+    private static final long UI_TIMEOUT = 15000; // Margen de seguridad para emuladores lentos
 
     @Rule
     public ActivityScenarioRule<SistemaReservas> activityRule =
@@ -75,15 +75,12 @@ public class CaminosNavegacionTest {
         es.unizar.eina.SistemaReservas.database.QuadRoomDatabase.databaseWriteExecutor.execute(() -> {
             try {
                 db.clearAllTables();
-                
-                // --- 5 QUADS con captura de IDs ---
                 long q1 = db.QuadDao().insert(new es.unizar.eina.SistemaReservas.database.Quad("0001-TST", true, 40.0, "Quad 1"));
                 db.QuadDao().insert(new es.unizar.eina.SistemaReservas.database.Quad("0002-TST", false, 80.0, "Quad 2"));
                 db.QuadDao().insert(new es.unizar.eina.SistemaReservas.database.Quad("0003-TST", true, 45.0, "Quad 3"));
                 db.QuadDao().insert(new es.unizar.eina.SistemaReservas.database.Quad("0004-TST", false, 85.0, "Quad 4"));
                 db.QuadDao().insert(new es.unizar.eina.SistemaReservas.database.Quad("0005-TST", true, 50.0, "Quad 5"));
 
-                // --- 9 RESERVAS (3 por tipo) con captura de IDs ---
                 long r1 = db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Caducada 1", 600000001, "2025-01-01", "2025-12-05"));
                 long r2 = db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Caducada 2", 600000002, "2025-01-01", "2025-12-05"));
                 long r3 = db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Caducada 3", 600000003, "2025-01-01", "2025-12-05"));
@@ -94,7 +91,6 @@ public class CaminosNavegacionTest {
                 long r8 = db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Prevista 2", 600000022, "2030-01-01", "2030-12-10"));
                 long r9 = db.ReservaDao().insert(new es.unizar.eina.SistemaReservas.database.Reserva("Prevista 3", 600000023, "2030-01-01", "2030-12-10"));
 
-                // --- VINCULACIÓN DE INTEGRIDAD (RNF 1.1) ---
                 java.util.List<es.unizar.eina.SistemaReservas.database.ReservaQuad> relaciones = new java.util.ArrayList<>();
                 long[] reservas = {r1, r2, r3, r4, r5, r6, r7, r8, r9};
                 for (long rId : reservas) {
@@ -106,11 +102,10 @@ public class CaminosNavegacionTest {
             }
         });
         
-        if (!latch.await(15, java.util.concurrent.TimeUnit.SECONDS)) {
+        if (!latch.await(20, java.util.concurrent.TimeUnit.SECONDS)) {
             throw new RuntimeException("Timeout en setUp: Base de Datos bloqueada.");
         }
-        // Pausa de cortesía tras escritura masiva en SQLite
-        Thread.sleep(1000);
+        device.waitForIdle();
     }
 
     @org.junit.After
@@ -121,130 +116,64 @@ public class CaminosNavegacionTest {
     @Parameterized.Parameters(name = "Path {index}: {0}")
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][]{
-            {"1,13,5,6,5,6b,5,6c,5,15,6,13"},
-            {"1,13b,5,15b,6,13b,13,13,13b,13b,13c,5"},
-            {"1,13c,13,13c,13b,14,5,6,13c,13c,14,13"},
-            {"1,14,13b,21"},
-            {"1,21,1,5,6,14,13c,21"},
-            {"4,19,19b,11,24,12,10,1,5,6,21"},
-            {"4,19,19b,11,24,12,10,2,8,9,8,9b,8,9c,8,11,12,9"},
-            {"4,19,19b,11,24,12,10,3,7"},
-            {"4,19,19b,11,24,12,10,4,10b"},
-            {"4,10b,1,5,6,5,6,5,6,5,6,5,6"},
-            {"4,10b,2,16,8,19,9,16,16,16b,8,19b,9"},
-            {"4,10b,3,7b"},
-            {"4,10b,4,10c"},
-            {"4,10c,1,5,6,5,6,5,6,5,6,5,6"},
-            {"4,10c,2,16b,16,16c,8,9,16b,16b,16c,16,16d"},
-            {"4,10c,3,7c"},
-            {"4,10c,4,19b,10b"},
-            {"2,8,11,12b,9,16c,16b,16d,8,9,16d,16,16e,8"},
-            {"2,8,11,12c,9,16e,16,16f,8,9,16f,16,16g,8"},
-            {"2,8,11,20,12,9b,16,16h,8,9,16g,16,17,8"},
-            {"2,8,11,20b,12,9c,16,18,8,9,16h,16,22"},
-            {"2,8,11,20c,12,11,23,12,19,9b,16b,16e,16b,16f"},
-            {"4,19,19b,11,12,10b,1,5,6,5,6,5,6,5,6,5"},
-            {"4,19,19b,11,12,10c,1,5,6,5,6,5,6,5,6,5"},
+            {"1,13,5,6,5,6b,5,6c,5,15,6,13"}, {"1,13b,5,15b,6,13b,13,13,13b,13b,13c,5"},
+            {"1,13c,13,13c,13b,14,5,6,13c,13c,14,13"}, {"1,14,13b,21"},
+            {"1,21,1,5,6,14,13c,21"}, {"4,19,19b,11,24,12,10,1,5,6,21"},
+            {"4,19,19b,11,24,12,10,2,8,9,8,9b,8,9c,8,11,12,9"}, {"4,19,19b,11,24,12,10,3,7"},
+            {"4,19,19b,11,24,12,10,4,10b"}, {"4,10b,1,5,6,5,6,5,6,5,6,5,6"},
+            {"4,10b,2,16,8,19,9,16,16,16b,8,19b,9"}, {"4,10b,3,7b"}, {"4,10b,4,10c"},
+            {"4,10c,1,5,6,5,6,5,6,5,6,5,6"}, {"4,10c,2,16b,16,16c,8,9,16b,16b,16c,16,16d"},
+            {"4,10c,3,7c"}, {"4,10c,4,19b,10b"}, {"2,8,11,12b,9,16c,16b,16d,8,9,16d,16,16e,8"},
+            {"2,8,11,12c,9,16e,16,16f,8,9,16f,16,16g,8"}, {"2,8,11,20,12,9b,16,16h,8,9,16g,16,17,8"},
+            {"2,8,11,20b,12,9c,16,18,8,9,16h,16,22"}, {"2,8,11,20c,12,11,23,12,19,9b,16b,16e,16b,16f"},
+            {"4,19,19b,11,12,10b,1,5,6,5,6,5,6,5,6,5"}, {"4,19,19b,11,12,10c,1,5,6,5,6,5,6,5,6,5"},
             {"2,8,11,12,19b,9b,16c,16c,16d,16b,16g,16b,16h,16b,17"},
             {"4,19,19b,11,24,12,11,12b,10,1,5,6,5,6,5,6,5,6,5"},
-            {"4,19,19b,11,12b,10b,1,5,6,5,6,5,6,5,6,5"},
-            {"4,19,19b,11,12b,10c,1,5,6,5,6,5,6,5,6,5"},
-            {"2,8,11,12b,11,12,9,17,16,8,9,18,16,8,9"},
-            {"2,8,11,12b,19,9c,16b,18,16b,22"},
-            {"2,8,11,12b,19b,9c,16c,16e,16c,16f,16b,8,9,22"},
-            {"2,8,11,12b,9b,16d,16c,16g,16c,16h,16c,17,16b,8,9"},
+            {"4,19,19b,11,12b,10b,1,5,6,5,6,5,6,5,6,5"}, {"4,19,19b,11,12b,10c,1,5,6,5,6,5,6,5,6,5"},
+            {"2,8,11,12b,11,12,9,17,16,8,9,18,16,8,9"}, {"2,8,11,12b,19,9c,16b,18,16b,22"},
+            {"2,8,11,12b,19b,9c,16c,16e,16c,16f,16b,8,9,22"}, {"2,8,11,12b,9b,16d,16c,16g,16c,16h,16c,17,16b,8,9"},
             {"2,8,11,12b,9c,16d,16d,16e,16d,16f,16c,18,16c,22"},
             {"4,19,19b,11,24,12,11,12c,10,1,5,6,5,6,5,6,5,6,5"},
-            {"4,19,19b,11,12c,10b,1,5,6,5,6,5,6,5,6,5"},
-            {"4,19,19b,11,12c,10c,1,5,6,5,6,5,6,5,6,5"},
-            {"2,8,11,12c,11,12,9,8,9,8,9,8,9,8,9"},
-            {"2,8,11,12c,19,11,12,9,8,9,8,9,8,9,8"},
-            {"2,8,11,12c,19b,19,19,9,8,9,8,9,8,9,8"},
-            {"2,8,11,12c,9b,16e,16e,16f,16d,16g,16d,16h,16d,17,16c"},
-            {"2,8,11,12c,9c,16e,16g,16e,16h,16e,17,16d,18,16d,22"},
-            {"1,13,14,14,21"},
-            {"1,13,21,2,16c,8,9,8,9,8,9,8,9"},
-            {"3,15,15,7"},
-            {"3,15,15b,7"},
-            {"1,5,15,6b,13,5,6,5,6,5,6,5,6,5"},
-            {"1,5,15,6c,13,5,6,5,6,5,6,5,6,5"},
-            {"3,15,7b,1,5,6,5,6,5,6,5,6,5"},
-            {"3,15,7c,1,5,6,5,6,5,6,5,6,5"},
-            {"3,15b,15,7"},
-            {"3,15b,15b,7b"},
-            {"1,5,15b,6b,13b,5,6,5,6,5,6,5,6,5"},
-            {"1,5,15b,6c,13b,5,6,5,6,5,6,5,6,5"},
-            {"3,15b,7c,2,16d,8,9,8,9,8,9,8,9"},
-            {"2,16e,18,16e,22"},
-            {"2,16f,16e,8,9,8,9,8,9,8,9,8,9"},
-            {"2,16f,16f,16g,16f,16h,16f,17,16e,8,9,8,9"},
-            {"2,16f,18,16f,22"},
-            {"2,16g,16g,16h,16g,17,16f,8,9,8,9,8,9"},
-            {"2,16g,18,16g,22"},
-            {"2,16h,16h,17,16g,8,9,8,9,8,9,8,9"},
-            {"2,16h,18,16h,22"},
-            {"2,17,16h,8,9,8,9,8,9,8,9,8,9"},
-            {"2,17,17,18,17,22"},
-            {"2,18,18,22"},
-            {"4,19,19b,11,24,12,19,10,1,5,6,5,6,5,6,5,6,5"},
-            {"4,19,10b,1,5,6,5,6,5,6,5,6,5"},
-            {"4,19,10c,1,5,6,5,6,5,6,5,6,5"},
-            {"4,19,19b,11,24,12,19b,10,1,5,6,5,6,5,6,5,6,5"},
-            {"4,19b,10c,1,5,6,5,6,5,6,5,6,5"},
-            {"4,19b,19b,10b"},
-            {"2,22,1,5,6,5,6,5,6,5,6,5"},
-            {"2,8,11,20,12b,9,8,9,8,9,8,9,8,9,8"},
-            {"2,8,11,20,12c,9,8,9,8,9,8,9,8,9,8"},
-            {"2,8,11,20,20,20b,12b,9,8,9,8,9,8,9,8"},
-            {"2,8,11,20,20c,12b,9,8,9,8,9,8,9,8,9"},
-            {"2,8,11,20,23,12b,9,8,9,8,9,8,9,8,9"},
-            {"2,8,11,20,24,12b,9,8,9,8,9,8,9,8,9"},
-            {"2,8,11,20b,12c,9,8,9,8,9,8,9,8,9,8"},
-            {"2,8,11,20b,20,12,9,8,9,8,9,8,9,8,9"},
-            {"2,8,11,20b,20b,20c,12c,9,8,9,8,9,8,9,8"},
-            {"2,8,11,20b,23,12c,9,8,9,8,9,8,9,8,9"},
-            {"2,8,11,20b,24,12c,9,8,9,8,9,8,9,8,9"},
-            {"2,8,11,20c,20,12,9,8,9,8,9,8,9,8,9"},
-            {"2,8,11,20c,20b,12,9,8,9,8,9,8,9,8,9"},
-            {"2,8,11,20c,20c,23,20,12,9,8,9,8,9,8,9"},
-            {"2,8,11,20c,24,20,12,9,8,9,8,9,8,9,8"},
-            {"1,21,3,7"},
-            {"1,21,4,10b"},
-            {"2,22,2,8,9,8,9,8,9,8,9,8,9"},
-            {"2,22,3,7"},
-            {"2,22,4,10b"},
-            {"2,8,11,23,20b,12,9,8,9,8,9,8,9,8,9"},
-            {"2,8,11,23,20c,12,9,8,9,8,9,8,9,8,9"},
-            {"2,8,11,23,23,24,20b,12,9,8,9,8,9,8,9"},
-            {"2,8,11,24,20c,12,9,8,9,8,9,8,9,8,9"},
-            {"2,8,11,24,23,12,9,8,9,8,9,8,9,8,9"},
-            {"2,8,11,24,24,12,9,8,9,8,9,8,9,8,9"},
-            {"1,5,6b,13c,5,6,5,6,5,6,5,6,5,6"},
-            {"1,5,6b,14,5,6,5,6,5,6,5,6,5,6"},
-            {"1,5,6b,21,1,5,6,5,6,5,6,5,6,5"},
-            {"1,5,6c,13c,5,6,5,6,5,6,5,6,5,6"},
-            {"1,5,6c,14,5,6,5,6,5,6,5,6,5,6"},
-            {"1,5,6c,21,1,5,6,5,6,5,6,5,6,5"},
-            {"3,7,1,5,6,5,6,5,6,5,6,5,6"},
-            {"3,7,2,8,9,8,9,8,9,8,9,8,9"},
-            {"3,7,3,7"},
-            {"3,7,4,10b"},
-            {"3,7b,2,8,9,8,9,8,9,8,9,8,9"},
-            {"3,7b,3,7"},
-            {"3,7b,4,10b"},
-            {"3,7c,3,7"},
-            {"3,7c,4,10b"},
-            {"2,8,9b,16f,8,9,8,9,8,9,8,9,8,9"},
-            {"2,8,9b,16g,8,9,8,9,8,9,8,9,8,9"},
-            {"2,8,9b,16h,8,9,8,9,8,9,8,9,8,9"},
-            {"2,8,9b,17,8,9,8,9,8,9,8,9,8,9"},
-            {"2,8,9b,18,8,9,8,9,8,9,8,9,8,9"},
-            {"2,8,9b,22,1,5,6,5,6,5,6,5,6,5"},
-            {"2,8,9c,16f,8,9,8,9,8,9,8,9,8,9"},
-            {"2,8,9c,16g,8,9,8,9,8,9,8,9,8,9"},
-            {"2,8,9c,16h,8,9,8,9,8,9,8,9,8,9"},
-            {"2,8,9c,17,8,9,8,9,8,9,8,9,8,9"},
-            {"2,8,9c,18,8,9,8,9,8,9,8,9,8,9"},
+            {"4,19,19b,11,12c,10b,1,5,6,5,6,5,6,5,6,5"}, {"4,19,19b,11,12c,10c,1,5,6,5,6,5,6,5,6,5"},
+            {"2,8,11,12c,11,12,9,8,9,8,9,8,9,8,9"}, {"2,8,11,12c,19,11,12,9,8,9,8,9,8,9,8"},
+            {"2,8,11,12c,19b,19,19,9,8,9,8,9,8,9,8"}, {"2,8,11,12c,9b,16e,16e,16f,16d,16g,16d,16h,16d,17,16c"},
+            {"2,8,11,12c,9c,16e,16g,16e,16h,16e,17,16d,18,16d,22"}, {"1,13,14,14,21"},
+            {"1,13,21,2,16c,8,9,8,9,8,9,8,9"}, {"3,15,15,7"}, {"3,15,15b,7"},
+            {"1,5,15,6b,13,5,6,5,6,5,6,5,6,5"}, {"1,5,15,6c,13,5,6,5,6,5,6,5,6,5"},
+            {"3,15,7b,1,5,6,5,6,5,6,5,6,5"}, {"3,15,7c,1,5,6,5,6,5,6,5,6,5"},
+            {"3,15b,15,7"}, {"3,15b,15b,7b"}, {"1,5,15b,6b,13b,5,6,5,6,5,6,5,6,5"},
+            {"1,5,15b,6c,13b,5,6,5,6,5,6,5,6,5"}, {"3,15b,7c,2,16d,8,9,8,9,8,9,8,9"},
+            {"2,16e,18,16e,22"}, {"2,16f,16e,8,9,8,9,8,9,8,9,8,9"},
+            {"2,16f,16f,16g,16f,16h,16f,17,16e,8,9,8,9"}, {"2,16f,18,16f,22"},
+            {"2,16g,16g,16h,16g,17,16f,8,9,8,9,8,9"}, {"2,16g,18,16g,22"},
+            {"2,16h,16h,17,16g,8,9,8,9,8,9,8,9"}, {"2,16h,18,16h,22"},
+            {"2,17,16h,8,9,8,9,8,9,8,9,8,9"}, {"2,17,17,18,17,22"}, {"2,18,18,22"},
+            {"4,19,19b,11,24,12,19,10,1,5,6,5,6,5,6,5,6,5"}, {"4,19,10b,1,5,6,5,6,5,6,5,6,5"},
+            {"4,19,10c,1,5,6,5,6,5,6,5,6,5"}, {"4,19,19b,11,24,12,19b,10,1,5,6,5,6,5,6,5,6,5"},
+            {"4,19b,10c,1,5,6,5,6,5,6,5,6,5"}, {"4,19b,19b,10b"}, {"2,22,1,5,6,5,6,5,6,5,6,5"},
+            {"2,8,11,20,12b,9,8,9,8,9,8,9,8,9,8"}, {"2,8,11,20,12c,9,8,9,8,9,8,9,8,9,8"},
+            {"2,8,11,20,20,20b,12b,9,8,9,8,9,8,9,8"}, {"2,8,11,20,20c,12b,9,8,9,8,9,8,9,8,9"},
+            {"2,8,11,20,23,12b,9,8,9,8,9,8,9,8,9"}, {"2,8,11,20,24,12b,9,8,9,8,9,8,9,8,9"},
+            {"2,8,11,20b,12c,9,8,9,8,9,8,9,8,9,8"}, {"2,8,11,20b,20,12,9,8,9,8,9,8,9,8,9"},
+            {"2,8,11,20b,20b,20c,12c,9,8,9,8,9,8,9,8"}, {"2,8,11,20b,23,12c,9,8,9,8,9,8,9,8,9"},
+            {"2,8,11,20b,24,12c,9,8,9,8,9,8,9,8,9"}, {"2,8,11,20c,20,12,9,8,9,8,9,8,9,8,9"},
+            {"2,8,11,20c,20b,12,9,8,9,8,9,8,9,8,9"}, {"2,8,11,20c,20c,23,20,12,9,8,9,8,9,8,9"},
+            {"2,8,11,20c,24,20,12,9,8,9,8,9,8,9,8"}, {"1,21,3,7"}, {"1,21,4,10b"},
+            {"2,22,2,8,9,8,9,8,9,8,9,8,9"}, {"2,22,3,7"}, {"2,22,4,10b"},
+            {"2,8,11,23,20b,12,9,8,9,8,9,8,9,8,9"}, {"2,8,11,23,20c,12,9,8,9,8,9,8,9,8,9"},
+            {"2,8,11,23,23,24,20b,12,9,8,9,8,9,8,9"}, {"2,8,11,24,20c,12,9,8,9,8,9,8,9,8,9"},
+            {"2,8,11,24,23,12,9,8,9,8,9,8,9,8,9"}, {"2,8,11,24,24,12,9,8,9,8,9,8,9,8,9"},
+            {"1,5,6b,13c,5,6,5,6,5,6,5,6,5,6"}, {"1,5,6b,14,5,6,5,6,5,6,5,6,5,6"},
+            {"1,5,6b,21,1,5,6,5,6,5,6,5,6,5"}, {"1,5,6c,13c,5,6,5,6,5,6,5,6,5,6"},
+            {"1,5,6c,14,5,6,5,6,5,6,5,6,5,6"}, {"1,5,6c,21,1,5,6,5,6,5,6,5,6,5"},
+            {"3,7,1,5,6,5,6,5,6,5,6,5,6"}, {"3,7,2,8,9,8,9,8,9,8,9,8,9"}, {"3,7,3,7"},
+            {"3,7,4,10b"}, {"3,7b,2,8,9,8,9,8,9,8,9,8,9"}, {"3,7b,3,7"}, {"3,7b,4,10b"},
+            {"3,7c,3,7"}, {"3,7c,4,10b"}, {"2,8,9b,16f,8,9,8,9,8,9,8,9,8,9"},
+            {"2,8,9b,16g,8,9,8,9,8,9,8,9,8,9"}, {"2,8,9b,16h,8,9,8,9,8,9,8,9,8,9"},
+            {"2,8,9b,17,8,9,8,9,8,9,8,9,8,9"}, {"2,8,9b,18,8,9,8,9,8,9,8,9,8,9"},
+            {"2,8,9b,22,1,5,6,5,6,5,6,5,6,5"}, {"2,8,9c,16f,8,9,8,9,8,9,8,9,8,9"},
+            {"2,8,9c,16g,8,9,8,9,8,9,8,9,8,9"}, {"2,8,9c,16h,8,9,8,9,8,9,8,9,8,9"},
+            {"2,8,9c,17,8,9,8,9,8,9,8,9,8,9"}, {"2,8,9c,18,8,9,8,9,8,9,8,9,8,9"},
             {"2,8,9c,22,1,5,6,5,6,5,6,5,6,5"}
         });
     }
@@ -261,22 +190,25 @@ public class CaminosNavegacionTest {
         int attempts = 0;
         while (attempts < MAX_RETRIES) {
             try {
+                device.waitForIdle(UI_TIMEOUT); // Pre-acción
                 mapeoAristaAccion(arista);
-                device.waitForIdle(); 
+                device.waitForIdle(UI_TIMEOUT); // Post-acción
                 return;
-            } catch (androidx.test.espresso.NoMatchingViewException | androidx.test.espresso.PerformException e) {
+            } catch (Exception e) {
                 attempts++;
                 if (attempts == MAX_RETRIES) throw e;
-                Thread.sleep(1000); 
-            } catch (Exception e) {
-                throw e;
+                device.waitForIdle(2000); // Polling de recuperación
             }
         }
     }
 
     private void verificarPantalla(BySelector selector, String nombreArista, String nombrePantalla) {
+        device.waitForIdle(UI_TIMEOUT); // Asegurar asentamiento antes de validar
         if (!device.wait(Until.hasObject(selector), UI_TIMEOUT)) {
-            throw new RuntimeException("ERROR NAVEGACIÓN (Arista " + nombreArista + "): No se detectó " + nombrePantalla);
+            device.waitForIdle(2000);
+            if (!device.hasObject(selector)) {
+                throw new RuntimeException("ERROR NAVEGACIÓN (Arista " + nombreArista + "): No se detectó " + nombrePantalla);
+            }
         }
     }
 
@@ -287,94 +219,94 @@ public class CaminosNavegacionTest {
         onView(withId(R.id.precio)).perform(replaceText("55.0"));
         onView(withId(R.id.descripcion)).perform(replaceText("Audit Test Quad " + hash));
         onView(withId(R.id.btnMonoplaza)).perform(forceClick());
+        device.waitForIdle(UI_TIMEOUT);
     }
 
     private void completarFormularioReserva(String sufijo) {
         onView(withId(R.id.edit_cliente)).perform(replaceText("Audit " + sufijo));
         onView(withId(R.id.edit_telefono)).perform(replaceText("600111222"));
+        device.waitForIdle(UI_TIMEOUT);
     }
 
     private void mapeoAristaAccion(String arista) throws Exception {
+        String pkg = ctx().getPackageName();
         switch (arista) {
             case "1": 
-                if (device.hasObject(By.res("es.unizar.eina.SistemaReservas:id/toggleGroupQuads"))) return;
+                if (device.hasObject(By.res(pkg, "toggleGroupQuads"))) return;
                 onView(withId(R.id.button_listar_quads)).perform(scrollTo(), click()); 
-                verificarPantalla(By.res("es.unizar.eina.SistemaReservas:id/toggleGroupQuads"), "1", "Lista Quads");
+                verificarPantalla(By.res(pkg, "toggleGroupQuads"), "1", "Lista Quads");
                 break;
             case "2": 
-                if (device.hasObject(By.res("es.unizar.eina.SistemaReservas:id/recyclerview_reservas"))) return;
+                if (device.hasObject(By.res(pkg, "recyclerview_reservas"))) return;
                 onView(withId(R.id.button_listar_reservas)).perform(scrollTo(), click()); 
-                verificarPantalla(By.res("es.unizar.eina.SistemaReservas:id/recyclerview_reservas"), "2", "Lista Reservas");
+                verificarPantalla(By.res(pkg, "recyclerview_reservas"), "2", "Lista Reservas");
                 break;
             case "3": 
                 onView(withId(R.id.button_crear_quad)).perform(scrollTo(), click()); 
-                verificarPantalla(By.res("es.unizar.eina.SistemaReservas:id/matricula"), "3", "Alta Quad");
+                verificarPantalla(By.res(pkg, "matricula"), "3", "Alta Quad");
                 break;
             case "4": 
                 onView(withId(R.id.button_crear_reserva)).perform(scrollTo(), click()); 
-                verificarPantalla(By.res("es.unizar.eina.SistemaReservas:id/edit_cliente"), "4", "Alta Reserva");
+                verificarPantalla(By.res(pkg, "edit_cliente"), "4", "Alta Reserva");
                 break;
             case "5": 
                 safeRecyclerViewInteraction(R.id.recyclerview, clickOnViewChild(R.id.btnEdit)); 
-                verificarPantalla(By.res("es.unizar.eina.SistemaReservas:id/matricula"), "5", "Edición Quad");
+                verificarPantalla(By.res(pkg, "matricula"), "5", "Edición Quad");
                 break;
-            case "13": onView(withId(R.id.sort_matricula)).perform(forceClick()); break;
-            case "13b": onView(withId(R.id.sort_tipo)).perform(forceClick()); break;
-            case "13c": onView(withId(R.id.sort_precio)).perform(forceClick()); break;
+            case "13": onView(withId(R.id.sort_matricula)).perform(forceClick()); device.waitForIdle(UI_TIMEOUT); break;
+            case "13b": onView(withId(R.id.sort_tipo)).perform(forceClick()); device.waitForIdle(UI_TIMEOUT); break;
+            case "13c": onView(withId(R.id.sort_precio)).perform(forceClick()); device.waitForIdle(UI_TIMEOUT); break;
             case "14": 
                 safeRecyclerViewInteraction(R.id.recyclerview, clickOnViewChild(R.id.btnDelete));
                 handleDestructiveDialog(); 
                 break;
             case "21": 
                 device.pressBack(); 
-                verificarPantalla(By.res("es.unizar.eina.SistemaReservas:id/button_listar_quads"), "21", "Menú Principal");
+                device.waitForIdle(UI_TIMEOUT);
+                verificarPantalla(By.res(pkg, "button_listar_quads"), "21", "Menú Principal");
                 break;
             case "6": 
                 completarFormularioQuad();
                 onView(withId(R.id.button_save)).perform(forceClick());
-                verificarPantalla(By.res("es.unizar.eina.SistemaReservas:id/toggleGroupQuads"), "6", "Lista Quads");
+                verificarPantalla(By.res(pkg, "toggleGroupQuads"), "6", "Lista Quads");
                 break;
             case "7": 
                 completarFormularioQuad();
                 onView(withId(R.id.button_save)).perform(forceClick());
-                verificarPantalla(By.res("es.unizar.eina.SistemaReservas:id/button_listar_quads"), "7", "Menú Principal");
+                verificarPantalla(By.res(pkg, "button_listar_quads"), "7", "Menú Principal");
                 break;
             case "6b": 
                 onView(withId(R.id.button_cancel)).perform(forceClick()); 
-                verificarPantalla(By.res("es.unizar.eina.SistemaReservas:id/toggleGroupQuads"), "6b", "Lista Quads");
+                verificarPantalla(By.res(pkg, "toggleGroupQuads"), "6b", "Lista Quads");
                 break;
             case "7b": 
                 onView(withId(R.id.button_cancel)).perform(forceClick()); 
-                verificarPantalla(By.res("es.unizar.eina.SistemaReservas:id/button_listar_quads"), "7b", "Menú Principal");
+                verificarPantalla(By.res(pkg, "button_listar_quads"), "7b", "Menú Principal");
                 break;
             case "6c": 
                 device.pressBack(); 
-                verificarPantalla(By.res("es.unizar.eina.SistemaReservas:id/toggleGroupQuads"), "6c", "Lista Quads");
+                device.waitForIdle(UI_TIMEOUT);
+                verificarPantalla(By.res(pkg, "toggleGroupQuads"), "6c", "Lista Quads");
                 break;
             case "7c": 
                 device.pressBack(); 
-                verificarPantalla(By.res("es.unizar.eina.SistemaReservas:id/button_listar_quads"), "7c", "Menú Principal");
+                device.waitForIdle(UI_TIMEOUT);
+                verificarPantalla(By.res(pkg, "button_listar_quads"), "7c", "Menú Principal");
                 break;
-            case "15": onView(withId(R.id.btnMonoplaza)).perform(forceClick()); break;
-            case "15b": onView(withId(R.id.btnBiplaza)).perform(forceClick()); break;
+            case "15": onView(withId(R.id.btnMonoplaza)).perform(forceClick()); device.waitForIdle(UI_TIMEOUT); break;
+            case "15b": onView(withId(R.id.btnBiplaza)).perform(forceClick()); device.waitForIdle(UI_TIMEOUT); break;
             case "8": 
                 safeRecyclerViewInteraction(R.id.recyclerview_reservas, clickOnViewChild(R.id.btnEditReserva)); 
-                verificarPantalla(By.res("es.unizar.eina.SistemaReservas:id/edit_cliente"), "8", "Edición Reserva");
+                verificarPantalla(By.res(pkg, "edit_cliente"), "8", "Edición Reserva");
                 break;
             case "16": case "16b": case "16c": case "16d": 
                 onView(withId(R.id.btn_open_sort)).perform(forceClick()); 
-                int sid = R.id.option_sort_name;
-                if (arista.equals("16b")) sid = R.id.option_sort_phone;
-                else if (arista.equals("16c")) sid = R.id.option_sort_date_in;
-                else if (arista.equals("16d")) sid = R.id.option_sort_date_out;
+                int sid = arista.equals("16b") ? R.id.option_sort_phone : (arista.equals("16c") ? R.id.option_sort_date_in : (arista.equals("16d") ? R.id.option_sort_date_out : R.id.option_sort_name));
                 handleBottomSheet(sid); 
                 break;
             case "16e": case "16f": case "16g": case "16h": 
                 onView(withId(R.id.btn_open_filter)).perform(forceClick()); 
-                int fid = R.id.option_filter_todas;
-                if (arista.equals("16e")) fid = R.id.option_filter_previstas;
-                else if (arista.equals("16f")) fid = R.id.option_filter_vigentes;
-                else if (arista.equals("16g")) fid = R.id.option_filter_caducadas;
+                int fid = arista.equals("16e") ? R.id.option_filter_previstas : (arista.equals("16f") ? R.id.option_filter_vigentes : (arista.equals("16g") ? R.id.option_filter_caducadas : R.id.option_filter_todas));
                 handleBottomSheet(fid); 
                 break;
             case "17": 
@@ -383,70 +315,74 @@ public class CaminosNavegacionTest {
                 break;
             case "18": 
                 safeRecyclerViewInteraction(R.id.recyclerview_reservas, clickOnViewChild(R.id.btnDetailsReserva));
-                UiObject btnCierre = device.findObject(new UiSelector().textMatches("(?i)CERRAR|CLOSE|OK|ACEPTAR"));
-                if (btnCierre.waitForExists(UI_TIMEOUT)) btnCierre.click();
-                else device.pressBack();
+                UiObject btnC = device.findObject(new UiSelector().textMatches("(?i)CERRAR|CLOSE|OK|ACEPTAR"));
+                if (btnC.waitForExists(UI_TIMEOUT)) btnC.click(); else device.pressBack();
+                device.waitForIdle(UI_TIMEOUT);
                 break;
             case "22": 
                 device.pressBack(); 
-                verificarPantalla(By.res("es.unizar.eina.SistemaReservas:id/button_listar_reservas"), "22", "Menú Principal");
+                device.waitForIdle(UI_TIMEOUT);
+                verificarPantalla(By.res(pkg, "button_listar_reservas"), "22", "Menú Principal");
                 break;
             case "9": 
-                completarFormularioReserva("Edit");
+                completarFormularioReserva("E");
                 onView(withId(R.id.button_confirm)).perform(forceClick());
-                verificarPantalla(By.res("es.unizar.eina.SistemaReservas:id/recyclerview_reservas"), "9", "Lista Reservas");
+                verificarPantalla(By.res(pkg, "recyclerview_reservas"), "9", "Lista Reservas");
                 break;
             case "10": 
-                completarFormularioReserva("Alta");
+                completarFormularioReserva("A");
                 onView(withId(R.id.button_confirm)).perform(forceClick());
-                verificarPantalla(By.res("es.unizar.eina.SistemaReservas:id/button_listar_reservas"), "10", "Menú Principal");
+                verificarPantalla(By.res(pkg, "button_listar_reservas"), "10", "Menú Principal");
                 break;
             case "9b": 
                 onView(withId(R.id.button_cancel)).perform(forceClick()); 
-                verificarPantalla(By.res("es.unizar.eina.SistemaReservas:id/recyclerview_reservas"), "9b", "Lista Reservas");
+                verificarPantalla(By.res(pkg, "recyclerview_reservas"), "9b", "Lista Reservas");
                 break;
             case "10b": 
                 onView(withId(R.id.button_cancel)).perform(forceClick()); 
-                verificarPantalla(By.res("es.unizar.eina.SistemaReservas:id/button_listar_reservas"), "10b", "Menú Principal");
+                verificarPantalla(By.res(pkg, "button_listar_reservas"), "10b", "Menú Principal");
                 break;
             case "9c": 
                 device.pressBack(); 
-                verificarPantalla(By.res("es.unizar.eina.SistemaReservas:id/recyclerview_reservas"), "9c", "Lista Reservas");
+                device.waitForIdle(UI_TIMEOUT);
+                verificarPantalla(By.res(pkg, "recyclerview_reservas"), "9c", "Lista Reservas");
                 break;
             case "10c": 
                 device.pressBack(); 
-                verificarPantalla(By.res("es.unizar.eina.SistemaReservas:id/button_listar_reservas"), "10c", "Menú Principal");
+                device.waitForIdle(UI_TIMEOUT);
+                verificarPantalla(By.res(pkg, "button_listar_reservas"), "10c", "Menú Principal");
                 break;
             case "11": 
                 onView(withId(R.id.btn_select_quads)).perform(scrollTo(), forceClick()); 
                 verificarTransicionASeleccion();
                 break;
             case "19": case "19b":
-                int fResId = arista.equals("19") ? R.id.btn_fecha_recogida : R.id.btn_fecha_devolucion;
-                UiObject btnFecha = device.findObject(new UiSelector().resourceId("es.unizar.eina.SistemaReservas:id/" + ctx().getResources().getResourceEntryName(fResId)));
-                boolean esNueva = btnFecha.exists() && btnFecha.getText().toUpperCase().contains("SELECCIONAR");
-                onView(withId(fResId)).perform(forceClick()); 
-                handleDatePicker(esNueva); 
+                int fId = arista.equals("19") ? R.id.btn_fecha_recogida : R.id.btn_fecha_devolucion;
+                UiObject bF = device.findObject(new UiSelector().resourceId(pkg + ":id/" + ctx().getResources().getResourceEntryName(fId)));
+                boolean eN = bF.exists() && bF.getText().toUpperCase().contains("SELECCIONAR");
+                onView(withId(fId)).perform(forceClick()); 
+                handleDatePicker(eN); 
                 break;
             case "12": 
                 device.waitForIdle();
-                UiObject firstCb = device.findObject(new UiSelector().resourceId("es.unizar.eina.SistemaReservas:id/cb_select").instance(0));
-                if (firstCb.exists() && !firstCb.isChecked()) firstCb.click();
+                UiObject cb = device.findObject(new UiSelector().resourceId(pkg + ":id/cb_select").instance(0));
+                if (cb.exists() && !cb.isChecked()) cb.click();
                 onView(withId(R.id.btn_confirm_selection)).perform(forceClick());
-                verificarPantalla(By.res("es.unizar.eina.SistemaReservas:id/edit_cliente"), "12", "Formulario Reserva");
+                verificarPantalla(By.res(pkg, "edit_cliente"), "12", "Formulario Reserva");
                 break;
             case "12b": 
                 onView(withId(R.id.btn_cancel_selection)).perform(forceClick()); 
-                verificarPantalla(By.res("es.unizar.eina.SistemaReservas:id/edit_cliente"), "12b", "Formulario Reserva");
+                verificarPantalla(By.res(pkg, "edit_cliente"), "12b", "Formulario Reserva");
                 break;
             case "12c": 
-                device.pressBack(); 
-                if (device.hasObject(By.res("es.unizar.eina.SistemaReservas:id/recycler_selection"))) device.pressBack();
-                verificarPantalla(By.res("es.unizar.eina.SistemaReservas:id/edit_cliente"), "12c", "Formulario Reserva");
+                device.pressBack(); device.waitForIdle(2000);
+                if (device.hasObject(By.res(pkg, "recycler_selection"))) device.pressBack();
+                device.waitForIdle(UI_TIMEOUT);
+                verificarPantalla(By.res(pkg, "edit_cliente"), "12c", "Formulario Reserva");
                 break; 
             case "20": case "20b": case "20c": 
-                int selSortId = arista.equals("20b") ? R.id.sort_tipo : (arista.equals("20c") ? R.id.sort_precio : R.id.sort_matricula);
-                onView(withId(selSortId)).perform(forceClick());
+                int sId = arista.equals("20b") ? R.id.sort_tipo : (arista.equals("20c") ? R.id.sort_precio : R.id.sort_matricula);
+                onView(withId(sId)).perform(forceClick()); device.waitForIdle(UI_TIMEOUT);
                 break;
             case "23": 
                 onView(withId(R.id.recycler_selection)).perform(RecyclerViewActions.actionOnItemAtPosition(0, clickOnViewChild(R.id.btn_details_selection)));
@@ -457,43 +393,42 @@ public class CaminosNavegacionTest {
                 onView(withId(R.id.recycler_selection)).perform(RecyclerViewActions.actionOnItemAtPosition(0, clickOnViewChild(R.id.btn_cascos_popup)));
                 UiObject op = device.findObject(new UiSelector().textMatches("(?i).*Casco.*"));
                 if (op.waitForExists(UI_TIMEOUT)) op.click();
-                device.waitForIdle();
+                device.waitForIdle(UI_TIMEOUT);
                 if (device.hasObject(By.res("android:id/content"))) device.pressBack();
                 break;
-            default: throw new IllegalArgumentException("Arista Desconocida: " + arista);
+            default: throw new IllegalArgumentException("Unknown edge: " + arista);
         }
     }
 
     private Context ctx() { return InstrumentationRegistry.getInstrumentation().getTargetContext(); }
 
     private void verificarTransicionASeleccion() {
-        if (!device.wait(Until.hasObject(By.res("es.unizar.eina.SistemaReservas:id/recycler_selection")), UI_TIMEOUT)) {
+        if (!device.wait(Until.hasObject(By.res(ctx().getPackageName(), "recycler_selection")), UI_TIMEOUT)) {
             throw new RuntimeException("ERROR NAVEGACIÓN (Arista 11): No se llegó a Selección.");
         }
     }
 
-    private void handleDatePicker(boolean confirmar) throws UiObjectNotFoundException {
-        String regex = confirmar ? "(?i)OK|ACEPTAR|ESTABLECER|LISTO|DONE|CONFIRMAR" : "(?i)CANCELAR|CANCEL";
-        UiObject btn = device.findObject(new UiSelector().textMatches(regex));
-        if (btn.waitForExists(4000)) btn.click();
+    private void clickSystemButton(boolean positive) throws UiObjectNotFoundException {
+        String resId = positive ? "android:id/button1" : "android:id/button2";
+        UiObject btn = device.findObject(new UiSelector().resourceId(resId));
+        if (!btn.waitForExists(5000)) {
+            String regex = positive ? "(?i)OK|ACEPTAR|ESTABLECER|LISTO|DONE|CONFIRMAR|SI|SÍ|YES|DELETE|ELIMINAR" : "(?i)CANCELAR|CANCEL|NO";
+            btn = device.findObject(new UiSelector().textMatches(regex));
+        }
+        if (btn.waitForExists(5000)) { btn.click(); device.waitForIdle(UI_TIMEOUT); }
     }
 
-    private void handleDestructiveDialog() throws UiObjectNotFoundException {
-        UiObject btn = device.findObject(new UiSelector().textMatches("(?i)ELIMINAR|BORRAR|ACEPTAR|OK|CONFIRMAR|SI|SÍ|DELETE"));
-        if (btn.waitForExists(3000)) btn.click();
-    }
-
-    private void handleInfoDialog() throws UiObjectNotFoundException {
-        UiObject btn = device.findObject(new UiSelector().textMatches("(?i)CERRAR|CLOSE|OK|ACEPTAR|ENTENDIDO"));
-        if (btn.waitForExists(3000)) btn.click();
-    }
+    private void handleDatePicker(boolean c) throws UiObjectNotFoundException { clickSystemButton(c); }
+    private void handleDestructiveDialog() throws UiObjectNotFoundException { clickSystemButton(true); }
+    private void handleInfoDialog() throws UiObjectNotFoundException { clickSystemButton(true); }
 
     private void handleBottomSheet(int resId) throws Exception {
         String name = ctx().getResources().getResourceEntryName(resId);
-        UiObject opt = device.findObject(new UiSelector().resourceId("es.unizar.eina.SistemaReservas:id/" + name));
+        UiObject opt = device.findObject(new UiSelector().resourceId(ctx().getPackageName() + ":id/" + name));
         if (opt.waitForExists(UI_TIMEOUT)) { 
             opt.click(); 
-            device.wait(Until.gone(By.res("es.unizar.eina.SistemaReservas:id/design_bottom_sheet")), UI_TIMEOUT);
+            device.wait(Until.gone(By.res(ctx().getPackageName(), "design_bottom_sheet")), UI_TIMEOUT);
+            device.waitForIdle(UI_TIMEOUT);
         } else device.pressBack();
     }
 

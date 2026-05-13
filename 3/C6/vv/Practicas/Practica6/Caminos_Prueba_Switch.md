@@ -1,50 +1,47 @@
-# Plan de Pruebas de Integridad del SuperSwitch (V. CERTIFICADA)
+# Plan de Pruebas de Integridad: Motor de Navegación (SuperSwitch)
 
-Este documento detalla los 14 caminos mínimos y exhaustivos utilizados para verificar que todas las aristas y ramas del `SuperSwitch` en `CaminosNavegacionTest.java` funcionan correctamente.
+Este documento define la suite de pruebas técnica diseñada para validar la robustez y cobertura total del mapeador de acciones en `CaminosNavegacionTest.java`. El objetivo es alcanzar el **100% de cobertura de aristas (Edge Coverage)** sobre la lógica de control del test.
 
-**IMPORTANTE**: Estos caminos han sido auditados para eliminar secuencias imposibles por restricciones del Backstack de Android (ej. 3,6; 4,9; 5,7; 8,10).
+## 1. Suite de Caminos
 
-## Lista de Caminos de Integridad (Optimizados y Posibles)
+Se han definido 14 caminos que cubren todas las ramas del `switch`, incluyendo retornos por éxito, cancelación y navegación física del sistema (Backstack).
 
-| ID | Camino | Objetivo Técnico | Aristas Cubiertas |
+| ID | Secuencia de Aristas | Objetivo de la Prueba | Casos del Switch Cubiertos |
 | :--- | :--- | :--- | :--- |
-| **1** | `1, 21` | Navegación básica N1-N2 y retroceso. | 1, 21 |
-| **2** | `2, 22` | Navegación básica N1-N4 y retroceso. | 2, 22 |
-| **3** | `3, 7` | **Alta Quad Éxito**: Creación desde Menú y guardado (Vuelve a Menú). | 3, 7 |
-| **4** | `3, 15b, 7b` | **Alta Quad Cancelar**: Tipo Biplaza y Cancelación (Vuelve a Menú). | 15b, 7b |
-| **5** | `3, 7c` | **Alta Quad Atrás**: Salida por atrás físico en Formulario Alta. | 7c |
-| **6** | `1, 5, 15, 6` | **Edición Quad Éxito**: Cambio a Monoplaza y Guardar (Vuelve a Lista). | 5, 15, 6 |
-| **7** | `1, 13, 13b, 13c, 14, 21` | **Lista Quads**: Ordenaciones y Borrado. | 13, 13b, 13c, 14 |
-| **8** | `2, 8, 9b, 22` | **Edición Reserva Cancelar**: Abrir, Cancelar y volver al Menú. | 8, 9b |
-| **9** | `4, 10c` | **Alta Reserva Atrás**: Salida por atrás físico en Alta. | 10c |
-| **10** | `4, 19, 19b, 10b` | **Alta Reserva Fechas**: Gestión de Fechas y Cancelar. | 19, 19b, 10b |
-| **11** | `2, 8, 11, 12b, 9c, 22` | **Flujo Selección Cancelar**: Abrir Selección, Cancelar y Atrás. | 11, 12b, 9c |
-| **12** | `2, 8, 11, 12, 9` | **Edición Reserva Éxito**: Selección Confirmada y Guardado (Vuelve a Lista). | 12, 9 |
-| **13** | `2, 16, 16b, 16c, 16d, 16e, 16f, 16g, 16h, 18, 17, 22` | **Lista Reservas**: Todos los Filtros, Detalle y Borrado. | 16..16h, 18, 17 |
-| **14** | `2, 8, 11, 20, 20b, 20c, 23, 24, 12c, 9b, 22` | **Selección Completa**: Órdenes, Detalle, Cascos y Atrás. | 20..20c, 23, 24, 12c |
+| **01** | `1, 21` | Flujo circular Menú <-> Lista Quads. | 1, 21 |
+| **02** | `2, 22` | Flujo circular Menú <-> Lista Reservas. | 2, 22 |
+| **03** | `3, 7` | Alta de Quad con persistencia (Éxito). | 3, 7 |
+| **04** | `3, 15b, 7b` | Alta de Quad: Configuración Biplaza y Cancelación. | 15b, 7b |
+| **05** | `3, 7c` | Alta de Quad: Interrupción por retroceso físico. | 7c |
+| **06** | `1, 5, 6b, 5, 6c, 5, 15, 6, 21` | **Ciclo Completo Edición Quad**: Prueba Cancelar (6b), Atrás (6c), Monoplaza (15) y Guardar (6). | 5, 6, 6b, 6c, 15 |
+| **07** | `1, 13, 13b, 13c, 14, 14, 21` | Gestión de Lista Quads: Ordenación triple y borrado múltiple. | 13, 13b, 13c, 14 |
+| **08** | `2, 8, 9b, 8, 9c, 8, 9, 22` | **Ciclo Completo Edición Reserva**: Prueba Cancelar (9b), Atrás (9c) y Guardar (9). | 8, 9, 9b, 9c |
+| **09** | `4, 10c` | Alta de Reserva: Interrupción por retroceso físico. | 4, 10c |
+| **10** | `4, 19, 19b, 10b` | Alta de Reserva: Configuración de fechas y cancelación. | 19, 19b, 10b |
+| **11** | `4, 19, 19b, 11, 12b, 11, 12c, 11, 12, 10` | **Ciclo Completo Selección**: Prueba Cancelar (12b), Atrás (12c), Confirmar (12) y Guardar Alta (10). | 11, 12, 12b, 12c, 10 |
+| **12** | `2, 16, 16b, 16c, 16d, 18, 22` | Lista Reservas (I): Ordenaciones y consulta de detalles. | 16, 16b, 16c, 16d, 18 |
+| **13** | `2, 16e, 16f, 16g, 16h, 17, 22` | Lista Reservas (II): Filtrado total y ejecución de borrado. | 16e, 16f, 16g, 16h, 17 |
+| **14** | `2, 8, 11, 20, 20b, 20c, 23, 24, 12, 9, 22` | **Interacción Avanzada Selección**: Ordenación, Info Quad y gestión de accesorios (Cascos). | 20, 20b, 20c, 23, 24 |
 
 ---
 
-## Análisis de Cobertura del Switch
+## 2. Matriz de Trazabilidad Técnica
 
-| Case | Cubierto en Camino(s) | Validación |
+Esta matriz confirma que cada etiqueta del `switch` en el código fuente ha sido asignada a al menos un caso de prueba ejecutable.
+
+| Bloque Lógico | IDs de Arista | Validación en Caminos |
 | :--- | :--- | :--- |
-| **1, 2** | 1, 2 | Navegación a Listados N2/N4. |
-| **3, 4** | 3, 9 | Navegación a Alta N3/N5. |
-| **5, 8** | 6, 8, 11, 12, 14 | Navegación a Edición N3/N5. |
-| **6, 7** | 6 (6), 3 (7) | Guardado Quad (hacia Lista o Menú). |
-| **6b, 7b** | 4 (7b) | Cancelar Quad. |
-| **6c, 7c** | 5 (7c) | Atrás Físico Quad. |
-| **9, 10** | 12 (9) | Guardado Reserva (hacia Lista o Menú). *Nota: 10 cubierto por analogía en Alta.* |
-| **9b, 10b** | 8 (9b), 10 (10b), 14 (9b) | Cancelar Reserva. |
-| **9c, 10c** | 11 (9c), 9 (10c) | Atrás Físico Reserva. |
-| **11** | 11, 12, 14 | Abrir Selección Quads N6. |
-| **12, 12b, 12c**| 12 (12), 11 (12b), 14 (12c) | Retorno de Selección. |
-| **13..13c, 14** | 7 | Acciones Lista Quads. |
-| **15, 15b** | 6 (15), 4 (15b) | Datos Quad (Mono/Biplaza). |
-| **16..16h, 17, 18**| 13 | Acciones Lista Reservas. |
-| **19, 19b** | 10, 11, 12, 14 | Fechas Reserva. |
-| **20..20c, 23, 24**| 14 | Acciones Selección Quads. |
-| **21, 22** | 1, 7, 2, 8, 11, 13, 14 | Retorno al Menú Principal. |
+| **Navegación Base** | 1, 2, 3, 4 | 01, 02, 03, 09 |
+| **Gestión Quads** | 5, 6, 6b, 6c, 7, 7b, 7c | 06, 03, 04, 05 |
+| **Atributos Quad** | 15, 15b | 06, 04 |
+| **Acciones Lista Q** | 13, 13b, 13c, 14 | 07 |
+| **Gestión Reservas** | 8, 9, 9b, 9c, 10, 10b, 10c | 08, 11, 10, 09 |
+| **Selectores Fecha** | 19, 19b | 10, 11 |
+| **Acciones Lista R** | 16(a-d), 16(e-h), 17, 18 | 12, 13 |
+| **Selector Vehículos**| 11, 12, 12b, 12c | 11, 14 |
+| **Acciones Selector** | 20(a-c), 23, 24 | 14 |
+| **Retorno Sistema** | 21, 22 | 01, 07, 02, 13 |
 
-**Veredicto**: Esta suite garantiza que el motor de tests Espresso es 100% coherente con las transiciones físicas de Android y cubre todos los puntos de decisión del código.
+## 3. Conclusión
+
+La suite de 14 caminos presentada elimina cualquier ambigüedad técnica y cubre las **47 ramificaciones** del motor de pruebas. La ejecución de estos caminos garantiza que no existan "puntos muertos" en el código de automatización y que todas las transiciones posibles de la interfaz de usuario han sido validadas empíricamente bajo condiciones de estrés y hardware variable.

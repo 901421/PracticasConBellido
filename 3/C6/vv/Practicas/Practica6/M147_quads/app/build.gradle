@@ -15,7 +15,12 @@ android {
         versionCode 1
         versionName "1.0"
 
+        // --- CONFIGURACIÓN DE TESTS ---
+        // JUnit/Espresso 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        //tests de Cucumber
+        // testInstrumentationRunner "io.cucumber.android.runner.CucumberAndroidJUnitRunner"
     }
 
     buildTypes {
