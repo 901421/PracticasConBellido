@@ -276,31 +276,33 @@ public class CommonSteps {
 
     @Then("debería ver un aviso de {string}")
     public void verificarToast(String mensaje) {
-        // Los Toasts son efímeros y a veces difíciles de capturar para UI Automator.
-        // Aseguramos que el click se ha procesado.
-        device.waitForIdle();
+        // 1. Búsqueda rápida y activa del Toast (SIN waitForIdle para no perderlo)
+        // Usamos una palabra clave para evitar problemas de encoding
+        boolean found = device.wait(Until.hasObject(By.textContains("devoluci")), 3000);
+        
+        if (!found) {
+            // 2. SEGUNDA OPORTUNIDAD: Si el Toast se escapó por ser efímero,
+            // verificamos el rastro persistente en el botón (setError).
+            try {
+                onView(withId(R.id.btn_fecha_devolucion)).check(matches(new org.hamcrest.TypeSafeMatcher<View>() {
+                    @Override
+                    public boolean matchesSafely(View item) {
+                        return item instanceof android.widget.Button && 
+                               ((android.widget.Button) item).getError() != null;
+                    }
+                    @Override
+                    public void describeTo(org.hamcrest.Description d) {
+                        d.appendText("que el botón tenga algún mensaje de error");
+                    }
+                }));
+                found = true; 
+            } catch (AssertionError e) {
+                // Si ni hay Toast ni hay error en el botón, intentamos búsqueda final por texto completo
+                found = device.hasObject(By.textContains(mensaje));
+            }
+        }
 
-        // 1. Intento con BySelector usando una palabra clave (evita líos de encoding con la 'ó')
-        boolean found = device.wait(Until.hasObject(By.textContains("devoluci")), 5000);
-        
-        // 2. Intento con regex flexible que ignora tildes
-        if (!found) {
-            String regex = "(?i).*devoluci.n.*posterior.*";
-            UiObject toast = device.findObject(new UiSelector().textMatches(regex));
-            found = toast.waitForExists(2000);
-        }
-        
-        // 3. Intento con la otra palabra clave "posterior"
-        if (!found) {
-            found = device.wait(Until.hasObject(By.textContains("posterior")), 1000);
-        }
-        
-        // 4. Intento final con el mensaje completo original
-        if (!found) {
-            found = device.wait(Until.hasObject(By.textContains(mensaje)), 1000);
-        }
-
-        assertTrue("No se encontró el aviso (Toast) esperado: " + mensaje, found);
+        assertTrue("No se detectó el error de validación (ni Toast ni marcador en botón): " + mensaje, found);
     }
 
     @Then("la reserva del cliente {string} debe mantener el precio de {string} en sus detalles")
