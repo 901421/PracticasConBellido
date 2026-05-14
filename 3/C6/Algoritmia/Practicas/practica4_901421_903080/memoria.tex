@@ -13,8 +13,8 @@
 \geometry{margin=2.5cm}
 
 \title{Práctica 4: Ramificación y Poda, Programación Lineal \\ \large Algoritmia Básica}
-\author{Imad (901421) \and Bellido (903080)}
-\date{Mayo 2026}
+\author{Imad Habib Jali (901421) \and Jorge Bellido Lobera (903080)}
+\date{}
 
 \lstset{
     language=C++,
@@ -82,16 +82,19 @@ Se han realizado pruebas con diferentes tamaños de $N$ para evaluar el rendimie
 \begin{tabular}{|c|c|c|c|c|}
 \hline
 \textbf{N} & \textbf{B\&B Tiempo (ms)} & \textbf{B\&B Nodos} & \textbf{PLI Tiempo (ms)} & \textbf{Valor Óptimo} \\ \hline
-6 & 0 & 26 & 726 & 42 \\ \hline
-9 & 0 & 429 & 130 & 73 \\ \hline
-12 & 0 & 1,489 & 210 & 63 \\ \hline
-15 & 1 & 5,419 & 350 & 82 \\ \hline
-18 & 120 & 450,122 & 580 & 91 \\ \hline
-21 & 1,266 & 4,319,822 & 881 & 95 \\ \hline
+6 & 0 & 22 & 84* & 42 \\ \hline
+9 & 0 & 232 & 145 & 73 \\ \hline
+12 & 0 & 868 & 70 & 70 \\ \hline
+15 & 2 & 10,630 & 168 & 68 \\ \hline
+18 & 64 & 285,725 & 409 & 74 \\ \hline
+21 & 2,997 & 12,811,209 & 1,118 & 112 \\ \hline
+24 & 14,492 & 47,862,255 & 2,104 & 96 \\ \hline
 \end{tabular}
 \end{center}
 
-Se observa que para valores pequeños de $N$ ($N \le 15$), el algoritmo B\&B es extremadamente superior debido a la eficiencia de la cota inferior. Sin embargo, a medida que $N$ aumenta, el crecimiento exponencial del árbol de búsqueda hace que el tiempo de ejecución de B\&B aumente rápidamente. Por otro lado, el modelo PLI (utilizando el solver CBC) muestra una escalabilidad más estable para valores mayores en estos casos de prueba aleatorios.
+\textit{* Nota: El tiempo de 84 ms para N=6 en PLI incluye el overhead de inicialización de la librería PuLP y el solver en Python.}
+
+Se observa que para valores pequeños de $N$ ($N \le 18$), el algoritmo B\&B es superior debido a la eficiencia de la cota inferior y la baja sobrecarga del lenguaje C++. Sin embargo, a medida que $N$ aumenta, el crecimiento exponencial del árbol de búsqueda hace que el tiempo de ejecución de B\&B aumente drásticamente. Se identifica un punto de cruce algorítmico entre $N=18$ y $N=21$. En $N=21$, el B\&B genera más de 12 millones de nodos, lo que eleva su tiempo a casi 3 segundos, siendo ya superado por el solver de PLI (1.1 segundos). En $N=24$, la diferencia es de un orden de magnitud (14.5s vs 2.1s).
 
 \section{Programación Lineal Entera (PLI)}
 Se ha desarrollado una solución alternativa utilizando el modelo de programación lineal entera. La formulación utiliza variables binarias $z_{i,j}$ que indican si los participantes $i$ y $j$ pertenecen al mismo equipo.

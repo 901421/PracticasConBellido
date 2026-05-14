@@ -10,7 +10,7 @@ using namespace std::chrono;
 
 /**
  * Práctica 4: Ramificación y Poda - Formación de Equipos Óptimos
- * Autores: Imad (901421) y Bellido (903080)
+ * Autores: Imad Habib Jali (901421) y Jorge Bellido Lobera (903080)
  * 
  * Este programa resuelve el problema de agrupar N participantes en equipos de 3
  * minimizando el conflicto total utilizando un algoritmo de Branch & Bound.

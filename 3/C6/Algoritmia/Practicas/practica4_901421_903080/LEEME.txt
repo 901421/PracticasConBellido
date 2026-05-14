@@ -8,7 +8,6 @@
 - `pruebas.txt`: Fichero con casos de prueba de ejemplo básicos.
 - `Pruebas/`: Directorio con herramientas de generación de pruebas y casos adicionales (N=12 a N=24).
 - `memoria.pdf`: Informe detallado de la práctica.
-- `AUDITORIA_FINAL.md`: Auditoría técnica de la implementación.
 
 ## Instrucciones de Compilación y Ejecución
 
