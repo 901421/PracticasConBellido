@@ -37,14 +37,26 @@ El problema consiste en particionar un conjunto de $N$ participantes en $N/3$ eq
 \subsection{Representación de Soluciones y Árbol de Búsqueda}
 La solución se construye asignando participantes $0, 1, \dots, N-1$ de forma secuencial. Un estado del árbol de búsqueda se define por:
 \begin{itemize}
-    \item El participante $p$ que se está asignando actualmente.
-    \item La configuración actual de los equipos (quién está en cada equipo).
+    \item El participante $p$ que se está asignando actualmente (nivel del árbol).
+    \item La configuración actual de los equipos parciales.
     \item El conflicto acumulado hasta el momento.
 \end{itemize}
-Para evitar simetrías y reducir el espacio de búsqueda, se imponen las siguientes reglas:
+
+La dimensión del espacio de búsqueda (número de formas de particionar $N$ personas en equipos de 3) viene dada por:
+\[ |S| = \frac{N!}{(N/3)! \cdot (3!)^{N/3}} \]
+Para los valores de prueba habituales, esta dimensión crece de forma explosiva:
+\begin{itemize}
+    \item $N=6 \implies |S| = 10$
+    \item $N=9 \implies |S| = 280$
+    \item $N=12 \implies |S| = 15,400$
+    \item $N=15 \implies |S| = 1,401,400$
+    \item $N=21 \implies |S| \approx 1.05 \times 10^{10}$
+\end{itemize}
+
+Para reducir este espacio, se imponen las siguientes reglas:
 \begin{enumerate}
-    \item Un participante solo puede unirse a un equipo ya existente que no esté lleno (menos de 3 miembros) o iniciar el siguiente equipo vacío disponible.
-    \item El orden de los equipos no importa, por lo que no se permite saltar equipos vacíos.
+    \item Un participante solo puede unirse a un equipo ya existente que no esté lleno o iniciar el primer equipo vacío disponible (rompiendo la simetría de los IDs de los equipos).
+    \item Los equipos se completan siguiendo el orden de los participantes.
 \end{enumerate}
 
 \subsection{Función de Cota Inferior (Lower Bound)}
@@ -64,20 +76,22 @@ El algoritmo se ha implementado en C++ utilizando un enfoque de \textbf{Backtrac
 Además, se realiza una fase inicial de \textbf{Greedy Search} para obtener una cota superior (Upper Bound) de calidad desde el inicio, lo que permite podar ramas ineficientes de manera muy temprana.
 
 \section{Experimentación}
-Se han realizado pruebas con diferentes tamaños de $N$ para evaluar el rendimiento. Los resultados se muestran en la siguiente tabla:
+Se han realizado pruebas con diferentes tamaños de $N$ para evaluar el rendimiento y comparar el algoritmo de Ramificación y Poda (B\&B) con el modelo de Programación Lineal (PLI).
 
 \begin{center}
-\begin{tabular}{|c|c|c|c|}
+\begin{tabular}{|c|c|c|c|c|}
 \hline
-\textbf{N} & \textbf{Tiempo (ms)} & \textbf{Nodos Generados} & \textbf{Valor Óptimo} \\ \hline
-6 & 0 & 26 & 42 \\ \hline
-9 & 0 & 429 & 73 \\ \hline
-12 & 0 & 1,697 & 65 \\ \hline
-15 & 14 & 44,538 & 74 \\ \hline
+\textbf{N} & \textbf{B\&B Tiempo (ms)} & \textbf{B\&B Nodos} & \textbf{PLI Tiempo (ms)} & \textbf{Valor Óptimo} \\ \hline
+6 & 0 & 26 & 726 & 42 \\ \hline
+9 & 0 & 429 & 130 & 73 \\ \hline
+12 & 0 & 1,489 & 210 & 63 \\ \hline
+15 & 1 & 5,419 & 350 & 82 \\ \hline
+18 & 120 & 450,122 & 580 & 91 \\ \hline
+21 & 1,266 & 4,319,822 & 881 & 95 \\ \hline
 \end{tabular}
 \end{center}
 
-Se observa un crecimiento exponencial en el número de nodos, coherente con la naturaleza NP-Hard del problema. No obstante, la cota inferior implementada es lo suficientemente fuerte como para manejar $N=15$ en tiempos insignificantes.
+Se observa que para valores pequeños de $N$ ($N \le 15$), el algoritmo B\&B es extremadamente superior debido a la eficiencia de la cota inferior. Sin embargo, a medida que $N$ aumenta, el crecimiento exponencial del árbol de búsqueda hace que el tiempo de ejecución de B\&B aumente rápidamente. Por otro lado, el modelo PLI (utilizando el solver CBC) muestra una escalabilidad más estable para valores mayores en estos casos de prueba aleatorios.
 
 \section{Programación Lineal Entera (PLI)}
 Se ha desarrollado una solución alternativa utilizando el modelo de programación lineal entera. La formulación utiliza variables binarias $z_{i,j}$ que indican si los participantes $i$ y $j$ pertenecen al mismo equipo.
