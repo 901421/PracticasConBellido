@@ -19,6 +19,11 @@ import java.util.Locale;
 import es.unizar.eina.SistemaReservas.database.Quad;
 import es.unizar.eina.SistemaReservas.ui.SistemaReservas;
 
+/**
+ * Clase que implementa las pruebas de sobrecarga (stress testing) para el sistema.
+ * Evalúa el comportamiento del sistema cuando se introducen datos que exceden los límites normales
+ * de operación, específicamente la longitud de la descripción de un Quad.
+ */
 @RunWith(AndroidJUnit4.class)
 public class PruebaDeSobrecarga {
 
@@ -28,10 +33,17 @@ public class PruebaDeSobrecarga {
     public ActivityScenarioRule<SistemaReservas> scenarioRule =
             new ActivityScenarioRule<>(SistemaReservas.class);
 
+    /**
+     * Prueba el límite de capacidad de almacenamiento para el campo descripción de un Quad.
+     * Inserta descripciones de tamaño incremental (bloques de 1000 caracteres) hasta alcanzar el límite
+     * del sistema o completar 2 millones de caracteres.
+     * Valida si el sistema maneja el error de forma controlada o si ocurre un fallo crítico.
+     */
     @Test
     @Ignore("No es una prueba de regresión continua")
     public void testSobrecargaDescripcion() {
         scenarioRule.getScenario().onActivity(activity -> {
+            // Setup / Given: Preparación del escenario de sobrecarga
             Log.d(TAG, "===== INICIANDO PRUEBA DE SOBRECARGA =====");
 
             StringBuilder sb = new StringBuilder();
@@ -41,6 +53,7 @@ public class PruebaDeSobrecarga {
             long lastSuccessfulSize = 0;
 
             try {
+                // Execution / When: Inserción incremental de datos masivos en un campo
                 while (iteracion <= 2000 && !stop) {
                     sb.append(bloque1000);
                     int totalChars = sb.length();
@@ -54,6 +67,7 @@ public class PruebaDeSobrecarga {
                     Quad q = new Quad(matriculaValida, true, 10.0, sb.toString());
                     long res = activity.getQuadRepository().insert(q);
 
+                    // Verification / Then: Análisis de la respuesta del sistema ante la sobrecarga
                     if (res == -1) {
                         Log.e(TAG, "!!! LÍMITE LÓGICO ALCANZADO !!!");
                         Log.e(TAG, "Fallo devuelto por repositorio: " + totalChars + " caracteres.");
@@ -74,6 +88,7 @@ public class PruebaDeSobrecarga {
                 }
 
             } catch (Throwable t) {
+                // Verification / Then: Gestión de colapso físico si ocurre una excepción incontrolada
                 Log.e(TAG, "COLAPSO FÍSICO DE SISTEMA: " + t.getClass().getSimpleName());
                 Log.e(TAG, "Tamaño en el momento del crash: " + sb.length());
                 assertThat("El test falló porque la app crasheó de forma incontrolada. Excepción: " + t.getClass().getSimpleName(), false, is(true));
@@ -83,6 +98,9 @@ public class PruebaDeSobrecarga {
         });
     }
 
+    /**
+     * Limpieza de la base de datos tras la prueba de sobrecarga.
+     */
     @After
     public void tearDown() {
         scenarioRule.getScenario().onActivity(activity -> {

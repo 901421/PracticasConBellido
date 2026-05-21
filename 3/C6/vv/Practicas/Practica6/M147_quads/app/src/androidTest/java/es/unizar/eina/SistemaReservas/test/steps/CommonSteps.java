@@ -44,12 +44,22 @@ import es.unizar.eina.SistemaReservas.ui.SistemaReservas;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Clase que contiene las definiciones de los pasos (Step Definitions) de Cucumber para las pruebas de aceptación.
+ * Proporciona los métodos necesarios para interactuar con la interfaz de usuario mediante Espresso y UI Automator,
+ * además de gestionar el estado de la base de datos para asegurar un entorno de prueba limpio y predecible.
+ */
 public class CommonSteps {
 
     private UiDevice device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
     private static final long UI_TIMEOUT = 10000;
     private ActivityScenario<SistemaReservas> scenario;
 
+    /**
+     * Configuración previa a la ejecución de cada escenario de Cucumber.
+     * Limpia la base de datos e inserta datos de prueba iniciales de forma sincrónica.
+     * Lanza la actividad principal del sistema de reservas.
+     */
     @Before
     public void setUp() throws Exception {
         Context ctx = InstrumentationRegistry.getInstrumentation().getTargetContext();
@@ -80,6 +90,10 @@ public class CommonSteps {
         device.waitForIdle();
     }
 
+    /**
+     * Limpieza tras la ejecución de cada escenario de Cucumber.
+     * Cierra el escenario de la actividad para liberar recursos.
+     */
     @After
     public void tearDown() {
         if (scenario != null) {
@@ -87,7 +101,11 @@ public class CommonSteps {
         }
     }
 
-    // Metodo para hacer click de forma segura buscando el elemento o haciendo scroll
+    /**
+     * Realiza un clic robusto sobre una vista identificada por su ID de recurso.
+     * Si la vista no está visible, intenta realizar scroll para encontrarla antes de pulsar.
+     * @param resId ID del recurso sobre el que realizar el clic.
+     */
     private void robustClick(int resId) {
         String resName = InstrumentationRegistry.getInstrumentation().getTargetContext().getResources().getResourceEntryName(resId);
         String pkg = InstrumentationRegistry.getInstrumentation().getTargetContext().getPackageName();
@@ -108,7 +126,12 @@ public class CommonSteps {
         device.waitForIdle();
     }
 
-    // Metodo para escribir texto de forma segura
+    /**
+     * Escribe texto de forma robusta en un campo identificado por su ID.
+     * Intenta usar Espresso y, en caso de fallo, recurre a UI Automator con scroll previo si es necesario.
+     * @param resId ID del campo de texto.
+     * @param text Texto a escribir.
+     */
     private void robustType(int resId, String text) {
         try {
             onView(withId(resId)).perform(replaceText(text));
@@ -127,7 +150,10 @@ public class CommonSteps {
         device.waitForIdle();
     }
 
-    // Maneja dialogos del sistema (aceptar/cancelar) por texto o ID
+    /**
+     * Maneja diálogos del sistema (como confirmaciones de borrado o pickers de fecha).
+     * @param positive true para pulsar el botón positivo (Aceptar), false para el negativo (Cancelar).
+     */
     private void handleSystemDialog(boolean positive) {
         String regex = positive ? "(?i)OK|ACEPTAR|CONFIRMAR|SET|ESTABLECER|LISTO|DONE|SI|SÍ|YES|DELETE|ELIMINAR" : "(?i)CANCELAR|CANCEL|NO";
         UiObject btn = device.findObject(new UiSelector().textMatches(regex));
@@ -138,6 +164,9 @@ public class CommonSteps {
         device.waitForIdle();
     }
 
+    /**
+     * Acción de Espresso para forzar un clic en una vista.
+     */
     public static ViewAction forceClick() {
         return new ViewAction() {
             @Override public Matcher<View> getConstraints() { return isDisplayed(); }
@@ -146,6 +175,9 @@ public class CommonSteps {
         };
     }
 
+    /**
+     * Limpia y normaliza una cadena de texto proveniente de Cucumber.
+     */
     private String clean(String s) {
         if (s == null || s.equalsIgnoreCase("null")) return "";
         return s.replace("\"", "").trim();
@@ -153,6 +185,9 @@ public class CommonSteps {
 
     // --- PASOS PARA QUADS ---
 
+    /**
+     * Navega a la pantalla de edición de un nuevo Quad.
+     */
     @Given("^que estoy en la pantalla de edición de quad$")
     public void pantallaEdicionQuad() {
         robustClick(R.id.button_crear_quad);

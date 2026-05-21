@@ -32,6 +32,7 @@ import es.unizar.eina.SistemaReservas.ui.SistemaReservas;
  * Tests de integración para el filtrado de reservas (Cubre RF 14 y CP-V-07 a 10).
  * Valida que el repositorio filtra correctamente las reservas por estado
  * (Previstas, Vigentes, Caducadas) basándose en la fecha actual.
+ * Nivel de prueba: Integración / Repositorio.
  */
 @RunWith(AndroidJUnit4.class)
 public class ReservaRepositoryTest {
@@ -44,6 +45,10 @@ public class ReservaRepositoryTest {
     private QuadRepository quadRepo;
     private int idQuad;
 
+    /**
+     * Configuración inicial antes de cada prueba.
+     * Limpia la base de datos y crea un Quad de prueba para ser utilizado en las reservas.
+     */
     @Before
     public void setUp() {
         scenarioRule.getScenario().onActivity(activity -> {
@@ -57,10 +62,15 @@ public class ReservaRepositoryTest {
         });
     }
 
+    /**
+     * Verifica que el filtrado por estados (Prevista, Vigente, Caducada) funciona correctamente.
+     * Inserta una reserva en cada estado posible y verifica que las consultas filtradas
+     * retornen únicamente los registros esperados.
+     */
     @Test
     public void testFiltradoPorEstados() throws InterruptedException {
         scenarioRule.getScenario().onActivity(activity -> {
-            // 1. Crear set de datos: Una en cada estado (suponiendo hoy es 2026-05-15)
+            // Setup / Given: Crear set de datos con reservas en diferentes estados temporales
             String today = "2026-05-15";
             
             // Prevista (In > today)
@@ -71,31 +81,38 @@ public class ReservaRepositoryTest {
             insertarReservaHelper("Caducada", "2026-05-01", "2026-05-05");
         });
 
-        // Esperar a que Room procese
+        // Execution / When: Esperar a que Room procese las inserciones
         Thread.sleep(1000);
 
         String today = "2026-05-15";
 
-        // Probar Filtro: PREVISTAS (1)
+        // Verification / Then: Probar Filtro: PREVISTAS (1)
         validarFiltro(1, today, 1, "Prevista");
 
-        // Probar Filtro: VIGENTES (2)
+        // Verification / Then: Probar Filtro: VIGENTES (2)
         validarFiltro(2, today, 1, "Vigente");
 
-        // Probar Filtro: CADUCADAS (3)
+        // Verification / Then: Probar Filtro: CADUCADAS (3)
         validarFiltro(3, today, 1, "Caducada");
 
-        // Probar Filtro: TODAS (0)
+        // Verification / Then: Probar Filtro: TODAS (0)
         validarFiltro(0, today, 3, null);
     }
 
+    /**
+     * Método auxiliar para insertar una reserva con un Quad asociado de forma sincrónica.
+     */
     private void insertarReservaHelper(String cliente, String fIn, String fOut) {
-        Reserva r = new Reserva(cliente, 600000000L, fIn, fOut);
+        Reserva r = new Reserva(cliente, 600000000, fIn, fOut);
         List<ReservaQuad> rqs = new ArrayList<>();
         rqs.add(new ReservaQuad(0, idQuad, 1, 50.0));
         reservaRepo.insertSync(r, rqs);
     }
 
+    /**
+     * Método auxiliar para validar el resultado de un filtro de reservas.
+     * Utiliza un CountDownLatch para esperar la respuesta asíncrona del LiveData.
+     */
     private void validarFiltro(int filter, String today, int expectedCount, String expectedName) throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(1);
         scenarioRule.getScenario().onActivity(activity -> {
@@ -117,6 +134,9 @@ public class ReservaRepositoryTest {
         latch.await(5, TimeUnit.SECONDS);
     }
 
+    /**
+     * Limpieza de la base de datos tras la ejecución de las pruebas.
+     */
     @After
     public void tearDown() {
         scenarioRule.getScenario().onActivity(activity -> {

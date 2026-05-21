@@ -213,4 +213,22 @@ public class ReservaRepository {
             return -1;
         }
     }
+
+    /**
+     * Inserta una reserva de forma síncrona saltándose las validaciones lógicas.
+     * EXCLUSIVO para Pruebas de Volumen y carga masiva de datos.
+     */
+    public long insertMassiveSync(Reserva reserva, List<ReservaQuad> quads) {
+        java.util.concurrent.Future<Long> future = QuadRoomDatabase.databaseWriteExecutor.submit(() -> {
+            long id = mReservaDao.insert(reserva);
+            if (quads != null) {
+                for (ReservaQuad rq : quads) {
+                    rq.setReservaId((int) id);
+                }
+                mReservaDao.insertReservaQuads(quads);
+            }
+            return id;
+        });
+        try { return future.get(20, java.util.concurrent.TimeUnit.SECONDS); } catch (Exception e) { return -1; }
+    }
 }
