@@ -87,10 +87,10 @@
               <option name="preferredColumnWidths">
                 <map>
                   <entry key="4" value="120" />
-                  <entry key="Duration" value="142" />
-                  <entry key="Medium_Phone" value="171" />
+                  <entry key="Duration" value="90" />
+                  <entry key="Medium_Phone" value="120" />
                   <entry key="Nothing A063" value="120" />
-                  <entry key="Tests" value="412" />
+                  <entry key="Tests" value="360" />
                 </map>
               </option>
             </AndroidTestResultsTableState>
