@@ -91,7 +91,8 @@
             android:backgroundTint="@color/colorBtnTest"
             android:textAllCaps="false"
             android:insetTop="0dp"
-            android:insetBottom="0dp"/>
+            android:insetBottom="0dp"
+            android:visibility="gone"/>
 
         <!-- ESPACIADOR INFERIOR DE SEGURIDAD PARA ESPRESSO -->
         <View

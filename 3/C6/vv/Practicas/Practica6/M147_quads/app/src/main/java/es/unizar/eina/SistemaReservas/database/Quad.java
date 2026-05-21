@@ -93,4 +93,16 @@ public class Quad {
 
     /** @param estaActivo Nuevo estado de activación. */
     public void setEstaActivo(boolean estaActivo) { this.estaActivo = estaActivo; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Quad quad = (Quad) o;
+        return esmonoplaza == quad.esmonoplaza &&
+               Double.compare(quad.precio, precio) == 0 &&
+               estaActivo == quad.estaActivo &&
+               matricula.equals(quad.matricula) &&
+               (descripcion == null ? quad.descripcion == null : descripcion.equals(quad.descripcion));
+    }
 }

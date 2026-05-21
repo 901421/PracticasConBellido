@@ -84,4 +84,16 @@ public class Reserva {
 
     /** @param estaActivo Nuevo estado de activación de la reserva. */
     public void setEstaActivo(boolean estaActivo) { this.estaActivo = estaActivo; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Reserva reserva = (Reserva) o;
+        return telefono == reserva.telefono &&
+               estaActivo == reserva.estaActivo &&
+               nombreCliente.equals(reserva.nombreCliente) &&
+               fechaRecogida.equals(reserva.fechaRecogida) &&
+               fechaDevolucion.equals(reserva.fechaDevolucion);
+    }
 }

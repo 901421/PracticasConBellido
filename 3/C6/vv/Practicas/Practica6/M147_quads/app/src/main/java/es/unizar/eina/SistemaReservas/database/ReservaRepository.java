@@ -93,7 +93,37 @@ public class ReservaRepository {
                 return false; 
             }
         }
+
+        // Validación de Solapes (RF 6): No se pueden reservar quads ya ocupados
+        List<ReservaConQuads> allReservas = mReservaDao.getReservasConQuadsSync();
+        if (allReservas != null) {
+            for (ReservaConQuads existing : allReservas) {
+                // Si es la misma reserva que estamos editando, ignorar
+                if (existing.reserva.getId() == reserva.getId()) continue;
+
+                // Comprobar si las fechas solapan
+                if (datesOverlap(reserva.getFechaRecogida(), reserva.getFechaDevolucion(),
+                                 existing.reserva.getFechaRecogida(), existing.reserva.getFechaDevolucion())) {
+                    
+                    // Si solapan fechas, comprobar si algún quad coincide
+                    for (ReservaQuad newRq : quads) {
+                        for (Quad existingQuad : existing.quads) {
+                            if (newRq.getQuadId() == existingQuad.getId()) {
+                                return false; // Conflicto de disponibilidad
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         return true;
+    }
+
+    /** Helper para detectar solapamiento de rangos de fechas (ISO 8601). */
+    private boolean datesOverlap(String start1, String end1, String start2, String end2) {
+        // En formato yyyy-MM-dd, la comparación de strings es alfabéticamente correcta
+        return start1.compareTo(end2) <= 0 && end1.compareTo(start2) >= 0;
     }
 
     /**

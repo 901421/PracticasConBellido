@@ -1,7 +1,8 @@
 package es.unizar.eina.SistemaReservas;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.greaterThan;
 
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
@@ -30,80 +31,78 @@ public class TestsUnitariosDeleteReservas {
     @Rule
     public ActivityScenarioRule<SistemaReservas> scenarioRule = new ActivityScenarioRule<>(SistemaReservas.class);
 
-    private QuadRepository getQuadRepository() {
-        final QuadRepository[] repo = new QuadRepository[1];
-        scenarioRule.getScenario().onActivity(activity -> repo[0] = activity.getQuadRepository());
-        return repo[0];
-    }
-
-    private ReservaRepository getReservaRepository() {
-        final ReservaRepository[] repo = new ReservaRepository[1];
-        scenarioRule.getScenario().onActivity(activity -> repo[0] = activity.getReservaRepository());
-        return repo[0];
-    }
-
     // Preparamos un Quad válido antes de cada test porque las reservas exigen tener vehículos
     @Before
     public void setUp() {
-        QuadRepository quadRepo = getQuadRepository();
-        quadBase = new Quad("5555-DEL", true, 40.0, "Quad Base Delete Reserva");
-        long idQ = quadRepo.insert(quadBase);
-        assertTrue("Setup: Error al insertar Quad", idQ > 0);
-        quadBase.setId((int) idQ);
+        scenarioRule.getScenario().onActivity(activity -> {
+            QuadRepository quadRepo = activity.getQuadRepository();
+            quadBase = new Quad("5555-DEL", true, 40.0, "Quad Base Delete Reserva");
+            long idQ = quadRepo.insert(quadBase);
+            assertThat("Setup: Error al insertar Quad", idQ, is(greaterThan(0L)));
+            quadBase.setId((int) idQ);
+        });
     }
 
     @Test
     public void testDeleteReservaValida() {
-        ReservaRepository reservaRepo = getReservaRepository();
-        
-        // 1. Preparación: Insertar una Reserva de prueba vinculada al Quad base
-        List<ReservaQuad> listaVehiculos = new ArrayList<>();
-        listaVehiculos.add(new ReservaQuad(0, quadBase.getId(), 1, 0.0));
-        
-        Reserva reservaTest = new Reserva("Juan Borrado", 600111222, "2026-01-15", "2026-01-18");
-        long idR = reservaRepo.insertSync(reservaTest, listaVehiculos);
-        assertTrue("Fallo previo: No se pudo insertar la reserva", idR > 0);
-        reservaTest.setId((int) idR);
+        scenarioRule.getScenario().onActivity(activity -> {
+            ReservaRepository reservaRepo = activity.getReservaRepository();
+            
+            // 1. Preparación: Insertar una Reserva de prueba vinculada al Quad base
+            List<ReservaQuad> listaVehiculos = new ArrayList<>();
+            listaVehiculos.add(new ReservaQuad(0, quadBase.getId(), 1, 0.0));
+            
+            Reserva reservaTest = new Reserva("Juan Borrado", 600111222, "2026-01-15", "2026-01-18");
+            long idR = reservaRepo.insertSync(reservaTest, listaVehiculos);
+            assertThat("Fallo previo: No se pudo insertar la reserva", idR, is(greaterThan(0L)));
+            reservaTest.setId((int) idR);
 
-        // 2. Ejecución: Borramos la Reserva
-        int filasBorradas = reservaRepo.delete(reservaTest);
+            // 2. Ejecución: Borramos la Reserva
+            int filasBorradas = reservaRepo.delete(reservaTest);
 
-        // 3. Validación: Comprobamos que se ha borrado 1 fila
-        assertTrue("UNIT DELETE RES 1: Reserva válida no borrada", filasBorradas > 0);
+            // 3. Validación: Comprobamos que se ha borrado 1 fila
+            assertThat("UNIT DELETE RES 1: Reserva válida no borrada", filasBorradas, is(greaterThan(0)));
+        });
     }
 
     @Test
     public void testDeleteReservaInexistente() {
-        ReservaRepository reservaRepo = getReservaRepository();
-        
-        // 1. Preparación: Creamos una Reserva pero NO la insertamos
-        Reserva reservaFantasma = new Reserva("Fantasma", 0, "2026-01-01", "2026-01-02");
-        reservaFantasma.setId(999999); // ID falso que no está en base de datos
+        scenarioRule.getScenario().onActivity(activity -> {
+            ReservaRepository reservaRepo = activity.getReservaRepository();
+            
+            // 1. Preparación: Creamos una Reserva pero NO la insertamos
+            Reserva reservaFantasma = new Reserva("Fantasma", 0, "2026-01-01", "2026-01-02");
+            reservaFantasma.setId(999999); // ID falso que no está en base de datos
 
-        // 2. Ejecución: Intentamos borrarla
-        int filasBorradas = reservaRepo.delete(reservaFantasma);
+            // 2. Ejecución: Intentamos borrarla
+            int filasBorradas = reservaRepo.delete(reservaFantasma);
 
-        // 3. Validación: Devuelve 0 filas afectadas (Room no falla, solo ignora)
-        assertEquals("UNIT DELETE RES 2: Borrar Reserva inexistente debe afectar a 0 filas", 0, filasBorradas);
+            // 3. Validación: Devuelve 0 filas afectadas (Room no falla, solo ignora)
+            assertThat("UNIT DELETE RES 2: Borrar Reserva inexistente debe afectar a 0 filas", filasBorradas, is(0));
+        });
     }
 
     @Test
     public void testDeleteReservaNula() {
-        ReservaRepository reservaRepo = getReservaRepository();
+        scenarioRule.getScenario().onActivity(activity -> {
+            ReservaRepository reservaRepo = activity.getReservaRepository();
 
-        // Ejecución: Intentamos borrar null
-        int filasBorradas = reservaRepo.delete(null);
+            // Ejecución: Intentamos borrar null
+            int filasBorradas = reservaRepo.delete(null);
 
-        // Validación: Room gestiona el null de forma segura y devuelve 0 filas afectadas
-        assertEquals("UNIT DELETE RES 3: Al borrar reserva nula, Room afecta a 0 filas", 0, filasBorradas);
+            // Validación: Room gestiona el null de forma segura y devuelve 0 filas afectadas
+            assertThat("UNIT DELETE RES 3: Al borrar reserva nula, Room afecta a 0 filas", filasBorradas, is(0));
+        });
     }
 
     // Limpiamos la base de datos eliminando el Quad base
     @After
     public void tearDown() {
-        QuadRepository quadRepo = getQuadRepository();
-        if (quadBase != null && quadBase.getId() > 0) {
-            quadRepo.delete(quadBase);
-        }
+        scenarioRule.getScenario().onActivity(activity -> {
+            QuadRepository quadRepo = activity.getQuadRepository();
+            if (quadBase != null && quadBase.getId() > 0) {
+                quadRepo.delete(quadBase);
+            }
+        });
     }
 }

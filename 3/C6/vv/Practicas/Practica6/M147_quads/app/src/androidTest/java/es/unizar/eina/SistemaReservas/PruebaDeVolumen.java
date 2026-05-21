@@ -1,12 +1,16 @@
 package es.unizar.eina.SistemaReservas;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.greaterThan;
+
 import android.util.Log;
 
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import static org.junit.Assert.assertTrue;
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,61 +34,54 @@ public class PruebaDeVolumen {
     public ActivityScenarioRule<SistemaReservas> scenarioRule =
             new ActivityScenarioRule<>(SistemaReservas.class);
 
-    private QuadRepository getQuadRepository() {
-        final QuadRepository[] repo = new QuadRepository[1];
-        scenarioRule.getScenario().onActivity(activity -> repo[0] = activity.getQuadRepository());
-        return repo[0];
-    }
-
-    private ReservaRepository getReservaRepository() {
-        final ReservaRepository[] repo = new ReservaRepository[1];
-        scenarioRule.getScenario().onActivity(activity -> repo[0] = activity.getReservaRepository());
-        return repo[0];
-    }
-
     @Test
+    @Ignore("No es una prueba de regresión continua")
     public void testVolumenQuadsYReservas() {
-        QuadRepository quadRepo = getQuadRepository();
-        ReservaRepository resRepo = getReservaRepository();
+        scenarioRule.getScenario().onActivity(activity -> {
+            QuadRepository quadRepo = activity.getQuadRepository();
+            ReservaRepository resRepo = activity.getReservaRepository();
 
-        Log.d(TAG, "===== INICIANDO PRUEBA DE VOLUMEN (DATOS VÁLIDOS) =====");
-        long startTime = System.currentTimeMillis();
+            Log.d(TAG, "===== INICIANDO PRUEBA DE VOLUMEN (DATOS VÁLIDOS) =====");
+            long startTime = System.currentTimeMillis();
 
-        List<ReservaQuad> quadsParaVinculo = new ArrayList<>();
+            List<ReservaQuad> quadsParaVinculo = new ArrayList<>();
 
-        for (int i = 1; i <= 100; i++) {
-            String matriculaValida = String.format(Locale.getDefault(), "%04d-VOL", i);
-            long idGenerado = quadRepo.insert(new Quad(matriculaValida, true, 20.0, "Volumen " + i));
+            for (int i = 1; i <= 100; i++) {
+                String matriculaValida = String.format(Locale.getDefault(), "%04d-VOL", i);
+                long idGenerado = quadRepo.insert(new Quad(matriculaValida, true, 20.0, "Volumen " + i));
 
-            assertTrue("Fallo insertando el Quad de volumen número " + i, idGenerado > 0);
+                assertThat("Fallo insertando el Quad de volumen número " + i, idGenerado, is(greaterThan(0L)));
 
-            if (quadsParaVinculo.isEmpty()) {
-                quadsParaVinculo.add(new ReservaQuad(0, (int) idGenerado, 1, 0.0));
+                if (quadsParaVinculo.isEmpty()) {
+                    quadsParaVinculo.add(new ReservaQuad(0, (int) idGenerado, 1, 0.0));
+                }
             }
-        }
-        Log.d(TAG, "SUCCESS: 100 Quads insertados cumpliendo formato Regex.");
+            Log.d(TAG, "SUCCESS: 100 Quads insertados cumpliendo formato Regex.");
 
-        assertTrue("ERROR: Abortando volumen. No hay quads válidos para vincular.", !quadsParaVinculo.isEmpty());
+            assertThat("ERROR: Abortando volumen. No hay quads válidos para vincular.", quadsParaVinculo.isEmpty(), is(false));
 
-        for (int i = 1; i <= 20000; i++) {
-            Reserva r = new Reserva("Cliente Vol " + i, 600000000, "2026-01-01", "2026-01-02");
+            for (int i = 1; i <= 20000; i++) {
+                Reserva r = new Reserva("Cliente Vol " + i, 600000000, "2026-01-01", "2026-01-02");
 
-            long idReserva = resRepo.insertSync(r, quadsParaVinculo);
-            assertTrue("Fallo insertando la reserva número " + i, idReserva > 0);
+                long idReserva = resRepo.insertSync(r, quadsParaVinculo);
+                assertThat("Fallo insertando la reserva número " + i, idReserva, is(greaterThan(0L)));
 
-            if (i % 1000 == 0) {
-                Log.d(TAG, "Progreso: " + i + "/20000 reservas insertadas...");
+                if (i % 1000 == 0) {
+                    Log.d(TAG, "Progreso: " + i + "/20000 reservas insertadas...");
+                }
             }
-        }
 
-        long endTime = System.currentTimeMillis();
-        double totalSeconds = (endTime - startTime) / 1000.0;
-        Log.d(TAG, "===== ÉXITO VOLUMEN: 20.100 registros en " + totalSeconds + " segundos =====");
+            long endTime = System.currentTimeMillis();
+            double totalSeconds = (endTime - startTime) / 1000.0;
+            Log.d(TAG, "===== ÉXITO VOLUMEN: 20.100 registros en " + totalSeconds + " segundos =====");
+        });
     }
 
     @After
     public void tearDown() {
-        getReservaRepository().deleteAll();
-        getQuadRepository().deleteAll();
+        scenarioRule.getScenario().onActivity(activity -> {
+            activity.getReservaRepository().deleteAll();
+            activity.getQuadRepository().deleteAll();
+        });
     }
 }

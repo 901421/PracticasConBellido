@@ -291,28 +291,6 @@ public class ReservaListActivity extends AppCompatActivity {
     }
 
     private String construirMensajeCompleto(ReservaConQuads item, List<ReservaQuad> relaciones) {
-        StringBuilder sb = new StringBuilder();
-        SimpleDateFormat uiSdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-        SimpleDateFormat dbSdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        
-        String displayIn = item.reserva.getFechaRecogida();
-        String displayOut = item.reserva.getFechaDevolucion();
-        long dias = 1;
-        
-        try {
-            Date in = dbSdf.parse(item.reserva.getFechaRecogida());
-            Date out = dbSdf.parse(item.reserva.getFechaDevolucion());
-            if (in != null && out != null) {
-                long diff = out.getTime() - in.getTime();
-                dias = TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
-                displayIn = uiSdf.format(in);
-                displayOut = uiSdf.format(out);
-            }
-            if (dias < 1) dias = 1; 
-        } catch (Exception e) { 
-            Log.e(TAG, "Error al parsear fechas del mensaje", e);
-        }
-
         double precioTotalAcordado = 0;
         int totalCascos = 0;
         if (relaciones != null) {
@@ -321,19 +299,46 @@ public class ReservaListActivity extends AppCompatActivity {
                 totalCascos += rq.getNumCascos();
             }
         }
-        double precioFinalCalculado = precioTotalAcordado * dias; 
 
-        sb.append(getString(R.string.msg_confirm_header)).append("\n\n");
-        sb.append(getString(R.string.msg_client)).append(item.reserva.getNombreCliente()).append("\n");
-        sb.append(getString(R.string.msg_contact)).append(item.reserva.getTelefono()).append("\n\n");
-        sb.append(getString(R.string.msg_in)).append(displayIn).append("\n");
-        sb.append(getString(R.string.msg_out)).append(displayOut).append("\n");
-        sb.append(getString(R.string.msg_duration)).append(dias).append(" ").append(getString(R.string.days)).append("\n\n");
-        sb.append(getString(R.string.msg_quads)).append(item.quads.size()).append("\n");
-        sb.append(getString(R.string.msg_cascos)).append(totalCascos).append("\n\n");
-        sb.append(getString(R.string.msg_price)).append(String.format(Locale.getDefault(), "%.2f", precioFinalCalculado)).append("€");
+        // Preparar etiquetas para el formateador
+        java.util.Map<String, String> labels = new java.util.HashMap<>();
+        labels.put("header", getString(R.string.msg_confirm_header));
+        labels.put("client", getString(R.string.msg_client));
+        labels.put("contact", getString(R.string.msg_contact));
+        labels.put("in", getString(R.string.msg_in));
+        labels.put("out", getString(R.string.msg_out));
+        labels.put("duration", getString(R.string.msg_duration));
+        labels.put("days", getString(R.string.days));
+        labels.put("quads", getString(R.string.msg_quads));
+        labels.put("cascos", getString(R.string.msg_cascos));
+        labels.put("price", getString(R.string.msg_price));
 
-        return sb.toString();
+        // Calcular precio final y delegar formateo
+        // Necesitamos calcular los días aquí para pasar el precio final
+        long dias = 1;
+        try {
+            SimpleDateFormat dbSdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            Date in = dbSdf.parse(item.reserva.getFechaRecogida());
+            Date out = dbSdf.parse(item.reserva.getFechaDevolucion());
+            if (in != null && out != null) {
+                long diff = out.getTime() - in.getTime();
+                dias = java.util.concurrent.TimeUnit.DAYS.convert(diff, java.util.concurrent.TimeUnit.MILLISECONDS);
+            }
+            if (dias < 1) dias = 1;
+        } catch (Exception e) {}
+        
+        double precioFinal = precioTotalAcordado * dias;
+
+        return es.unizar.eina.SistemaReservas.util.ReservaFormatter.formatReserva(
+                item.reserva.getNombreCliente(),
+                item.reserva.getTelefono(),
+                item.reserva.getFechaRecogida(),
+                item.reserva.getFechaDevolucion(),
+                item.quads.size(),
+                totalCascos,
+                precioFinal,
+                labels
+        );
     }
 
     private void mostrarDialogoEnvio(ReservaConQuads reservaItem, String mensajeFinal) {

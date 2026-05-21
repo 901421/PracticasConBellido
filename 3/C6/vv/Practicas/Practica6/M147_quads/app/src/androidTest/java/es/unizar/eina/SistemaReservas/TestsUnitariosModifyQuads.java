@@ -1,6 +1,9 @@
 package es.unizar.eina.SistemaReservas;
 
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
@@ -23,126 +26,127 @@ public class TestsUnitariosModifyQuads {
     public ActivityScenarioRule<SistemaReservas> scenarioRule =
             new ActivityScenarioRule<>(SistemaReservas.class);
 
-    private QuadRepository getQuadRepository() {
-        final QuadRepository[] repo = new QuadRepository[1];
-        scenarioRule.getScenario().onActivity(activity -> repo[0] = activity.getQuadRepository());
-        return repo[0];
-    }
-
     // Válido (Matrícula correcta, precio > 0, esMonoplaza true, desc "")
     @Test
     public void testUpdateQuadValidoMonoplaza() {
-        QuadRepository repository = getQuadRepository();
+        scenarioRule.getScenario().onActivity(activity -> {
+            QuadRepository repository = activity.getQuadRepository();
 
-        //Insertamos un Quad base
-        quadTest = new Quad("0000-BAS", true, 20.0, "Base");
-        long idGenerado = repository.insert(quadTest);
-        assertTrue("Fallo previo: no se insertó", idGenerado > 0);
-        quadTest.setId((int) idGenerado);
+            //Insertamos un Quad base
+            quadTest = new Quad("0000-BAS", true, 20.0, "Base");
+            long idGenerado = repository.insert(quadTest);
+            assertThat("Fallo previo: no se insertó", idGenerado, is(greaterThan(0L)));
+            quadTest.setId((int) idGenerado);
 
-        quadTest.setMatricula("1234-UAA");
-        quadTest.setPrecio(45.0);
-        quadTest.setEsmonoplaza(true);
-        quadTest.setDescripcion("");
+            quadTest.setMatricula("1234-UAA");
+            quadTest.setPrecio(45.0);
+            quadTest.setEsmonoplaza(true);
+            quadTest.setDescripcion("");
 
-
-        int filasActualizadas = repository.update(quadTest);
-        assertTrue("UNIT UPDATE 1: Éxito esperado (Monoplaza)", filasActualizadas > 0);
+            int filasActualizadas = repository.update(quadTest);
+            assertThat("UNIT UPDATE 1: Éxito esperado (Monoplaza)", filasActualizadas, is(greaterThan(0)));
+        });
     }
 
     // Válido (esMonoplaza false)
-
     @Test
     public void testUpdateQuadValidoBiplaza() {
-        QuadRepository repository = getQuadRepository();
+        scenarioRule.getScenario().onActivity(activity -> {
+            QuadRepository repository = activity.getQuadRepository();
 
-        quadTest = new Quad("0000-BAS", true, 20.0, "Base");
-        long idGenerado = repository.insert(quadTest);
-        quadTest.setId((int) idGenerado);
+            quadTest = new Quad("0000-BAS", true, 20.0, "Base");
+            long idGenerado = repository.insert(quadTest);
+            quadTest.setId((int) idGenerado);
 
+            quadTest.setMatricula("1234-UAB");
+            quadTest.setPrecio(45.0);
+            quadTest.setEsmonoplaza(false);
+            quadTest.setDescripcion("");
 
-        quadTest.setMatricula("1234-UAB");
-        quadTest.setPrecio(45.0);
-        quadTest.setEsmonoplaza(false);
-        quadTest.setDescripcion("");
-
-        int filasActualizadas = repository.update(quadTest);
-        assertTrue("UNIT UPDATE 2: Éxito esperado (Biplaza)", filasActualizadas > 0);
+            int filasActualizadas = repository.update(quadTest);
+            assertThat("UNIT UPDATE 2: Éxito esperado (Biplaza)", filasActualizadas, is(greaterThan(0)));
+        });
     }
 
     //Matrícula vacía
     @Test
     public void testUpdateMatriculaVacia() {
-        QuadRepository repository = getQuadRepository();
+        scenarioRule.getScenario().onActivity(activity -> {
+            QuadRepository repository = activity.getQuadRepository();
 
-        quadTest = new Quad("0000-BAS", true, 20.0, "Base");
-        long idGenerado = repository.insert(quadTest);
-        quadTest.setId((int) idGenerado);
+            quadTest = new Quad("0000-BAS", true, 20.0, "Base");
+            long idGenerado = repository.insert(quadTest);
+            quadTest.setId((int) idGenerado);
 
+            quadTest.setMatricula("");
+            quadTest.setPrecio(45.0);
+            quadTest.setEsmonoplaza(true);
+            quadTest.setDescripcion("");
 
-        quadTest.setMatricula("");
-        quadTest.setPrecio(45.0);
-        quadTest.setEsmonoplaza(true);
-        quadTest.setDescripcion("");
-
-        int filasActualizadas = repository.update(quadTest);
-        assertTrue("UNIT UPDATE 3: Fallo esperado por Matrícula vacía", filasActualizadas <= 0);
+            int filasActualizadas = repository.update(quadTest);
+            assertThat("UNIT UPDATE 3: Fallo esperado por Matrícula vacía", filasActualizadas, is(lessThanOrEqualTo(0)));
+        });
     }
 
     // Matrícula inválida (5 números)
     @Test
     public void testUpdateMatriculaFormatoInvalido() {
-        QuadRepository repository = getQuadRepository();
+        scenarioRule.getScenario().onActivity(activity -> {
+            QuadRepository repository = activity.getQuadRepository();
 
-        quadTest = new Quad("0000-BAS", true, 20.0, "Base");
-        long idGenerado = repository.insert(quadTest);
-        quadTest.setId((int) idGenerado);
+            quadTest = new Quad("0000-BAS", true, 20.0, "Base");
+            long idGenerado = repository.insert(quadTest);
+            quadTest.setId((int) idGenerado);
 
-        quadTest.setMatricula("11234-UAC");
-        quadTest.setPrecio(50.0);
-        quadTest.setEsmonoplaza(true);
-        quadTest.setDescripcion("");
+            quadTest.setMatricula("11234-UAC");
+            quadTest.setPrecio(50.0);
+            quadTest.setEsmonoplaza(true);
+            quadTest.setDescripcion("");
 
-        int filasActualizadas = repository.update(quadTest);
-        assertTrue("UNIT UPDATE 4: Fallo esperado por Formato Matrícula", filasActualizadas <= 0);
+            int filasActualizadas = repository.update(quadTest);
+            assertThat("UNIT UPDATE 4: Fallo esperado por Formato Matrícula", filasActualizadas, is(lessThanOrEqualTo(0)));
+        });
     }
 
     // Matrícula Null
     @Test
     public void testUpdateMatriculaNull() {
-        QuadRepository repository = getQuadRepository();
+        scenarioRule.getScenario().onActivity(activity -> {
+            QuadRepository repository = activity.getQuadRepository();
 
-        quadTest = new Quad("0000-BAS", true, 20.0, "Base");
-        long idGenerado = repository.insert(quadTest);
-        quadTest.setId((int) idGenerado);
+            quadTest = new Quad("0000-BAS", true, 20.0, "Base");
+            long idGenerado = repository.insert(quadTest);
+            quadTest.setId((int) idGenerado);
 
-        // Modificaciones Caso 5
-        quadTest.setMatricula(null);
-        quadTest.setPrecio(45.0);
-        quadTest.setEsmonoplaza(true);
-        quadTest.setDescripcion("");
+            // Modificaciones Caso 5
+            quadTest.setMatricula(null);
+            quadTest.setPrecio(45.0);
+            quadTest.setEsmonoplaza(true);
+            quadTest.setDescripcion("");
 
-
-        int filasActualizadas = repository.update(quadTest);
-        assertTrue("UNIT UPDATE 5: Fallo esperado por Matrícula null. Debió devolver 0.", filasActualizadas <= 0);
+            int filasActualizadas = repository.update(quadTest);
+            assertThat("UNIT UPDATE 5: Fallo esperado por Matrícula null. Debió devolver 0.", filasActualizadas, is(lessThanOrEqualTo(0)));
+        });
     }
 
     // Precio negativo
     @Test
     public void testUpdatePrecioNegativo() {
-        QuadRepository repository = getQuadRepository();
+        scenarioRule.getScenario().onActivity(activity -> {
+            QuadRepository repository = activity.getQuadRepository();
 
-        quadTest = new Quad("0000-BAS", true, 20.0, "Base");
-        long idGenerado = repository.insert(quadTest);
-        quadTest.setId((int) idGenerado);
+            quadTest = new Quad("0000-BAS", true, 20.0, "Base");
+            long idGenerado = repository.insert(quadTest);
+            quadTest.setId((int) idGenerado);
 
-        quadTest.setMatricula("1234-UAD");
-        quadTest.setPrecio(-1.0);
-        quadTest.setEsmonoplaza(true);
-        quadTest.setDescripcion("");
+            quadTest.setMatricula("1234-UAD");
+            quadTest.setPrecio(-1.0);
+            quadTest.setEsmonoplaza(true);
+            quadTest.setDescripcion("");
 
-        int filasActualizadas = repository.update(quadTest);
-        assertTrue("UNIT UPDATE 6: Fallo esperado por Precio negativo", filasActualizadas <= 0);
+            int filasActualizadas = repository.update(quadTest);
+            assertThat("UNIT UPDATE 6: Fallo esperado por Precio negativo", filasActualizadas, is(lessThanOrEqualTo(0)));
+        });
     }
 
     // Nota: El Caso 7 (esMonoplaza null) no se implementa porque el compilador de Java
@@ -151,48 +155,50 @@ public class TestsUnitariosModifyQuads {
     //  Descripción null
     @Test
     public void testUpdateDescripcionNull() {
-        QuadRepository repository = getQuadRepository();
+        scenarioRule.getScenario().onActivity(activity -> {
+            QuadRepository repository = activity.getQuadRepository();
 
-        quadTest = new Quad("0000-BAS", true, 20.0, "Base");
-        long idGenerado = repository.insert(quadTest);
-        quadTest.setId((int) idGenerado);
+            quadTest = new Quad("0000-BAS", true, 20.0, "Base");
+            long idGenerado = repository.insert(quadTest);
+            quadTest.setId((int) idGenerado);
 
-        quadTest.setMatricula("1234-UAE");
-        quadTest.setPrecio(45.0);
-        quadTest.setEsmonoplaza(true);
-        quadTest.setDescripcion(null);
+            quadTest.setMatricula("1234-UAE");
+            quadTest.setPrecio(45.0);
+            quadTest.setEsmonoplaza(true);
+            quadTest.setDescripcion(null);
 
-
-        int filasActualizadas = repository.update(quadTest);
-        assertTrue("UNIT UPDATE 8: Éxito esperado con Descripción null (respetando diseño original)", filasActualizadas > 0);
+            int filasActualizadas = repository.update(quadTest);
+            assertThat("UNIT UPDATE 8: Éxito esperado con Descripción null (respetando diseño original)", filasActualizadas, is(greaterThan(0)));
+        });
     }
-
 
     // Quad no existe en BD (Intentar actualizar algo que no existe)
-
     @Test
     public void testUpdateQuadInexistenteEnBD() {
-        QuadRepository repository = getQuadRepository();
+        scenarioRule.getScenario().onActivity(activity -> {
+            QuadRepository repository = activity.getQuadRepository();
 
-        // Creamos el quad pero no lo insertamos en la BD
-        quadTest = new Quad("1235-UAF", true, 50.0, "");
-        quadTest.setId(999999); // Le ponemos un ID inventado
+            // Creamos el quad pero no lo insertamos en la BD
+            quadTest = new Quad("1235-UAF", true, 50.0, "");
+            quadTest.setId(999999); // Le ponemos un ID inventado
 
-        // Intentamos actualizarlo
-        int filasActualizadas = repository.update(quadTest);
+            // Intentamos actualizarlo
+            int filasActualizadas = repository.update(quadTest);
 
-        assertTrue("UNIT UPDATE 9: Fallo esperado por registro inexistente", filasActualizadas <= 0);
+            assertThat("UNIT UPDATE 9: Fallo esperado por registro inexistente", filasActualizadas, is(lessThanOrEqualTo(0)));
 
-        // Evitamos que el tearDown intente borrarlo
-        quadTest = null;
+            // Evitamos que el tearDown intente borrarlo
+            quadTest = null;
+        });
     }
-
 
     @After
     public void tearDown() {
-        QuadRepository repository = getQuadRepository();
-        if (quadTest != null && quadTest.getId() > 0) {
-            repository.delete(quadTest);
-        }
+        scenarioRule.getScenario().onActivity(activity -> {
+            QuadRepository repository = activity.getQuadRepository();
+            if (quadTest != null && quadTest.getId() > 0) {
+                repository.delete(quadTest);
+            }
+        });
     }
 }
